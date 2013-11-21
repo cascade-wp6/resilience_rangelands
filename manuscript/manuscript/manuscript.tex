@@ -1,0 +1,63 @@
+
+\documentclass[a4paper, twoside, BCOR20mm, DIV14, headinclude, 11pt, headings=optiontohead]{scrartcl}
+
+\usepackage{lineno}
+\linenumbers
+
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf}
+\usepackage[round]{natbib}
+%\usepackage{units, calc}
+%\usepackage{gensymb} %for \degree and \celsius symbols
+%\usepackage[ansinew]{inputenc}
+%\usepackage{amssymb}
+\usepackage[intlimits]{amsmath} %, fleqn
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage[doublespacing]{setspace}
+%\usepackage[font=footnotesize, labelfont=bf, labelsep=endash, labelformat=simple, format= plain, indention=.5cm]{caption}
+
+%required for SI 
+%\usepackage{longtable}
+%\usepackage{changepage} %for temporal alteration of text width (used in ch1 for table2)
+
+% general settings
+
+%\geometry{verbose, letterpaper, tmargin=2.54cm, bmargin=2.54cm, lmargin=2.54cm, rmargin=2.54cm}
+
+\setcounter{secnumdepth}{0}
+\setkomafont{sectioning}{\normalfont\normalcolor\bfseries}
+\newcommand*\patchAmsMathEnvironmentForLineno[1]{%
+  \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
+  \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
+  \renewenvironment{#1}%
+     {\linenomath\csname old#1\endcsname}%
+     {\csname oldend#1\endcsname\endlinenomath}}% 
+\newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
+  \patchAmsMathEnvironmentForLineno{#1}%
+  \patchAmsMathEnvironmentForLineno{#1*}}%
+\AtBeginDocument{%
+\patchBothAmsMathEnvironmentsForLineno{equation}%
+\patchBothAmsMathEnvironmentsForLineno{align}%
+\patchBothAmsMathEnvironmentsForLineno{flalign}%
+\patchBothAmsMathEnvironmentsForLineno{alignat}%
+\patchBothAmsMathEnvironmentsForLineno{gather}%
+\patchBothAmsMathEnvironmentsForLineno{multline}%
+}
+
+
+\begin{document}
+
+%\bibliographystyle{amnat2}
+
+
+\title{Grazing raises risk of catastrophic shifts in drylands}
+\author{Florian D. Schneider \& Sonia K\'efi}
+\date{}
+\maketitle
+
+\input{ms_main.tex} 
+
+%\bibliography{biblio}
+
+\end{document}
