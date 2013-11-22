@@ -136,7 +136,7 @@ library(doSNOW)
 
 
 #workerlist <- rep(list(ubuWorker), times = 2)
-workerlist <- rep("localhost", times = 10)
+workerlist <- rep("localhost", times = 11)
 
 cl <- makeSOCKcluster(workerlist)
 
@@ -588,12 +588,12 @@ for(i in sort(unique(output$g)) ) {
 
  
  
-pdf("C:\\Users\\SCHNEIDER\\SkyDrive\\Uni\\projects\\2013 Grazing models (CASCADE)\\manuscript\\first draft\\figures\\models.pdf", height = 7, width = 12, paper = "special")
+pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\models.pdf", height = 7, width = 12, paper = "special")
 
  par(mfrow = c(4,5), oma = c(2,2,2,2))
 
  par(mar = c(0,0,0,0) ) 
- 
+
  for(i in 1:4) {
 	for(j in sort(unique(output$g)) ){
 	grazing = j
@@ -641,7 +641,7 @@ dev.off()
 	)
 	}
 
-pdf("E:\\SkyDrive\\Uni\\projects\\2013 Grazing models (CASCADE)\\figures\\alpha.pdf", height = 12, width = 7, paper = "special")
+pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\alpha.pdf", height = 12, width = 7, paper = "special")
 	
  par(mfrow = c(4,1), oma = c(0,0,2,1))
 for(l in 1:4) {

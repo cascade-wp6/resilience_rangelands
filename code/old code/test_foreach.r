@@ -6,7 +6,7 @@ library(foreach)
 library(doSNOW)
 
 
-dir.create("results")
+dir.create("results2")
 
 workerlist <- rep("localhost", times = 23)
 
@@ -18,7 +18,7 @@ registerDoSNOW(cl)
 foreach(iteration = 1:46) %dopar% {
 #
 temp <- rnorm(20)
-save(temp, file = paste("results/temp", iteration, sep = "_"))
+save(temp, file = paste("results2/temp", iteration, sep = "_"))
 	
 
 gc() 
