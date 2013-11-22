@@ -28,6 +28,7 @@ count  <- function(x, neighbor, state = NULL) {
 			return(neighbors)	
 }
 
+
 # function which counts the density of a state within neighboring cells of a particular state
 # requires a previous global definition of the transformation vectors "x_to_evaluate" and "x_with_border" and the neighborhood vector "interact"
 localdens <- function(x, neighbor, state) {
@@ -121,44 +122,6 @@ delta = 1/5
 t_eval <- ((timesteps/delta)-100/delta):(timesteps/delta)+1
 	
 snapshots <-  (timesteps-10:0*50)/delta+1
-
-################ parameter settings
-first_ID = 1  #
-env <- 	seq(0.2,1,.01) #seq(0.20,0.98,.02)+.01
-graz <- seq(.0, .1, 0.025) #.025 #
-mort <- 0.05 #c(0.05, 0.1) #seq(0.05,.15, 0.05)
-init <- round(exp(seq(log(0.25), log(0.9), length = 33))[seq(1,33,2)], digits = 3)
-global <- c(FALSE, TRUE)
-stock <- c(FALSE, TRUE)
-
-
-lgraz <- length(graz)
-lenv <- length(env)
-lmort <- length(mort)
-linit <- length(init)
-lglobal <- length(global)
-lstock <- length(stock)
-replication <- 1
-
-
-# defining parameter set
-parameters = data.frame(
-	ID = first_ID:(lgraz*lmort*lglobal*linit*lenv*lstock*replication+first_ID-1), 
-	global = rep(global, each = lgraz*lenv*lmort*linit*lstock*replication),
-	stock =  rep(rep(stock, each = lgraz*lenv*lmort*linit*replication), times = lstock),
-	starting = rep(rep(init, each = lgraz*lenv*lmort*replication), times = lglobal*lstock),
-	m = rep(rep(mort, each = lgraz*lenv*replication), times = lglobal*linit*lstock), 		# intrinsic mortality
-	g = rep(rep(graz, each = lenv*replication), times = lmort*lglobal*linit*lstock),		#grazing
-	b = rep(rep(env, each = replication) , times = lgraz*lmort*lglobal*linit*lstock), 		# beta*eps 
-	d = 0.1,		# degradation
-	c_ = 0.2, 		# beta*g  
-	del = 0.1,  	# seeds dispersed; (1-del) seeds on nearest neighbourhood
-	r = 0.01, 	# regeneration rate
-	f = 0.9		# local fascilitation
-)
-
-
-
 
 
 #setwd("E:\\Eigene Dokumente\\Uni\\projects\\2013 CASCADE grazing\\sim9\\")
@@ -340,26 +303,48 @@ dev.off()
 
 
 
-pdf("C:\\Users\\SCHNEIDER\\SkyDrive\\Uni\\projects\\2013 Grazing models (CASCADE)\\figures\\patterns.pdf", height = 7, width = 8, paper = "special")
+pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\patterns.pdf", height = 7, width = 10, paper = "special")
 
 
-A <- matrix(1:16, ncol = 4, byrow = TRUE)
+#A <- matrix(1:16, ncol = 4, byrow = TRUE)
 
-layout(rbind( cbind(A, c(0,0,0,0), A+length(A)), rep(0, times = 9), cbind(A+length(A)*2, c(0,0,0,0), A+length(A)*3) ) , width = c(1,1,1,1,0.4,1,1,1,1), height = c(1,1,1,1,0.4,1,1,1,1))
+#layout(rbind( cbind(A, rep(0, times = dim(A)[2]), A+length(A)), rep(0, times = 9), cbind(A+length(A)*2, c(0,0,0,0), A+length(A)*3) ) , width = c(1,1,1,1,0.4,1,1,1,1), height = c(1,1,1,1,0.4,1,1,1,1))
+
+
+excerpt <- function(x, extr = NULL) {
+  out <- list()
+  out$dim <- c(length(extr[1]:extr[3]),length(extr[2]:extr[4]))
+  temp  <- matrix(1:length(x$cells), ncol = x$dim[2], byrow = TRUE)
+  if(!is.null(extr[1]) ) temp <- temp[extr[1]:extr[3], extr[2]:extr[4], drop = FALSE]
+  out$cells <-  x$cells[as.vector(temp), drop = FALSE]
+  
+  class(out) <- c("list", "landscape")
+  
+  return(out)
+}
+
+
+jvar = seq(0.5, 0.8, 0.05)
+steps = length(jvar)
+A <- matrix(1:(4*steps), ncol = steps, byrow = TRUE)
+
+layout(rbind( cbind(A, rep(0, times = dim(A)[1]), A+length(A)), rep(0, times = dim(A)[2]*2+1), cbind(A+length(A)*2,  rep(0, times = dim(A)[1]), A+length(A)*3) ) , width = c(rep(1, times = steps), 0.4, rep(1, times = steps)), height = c(1,1,1,1,0.4,1,1,1,1))
+
 par(oma = c(4,4,1,1)+.1, mar = c(0,0,0,0))
 #layout.show(n = 48)
 
 for(i in 1:4) {
 	for(k in unique(output$g)[-1]) {
-		for(j in c("0.5", "0.6", "0.7", "0.8" )) {
+		for(j in jvar) {
 			#try({
-				iteration = output$ID[which(output$g == k & output$b == j & output$starting %in% c(0.603, 0.653, 0.708, 0.767, 0.831, 0.900) & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] & output$stable == TRUE)]
+				iteration = output$ID[which(output$g == k & output$b == j & output$starting %in%  sort(unique(output$starting))[12:17] & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] )]
 							
+				#load(paste("results\\result", sample(iteration, 1), sep = "_"))
 				load(paste("results\\result", iteration[length(iteration)], sep = "_"))
 				
 				#extract <- as.vector(matrix(1:10000, ncol = 100, byrow = TRUE)[1:25,1:25])
 				
-				x <- result$timeseries[[23]]
+				x <- excerpt(result$timeseries[[23]], extr = c(15,15,50,50))
 					
 				plot(x, cols = c("grey40","grey80", "white"))
 				par(new=TRUE)
@@ -378,24 +363,7 @@ for(i in 1:4) {
 					models$AIC <- vector()
 					#############
 					PLlm <- lm(I(log(n)) ~  I(log(size)) , data = dd3) 
-	
-					try({Mx <- nls(I(log(n)) ~ log(a) - alpha * log(size) - (S*size) + log(1+b/(a*size^(-alpha)*exp(S*size))), 
-						data = dd3,
-						start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2], b=1/sum(result$cumpatch[[22]]$n), S = .00 ),
-						#algorithm = "port",
-						#lower = c(0, 0, 0, 0), upper = c(NA, NA, NA, NA),
-						trace = TRUE,
-						nls.control(maxiter = 100)
-						)
-						
-						lines(	exp(seq(log(1), log(100000), length = 100)), 
-						exp(predict(Mx, list(size = exp(seq(log(1), log(100000), length = 100 )))) ),
-						col = "blue", lwd = 4
-						)
-						
-						}, silent = TRUE
-						
-					)
+					
 					
 					try({models$PL <- nls(I(log(n)) ~ log(a) - alpha * log(size), 
 						data = dd3,
@@ -404,7 +372,6 @@ for(i in 1:4) {
 						nls.control(maxiter = 100)
 						)}, silent = TRUE
 					)
-	
 	
 					if(!is.null(models$PL)) {
 						models$AIC[1] <- AIC(models$PL)
@@ -433,12 +400,14 @@ for(i in 1:4) {
 						models$AIC[2] <- NA
 					}
 	
-
+				###########
 						
 				try( {models$TPLdown <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) - (size/Sx) ), 
 						data = dd3,
-						start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2], Sx = 100),
-  				      trace = FALSE
+						start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2], Sx = 100), 
+						algorithm = "port",						
+						#lower = c(0, 0, 0), upper = c(NA, NA, NA),
+						trace = FALSE
 						)}, silent = TRUE
 					)		
 
@@ -473,7 +442,7 @@ for(i in 1:4) {
 					models$dAIC <- 	models$AIC -min(models$AIC, na.rm = TRUE)
 	
 	
-					models$best <- which.min(models$AIC)
+					models$best <- which.min(models$AIC[-4])
 
 					} else {
 	
@@ -494,7 +463,11 @@ for(i in 1:4) {
 						col = color[models$best], lwd = 4
 					))
 	
-				}
+				} 
+				if(models$ best == 5) { lines(c(1,result$cumpatch[[22]]$size[2]), c(1,1/sum(result$cumpatch[[22]]$n) ), lwd = 4, col = color[4] ) }
+				
+				
+#) }
 	
 
 	
@@ -506,10 +479,23 @@ for(i in 1:4) {
 			#})
 		}
 	}
+	
+
 }
 
-	
+
 dev.off()	
+
+layout(matrix(c(1,0,2,3), ncol = 2, byrow = TRUE ) )
+
+par(mar = c(1,2,2,2))
+plot(NA, NA, xlim = range(jvar), ylim = c(0.025,.1), xaxt = "n" , yaxt = "n",bty = "n") 
+axis(2,at = c(0.025, 0.05, 0.075, 0.1), tick = FALSE, outer = TRUE, las = 1)
+plot(NA, NA, xlim = range(jvar), ylim = c(0.025,.1), xaxt = "n" , yaxt = "n",bty = "n") 
+axis(2,at = c(0.025, 0.05, 0.075, 0.1), tick = FALSE, outer = TRUE, las = 1)
+axis(1,at = jvar, tick = FALSE, outer = TRUE, las = 1)
+plot(NA, NA, xlim = range(jvar), ylim = c(0.025,.1), xaxt = "n" , yaxt = "n",bty = "n") 
+axis(1,at = jvar, tick = FALSE, outer = TRUE, las = 1)
 
 
 	
@@ -567,6 +553,9 @@ for(i in sort(unique(output$g)) ) {
 
 		}
 	)
+	with(unst_eq[unst_eq$g == 0.05  & unst_eq$stock == FALSE & unst_eq$global == TRUE,], 
+		points(b, eq , pch = 20, col = "black"))	
+
 	
 
 	with(output[output$g == 0.05 & output$stock == FALSE & output$globalgrazing == FALSE,], {
@@ -575,6 +564,9 @@ for(i in sort(unique(output$g)) ) {
 
 		}
 	)
+	with(unst_eq[unst_eq$g == 0.05  & unst_eq$stock == FALSE & unst_eq$global == FALSE,], 
+		points(b, eq , pch = 20, col = "black"))	
+
 	
 	with(output[output$g == 0.05 & output$stock == TRUE & output$globalgrazing == TRUE,], {
 		plot(b, rho_plus , ylim = c(0,1), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", 0.075))
@@ -582,14 +574,18 @@ for(i in sort(unique(output$g)) ) {
 
 		}
 	)
-	
+	with(unst_eq[unst_eq$g == 0.05  & unst_eq$stock == TRUE & unst_eq$global == TRUE,], 
+		points(b, eq , pch = 20, col = "black"))	
+
 	with(output[output$g == 0.05 & output$stock == TRUE & output$globalgrazing == FALSE,], {
 		plot(b, rho_plus , ylim = c(0,1), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", 0.075))
 		arrows(b, rho_plus_ini, b, rho_plus, length = 0.05)
 
 		}
 	)
-	
+	with(unst_eq[unst_eq$g == 0.05  & unst_eq$stock == TRUE & unst_eq$global == FALSE,], 
+		points(b, eq , pch = 20, col = "black"))	
+
  
  
 pdf("C:\\Users\\SCHNEIDER\\SkyDrive\\Uni\\projects\\2013 Grazing models (CASCADE)\\manuscript\\first draft\\figures\\models.pdf", height = 7, width = 12, paper = "special")
