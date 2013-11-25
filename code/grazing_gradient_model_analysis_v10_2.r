@@ -303,7 +303,7 @@ dev.off()
 
 
 
-pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\patterns.pdf", height = 7, width = 10, paper = "special")
+pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\patterns.pdf", height =6, width = 10, paper = "special")
 
 
 #A <- matrix(1:16, ncol = 4, byrow = TRUE)
@@ -323,8 +323,8 @@ excerpt <- function(x, extr = NULL) {
   return(out)
 }
 
-
-jvar = seq(0.5, 0.8, 0.05)
+set.seed(12)
+jvar = seq(0.5, 0.82, 0.04)
 steps = length(jvar)
 A <- matrix(1:(4*steps), ncol = steps, byrow = TRUE)
 
@@ -340,7 +340,9 @@ for(i in 1:4) {
 				iteration = output$ID[which(output$g == k & output$b == j & output$starting %in%  sort(unique(output$starting))[12:17] & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] )]
 							
 				#load(paste("results\\result", sample(iteration, 1), sep = "_"))
-				load(paste("results\\result", iteration[length(iteration)], sep = "_"))
+				if(length(iteration) > 1) { load(paste("results\\result", sample(iteration, 1), sep = "_")) }
+				if(length(iteration) == 1) { load(paste("results\\result", iteration, sep = "_")) }
+				if(length(iteration) == 0) stop()
 				
 				#extract <- as.vector(matrix(1:10000, ncol = 100, byrow = TRUE)[1:25,1:25])
 				
@@ -350,9 +352,8 @@ for(i in 1:4) {
 				par(new=TRUE)
 				plot(NA,NA, xlim = c(1,10000), ylim = c(.00001,1), log ="xy", pch = 20, col = "#00000020", xaxt = "n", yaxt = "n", bty = "n")
 
-				if(result$out$rho_plus == 0) {flag = FALSE} else {
+				if(result$out$rho_plus == 0 | is.na(result$cumpatch[[22]])) {flag = FALSE} else {
 									dd3 <- data.frame(size = result$cumpatch[[22]]$size, n = result$cumpatch[[22]]$p)
-									points(dd3, col = "#404040", type = "l", lwd = 2)
 									if(length(dd3$n) < 3) {flag = FALSE} else {flag = TRUE}
 						}
 
@@ -455,19 +456,20 @@ for(i in 1:4) {
 	
 					}
 					
-					color = c("#FF000060", "#1100FF60", "#FF00FF60", "#FFEE0060")
+					color =  c("#FBF2BF","red", "#B2EB83", "red3","violet","#479418")
 
 				if(models$best %in% c(1,2,3,4)) {
 					(lines(	exp(seq(log(1), log(100000), length = 100)), 
 						exp(predict(models[[models$best+1]], list(size = exp(seq(log(1), log(100000), length = 100 )))) ),
-						col = color[models$best], lwd = 4
+						col = color[models$best+1], lwd = 4
 					))
-	
+					points(dd3, col = "#404040", type = "l", lwd = 2) 
 				} 
-				if(models$ best == 5) { lines(c(1,result$cumpatch[[22]]$size[2]), c(1,1/sum(result$cumpatch[[22]]$n) ), lwd = 4, col = color[4] ) }
+				if(models$ best == 5) {
+					lines(c(1,result$cumpatch[[22]]$size[2]), c(1,1/sum(result$cumpatch[[22]]$n) ), lwd = 4, col = color[6] ) 
+					points(dd3, col = "#404040", type = "l", lwd = 2)
+					}
 				
-				
-#) }
 	
 
 	
@@ -612,14 +614,19 @@ pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\models.p
 	plot(NA, NA , ylim = c(0,1), xlim = c(0.2,1), bty = "n", xaxt = "n", yaxt = "n")
 	rect(0.2, 0, 1, 1, col = "#F0F5CE", border = FALSE )
 	
-	# define colors for: desert, exp, TPL_up, PL, TPL_down, covered
+	# define colors for: desert, PL, TPL_up,  TPL_down, exp, covered
 	#c("#F0F5CE", "#F041D6", "#B2EB83","#FF4917", "#7171F5","#479418")
-	with(temp, rect(b+pos1, 0,b+pos2,1, col = c("#F0F5CE", "violet",  "#B2EB83","red", "red3","#479418")[best+1], border = NA)
+	with(temp, rect(b+pos1, 0,b+pos2,1, col = c("#FBF2BF","red", "#B2EB83", "red3","violet","#479418")[best+1], border = NA)
 	)
 	
+	temp <- unst_eq[unst_eq$g == grazing & unst_eq$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & unst_eq$global == c(TRUE, FALSE, TRUE, FALSE)[i] & unst_eq$eq != 0,]
+	
+	points(temp$b, temp$eq , pch = 20, col = "white", cex = 1.25)
+
 	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i],]
 	
 	points(temp$b, temp$rho_plus , pch = 20, col = "black", cex = 1.25)
+	
 	#text(0.3, .9, labels = paste("g = ", grazing))
 		}
 }
