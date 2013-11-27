@@ -234,28 +234,8 @@ out_fits <- read.csv("output_fits.csv")
 unst_eq <- read.csv("unstable_eq.csv", sep = ";")
 output <- output[ output$stable == TRUE, ] # & output$ID > 27541
 
- par(mfrow = c(1,4), oma = c(0,0,2,0))
-for(i in sort(unique(as.character(output$g)))[-c(1,6)] ) {
-	
-	with(output[output$g == 0 & output$stable == TRUE ,], 
-		plot(b, rho_plus , ylim = c(0,1), xlim = c(0,1), pch = 20, col = "gray80", main = paste("g = ", i)))
-	
-	with(output[output$g == i  & output$globalgrazing == TRUE & output$stock == FALSE & output$stable == TRUE,], 
-		points(b, rho_plus , pch = 20, col = "gray20"))
-	
-	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == TRUE & output$stable == TRUE,], 
-		points(b, rho_plus, pch = 20, col = "red2", cex = 1 ))
-	
-	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == FALSE & output$stable == TRUE,], 
-		points(b, rho_plus, pch = 20, col = "darkred", cex = 1 ))
-	
-	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == TRUE & output$stable == TRUE,], 
-		points(b, rho_plus, pch = 20, col = "red", cex = 1 ))
-	
-}
 
-
-pdf("C:\\Users\\SCHNEIDER\\SkyDrive\\Uni\\projects\\2013 Grazing models (CASCADE)\\figures\\stability.pdf", height = 7, width = 8, paper = "special")
+pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\stability.pdf", height = 7, width = 8, paper = "special")
 
  par(mfrow = c(2,2), mar = c(2,2,0,0), oma = c(3,3,2,1))
  
@@ -488,120 +468,33 @@ for(i in 1:4) {
 
 dev.off()	
 
-layout(matrix(c(1,0,2,3), ncol = 2, byrow = TRUE ) )
-
-par(mar = c(1,2,2,2))
-plot(NA, NA, xlim = range(jvar), ylim = c(0.025,.1), xaxt = "n" , yaxt = "n",bty = "n") 
-axis(2,at = c(0.025, 0.05, 0.075, 0.1), tick = FALSE, outer = TRUE, las = 1)
-plot(NA, NA, xlim = range(jvar), ylim = c(0.025,.1), xaxt = "n" , yaxt = "n",bty = "n") 
-axis(2,at = c(0.025, 0.05, 0.075, 0.1), tick = FALSE, outer = TRUE, las = 1)
-axis(1,at = jvar, tick = FALSE, outer = TRUE, las = 1)
-plot(NA, NA, xlim = range(jvar), ylim = c(0.025,.1), xaxt = "n" , yaxt = "n",bty = "n") 
-axis(1,at = jvar, tick = FALSE, outer = TRUE, las = 1)
-
-
-	
-	
-	
 
 	
 	
 	
 	
-	
- par(mfrow = c(2,5), oma = c(0,0,2,0), mar = c(3,3,2,2)+.1)
-for(i in sort(unique(output$g)) ) {
-	
-	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == FALSE,], 
-		plot(rho_plus, mortality , ylim = c(0,.4), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", i)))
-	
-	abline(h = 0.05, col = "grey80")
-	
-	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == TRUE,], 
-		points(rho_plus, mortality, pch = 20, col = "gray50", cex = 1 ))
-	
-	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == FALSE,], 
-		points(rho_plus, mortality, pch = 20, col = "red", cex = 1 ))
-	
-	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == TRUE,], 
-		points(rho_plus, mortality, pch = 20, col = "darkred", cex = 1 ))
-	
-}
-
-# par(mfrow = c(1,5), oma = c(0,0,2,0))
-for(i in sort(unique(output$g)) ) {
-	
-	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == FALSE,], 
-		plot(rho_plus, mortality_border , ylim = c(0,.4), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", i)))
-	
-	abline(h = 0.05, col = "grey80")
-	
-	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == TRUE,], 
-		points(rho_plus, mortality_border, pch = 20, col = "gray50", cex = 1 ))
-	
-	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == FALSE,], 
-		points(rho_plus, mortality_border, pch = 20, col = "red", cex = 1 ))
-	
-	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == TRUE,], 
-		points(rho_plus, mortality_border, pch = 20, col = "darkred", cex = 1 ))
-	
-}
-
- par(mfrow = c(1,4), oma = c(0,0,2,0))
-
-	with(output[output$g == 0.05 & output$stock == FALSE & output$globalgrazing == TRUE,], {
-		plot(b, rho_plus , ylim = c(0,1), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", 0.075))
-		arrows(b, rho_plus_ini, b, rho_plus, length = 0.05)
-
-		}
-	)
-	with(unst_eq[unst_eq$g == 0.05  & unst_eq$stock == FALSE & unst_eq$global == TRUE,], 
-		points(b, eq , pch = 20, col = "black"))	
-
-	
-
-	with(output[output$g == 0.05 & output$stock == FALSE & output$globalgrazing == FALSE,], {
-		plot(b, rho_plus , ylim = c(0,1), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", 0.075))
-		arrows(b, rho_plus_ini, b, rho_plus, length = 0.05)
-
-		}
-	)
-	with(unst_eq[unst_eq$g == 0.05  & unst_eq$stock == FALSE & unst_eq$global == FALSE,], 
-		points(b, eq , pch = 20, col = "black"))	
-
-	
-	with(output[output$g == 0.05 & output$stock == TRUE & output$globalgrazing == TRUE,], {
-		plot(b, rho_plus , ylim = c(0,1), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", 0.075))
-		arrows(b, rho_plus_ini, b, rho_plus, length = 0.05)
-
-		}
-	)
-	with(unst_eq[unst_eq$g == 0.05  & unst_eq$stock == TRUE & unst_eq$global == TRUE,], 
-		points(b, eq , pch = 20, col = "black"))	
-
-	with(output[output$g == 0.05 & output$stock == TRUE & output$globalgrazing == FALSE,], {
-		plot(b, rho_plus , ylim = c(0,1), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", 0.075))
-		arrows(b, rho_plus_ini, b, rho_plus, length = 0.05)
-
-		}
-	)
-	with(unst_eq[unst_eq$g == 0.05  & unst_eq$stock == TRUE & unst_eq$global == FALSE,], 
-		points(b, eq , pch = 20, col = "black"))	
-
  
+pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\models.pdf", height = 6, width = 12, paper = "special")
+
+ par( oma = c(4,4,4,4))
+
+# layout(matrix(c(1,0,5,2,0,6,3,0,7,4,0,8, 0,0,0, 9,0,13,10,0,14,11,0,15,12,0,16), ncol = 3, byrow = TRUE), width = c(steps, 0.4, steps), height = c(1,1,1,1,0.4,1,1,1,1)) 
  
-pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\models.pdf", height = 7, width = 12, paper = "special")
-
- par(mfrow = c(4,5), oma = c(2,2,2,2))
-
+layout(matrix(c(1:4,rep(0, 4),5:8,rep(0, 4),9:12,rep(0, 4),13:16), ncol = 7, byrow = FALSE), width = c(1, 0.1, 1, 0.1, 1, 0.1, 1)) 
+ 
  par(mar = c(0,0,0,0) ) 
 
  for(i in 1:4) {
-	for(j in sort(unique(output$g)) ){
+	for(j in sort(unique(output$g)[-1]) ){
 	grazing = j
 	
 	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] & output$rho_plus > 0,]
+
+	plot(NA, NA , ylim = c(0,1), xlim = c(0.2,1), bty = "n", xaxt = "n", yaxt = "n")
+	rect(0.2, 0, 1, 1, col = "#FBF2BF", border = FALSE )
+	if(i == 1 ) axis(2)
 	
+	if(length(temp$ID) > 0) {
 	 lvls <- sort(unique(temp$b))
 	 repl <- sapply(lvls, function(x) length(temp$best[temp$b == x]))
 	
@@ -611,27 +504,44 @@ pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\models.p
 	temp$pos2 <- unlist(lapply(repl, function(x) seq(0,0.01, length = x+1)[-1]))
 
 	#temp$repl <-  repl[match(temp$b, lvls)]
-	plot(NA, NA , ylim = c(0,1), xlim = c(0.2,1), bty = "n", xaxt = "n", yaxt = "n")
-	rect(0.2, 0, 1, 1, col = "#F0F5CE", border = FALSE )
 	
 	# define colors for: desert, PL, TPL_up,  TPL_down, exp, covered
 	#c("#F0F5CE", "#F041D6", "#B2EB83","#FF4917", "#7171F5","#479418")
 	with(temp, rect(b+pos1, 0,b+pos2,1, col = c("#FBF2BF","red", "#B2EB83", "red3","violet","#479418")[best+1], border = NA)
 	)
+	}
 	
-	temp <- unst_eq[unst_eq$g == grazing & unst_eq$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & unst_eq$global == c(TRUE, FALSE, TRUE, FALSE)[i] & unst_eq$eq != 0,]
+	temp <- unst_eq[unst_eq$g == grazing & unst_eq$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & unst_eq$global == c(TRUE, FALSE, TRUE, FALSE)[i] & unst_eq$eq > 0 & unst_eq$eq < unst_eq$rho_plus,]
 	
-	points(temp$b, temp$eq , pch = 20, col = "white", cex = 1.25)
-
+	if(length(temp$eq) > 0) {
+	#points(temp$b, temp$eq , pch = 20, col = "white", cex = 1.25)
+	rect(temp$b, rep(0, length(temp$b)), c(temp$b[-1],1.01), temp$eq ,  border = NA, col = "#FBF2BF")
+	}
+	
+	
 	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i],]
 	
 	points(temp$b, temp$rho_plus , pch = 20, col = "black", cex = 1.25)
 	
 	#text(0.3, .9, labels = paste("g = ", grazing))
 		}
+	axis(1)
 }
 
+mtext("environmental quality, b", side = 1, outer = TRUE, line = 2.5,cex = 0.8)
+mtext("vegetation cover, rho_plus", side = 2, outer = TRUE, line = 2.5,cex = 0.8)
+
+mtext("type of model", side = 3, outer = TRUE, line = 2.5,cex = 1)
+mtext(c("parent model", "livestock model", "associative protection", "combined"), at = c(0.1, 0.35, 0.62, 0.88), side = 3, outer = TRUE, line = 0.5,cex = 0.6)
+
+mtext("grazing intensity, g", side = 4, outer = TRUE, line = 2.5,cex = 0.8)
+mtext(c(0.1, 0.075, 0.05, 0.025), at = c(0.1, 0.35, 0.62, 0.88), side = 4, outer = TRUE, line = 0.5,cex = 0.6)
+
+
 dev.off()
+	
+	
+	
 	
 	
  par(mfrow = c(2,2), oma = c(0,0,2,1))
@@ -648,6 +558,9 @@ dev.off()
 	)
 	}
 
+	
+	
+	
 pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\alpha.pdf", height = 12, width = 7, paper = "special")
 	
  par(mfrow = c(4,1), oma = c(0,0,2,1))
@@ -655,47 +568,36 @@ for(l in 1:4) {
  for(i in c(0, 0.025, 0.05, 0.075)) {
 	grazing = i
 	#l = 4
-	with(out_fits[out_fits$g == grazing & out_fits$stock == c(FALSE, FALSE, TRUE, TRUE)[l] & out_fits$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[l] & out_fits$snapshot %in% c(2000, 1900, 1800, 1700, 1600, 1500),], {
+	temp <- out_fits[out_fits$g == grazing & out_fits$stock == c(FALSE, FALSE, TRUE, TRUE)[l] & out_fits$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[l] & out_fits$snapshot %in% seq(1500, 2000, 50),]
 		
 		plot(NA, NA , ylim = c(0,1), xlim = c(0,1), main = paste("g = ", grazing))
 		
-		points( b, p1 , pch = 20, col = bestmodel)
+		points( temp$b, temp$p1 , pch = 20, col = c("#FBF2BF","#B2EB83","red", "red3","#479418","violet")[temp$bestmodel])
 		#text(b, c(0.4,0.47,0.54, 0.6), labels = best, col = "white")
-		}
-	)
+		
+	
 	}
 	}
 	dev.off()
 
-	#################################################
 	
- par(mfrow = c(2,2), oma = c(0,0,2,1))
-
- for(i in 1:4) {
-	grazing = 0.05
-	with(output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] & output$stable == TRUE,], {
-		
-		plot(NA, NA , ylim = c(0,1), xlim = c(0.2,1), main = paste("g = ", grazing))
-		
-		for(j in ID) {
-			
-			with(out_fits[out_fits$ID == j, ], {
-					#try(arrows(b+(0:19)/2000, 0,b+(0:19)/2000,1, col = c("#FF000010", "#1100FF10", "#FF00FF10", "#FFEE0010")[bestmodel],length = 0, lwd =.05))
-					pos <- as.integer(as.factor(starting))*as.integer(as.factor(snapshot))
-					#posmax = length(unique(starting))*length(unique(snapshot))
-					try(rect(b+seq(0,0.01,length = 360)[pos-1], 0,b+seq(0,0.01,length = 360)[-pos],1, col = c("#C3F4F7",   "#F041D6", "#B2EB83","#FF4917", "#7171F5","#479418")[as.integer(best)], border = NA))
-
-			} )
-		
-		}
-		#arrows(b, 0,b,1, col = c("#FF000040", "#1100FF40", "#FF00FF40", "#00FFF040")[best],length = 0, lwd =8)
-		
-		points(b, rho_plus , pch = 20, col = "black")
-		#text(b, c(0.4,0.47,0.54, 0.6), labels = best, col = "white")
-		}
-	)
-	}
-
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -906,4 +808,99 @@ try(lines(	exp(seq(log(1), log(100000), length = 100)),
 
 }
 dev.off()
+
+
+
+
+#
+
+			#
+    ##################
+##########################
+
+##########################
+##########################
+##########################
+##########################
+### Recycle bin ##########
+##########################
+##########################
+##########################
+##########################
+##########################
+ ########################
+ 
+ 
+ 
+	
+ par(mfrow = c(2,5), oma = c(0,0,2,0), mar = c(3,3,2,2)+.1)
+for(i in sort(unique(output$g)) ) {
+	
+	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == FALSE,], 
+		plot(rho_plus, mortality , ylim = c(0,.4), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", i)))
+	
+	abline(h = 0.05, col = "grey80")
+	
+	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == TRUE,], 
+		points(rho_plus, mortality, pch = 20, col = "gray50", cex = 1 ))
+	
+	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == FALSE,], 
+		points(rho_plus, mortality, pch = 20, col = "red", cex = 1 ))
+	
+	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == TRUE,], 
+		points(rho_plus, mortality, pch = 20, col = "darkred", cex = 1 ))
+	
+}
+
+# par(mfrow = c(1,5), oma = c(0,0,2,0))
+for(i in sort(unique(output$g)) ) {
+	
+	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == FALSE,], 
+		plot(rho_plus, mortality_border , ylim = c(0,.4), xlim = c(0,1), pch = 20, col = "black", main = paste("g = ", i)))
+	
+	abline(h = 0.05, col = "grey80")
+	
+	with(output[output$g == i & output$globalgrazing == TRUE & output$stock == TRUE,], 
+		points(rho_plus, mortality_border, pch = 20, col = "gray50", cex = 1 ))
+	
+	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == FALSE,], 
+		points(rho_plus, mortality_border, pch = 20, col = "red", cex = 1 ))
+	
+	with(output[output$g == i & output$globalgrazing == FALSE & output$stock == TRUE,], 
+		points(rho_plus, mortality_border, pch = 20, col = "darkred", cex = 1 ))
+	
+}
+
+ 
+	#################################################
+	
+ par(mfrow = c(2,2), oma = c(0,0,2,1))
+
+ for(i in 1:4) {
+	grazing = 0.05
+	with(output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] & output$stable == TRUE,], {
+		
+		plot(NA, NA , ylim = c(0,1), xlim = c(0.2,1), main = paste("g = ", grazing))
+		
+		for(j in ID) {
+			
+			with(out_fits[out_fits$ID == j, ], {
+					#try(arrows(b+(0:19)/2000, 0,b+(0:19)/2000,1, col = c("#FF000010", "#1100FF10", "#FF00FF10", "#FFEE0010")[bestmodel],length = 0, lwd =.05))
+					pos <- as.integer(as.factor(starting))*as.integer(as.factor(snapshot))
+					#posmax = length(unique(starting))*length(unique(snapshot))
+					try(rect(b+seq(0,0.01,length = 360)[pos-1], 0,b+seq(0,0.01,length = 360)[-pos],1, col = c("#FBF2BF","red", "#B2EB83", "red3","violet","#479418")[as.integer(best)], border = NA))
+
+			} )
+		
+		}
+		#arrows(b, 0,b,1, col = c("#FF000040", "#1100FF40", "#FF00FF40", "#00FFF040")[best],length = 0, lwd =8)
+		
+		points(b, rho_plus , pch = 20, col = "black")
+		#text(b, c(0.4,0.47,0.54, 0.6), labels = best, col = "white")
+		}
+	)
+	}
+
+	
+	
 	
