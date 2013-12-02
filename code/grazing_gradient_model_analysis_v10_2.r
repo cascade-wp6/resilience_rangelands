@@ -303,7 +303,7 @@ excerpt <- function(x, extr = NULL) {
   return(out)
 }
 
-set.seed(12)
+set.seed(22)
 jvar = seq(0.5, 0.82, 0.04)
 steps = length(jvar)
 A <- matrix(1:(4*steps), ncol = steps, byrow = TRUE)
@@ -311,7 +311,7 @@ A <- matrix(1:(4*steps), ncol = steps, byrow = TRUE)
 layout(rbind( cbind(A, rep(0, times = dim(A)[1]), A+length(A)), rep(0, times = dim(A)[2]*2+1), cbind(A+length(A)*2,  rep(0, times = dim(A)[1]), A+length(A)*3) ) , width = c(rep(1, times = steps), 0.4, rep(1, times = steps)), height = c(1,1,1,1,0.4,1,1,1,1))
 
 par(oma = c(4,4,1,1)+.1, mar = c(0,0,0,0))
-#layout.show(n = 48)
+#layout.show(n = 36*4)
 
 for(i in 1:4) {
 	for(k in unique(output$g)[-1]) {
@@ -326,7 +326,10 @@ for(i in 1:4) {
 				
 				#extract <- as.vector(matrix(1:10000, ncol = 100, byrow = TRUE)[1:25,1:25])
 				
-				x <- excerpt(result$timeseries[[23]], extr = c(15,15,50,50))
+				#snapshot <-  which(as.character(result$fit$summary$bestmodel) == as.character(result$out$best))
+				snapshot <-  which(result$fit$best == result$out$best)
+
+				x <- excerpt(result$timeseries[[max(snapshot)]], extr = c(15,15,50,50))
 					
 				plot(x, cols = c("grey40","grey80", "white"))
 				par(new=TRUE)
@@ -349,6 +352,7 @@ for(i in 1:4) {
 					try({models$PL <- nls(I(log(n)) ~ log(a) - alpha * log(size), 
 						data = dd3,
 						start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2]),
+						algorithm = "port",
 						trace = FALSE,
 						nls.control(maxiter = 100)
 						)}, silent = TRUE
@@ -366,8 +370,8 @@ for(i in 1:4) {
 				try({models$TPLup <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) + log(1+b/(a*size^(-alpha))) ), 
 						data = dd3,
 						start = list(a =  exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2]), #, b = 1/sum(result$cumpatch[[j]]$n)
-  				      trace = FALSE,
-						#algorithm = "port",
+  				        trace = FALSE,
+						algorithm = "port",
 						#lower = c(0, 0), upper = c(1, NA),
 						nls.control(maxiter = 50)
 						)}, silent = TRUE
@@ -383,9 +387,9 @@ for(i in 1:4) {
 	
 				###########
 						
-				try( {models$TPLdown <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) - (size/Sx) ), 
+				try( {models$TPLdown <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) - (size * Sx) ), 
 						data = dd3,
-						start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2], Sx = 100), 
+						start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2], Sx = 1/100), 
 						algorithm = "port",						
 						#lower = c(0, 0, 0), upper = c(NA, NA, NA),
 						trace = FALSE
@@ -405,7 +409,8 @@ for(i in 1:4) {
 				try( {models$EXP <- nls(I(log(n)) ~ I(log(a) -(eps*size)) , 
 						data = dd3,
 						start = list(a = exp(PLlm$coefficients[1]) ,eps = 1),
- 				       trace = FALSE
+ 				        algorithm = "port",
+						trace = FALSE
 						)}, silent = TRUE
 					)
 	
@@ -450,6 +455,7 @@ for(i in 1:4) {
 					points(dd3, col = "#404040", type = "l", lwd = 2)
 					}
 				
+				text(25,1, pos = 1, labels = result$out$ID, cex =1.5)
 	
 
 	
