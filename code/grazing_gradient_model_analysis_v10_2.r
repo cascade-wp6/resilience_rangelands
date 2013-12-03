@@ -303,7 +303,7 @@ excerpt <- function(x, extr = NULL) {
   return(out)
 }
 
-set.seed(22)
+set.seed(42)
 jvar = seq(0.5, 0.82, 0.04)
 steps = length(jvar)
 A <- matrix(1:(4*steps), ncol = steps, byrow = TRUE)
@@ -319,7 +319,7 @@ for(i in 1:4) {
 			#try({
 				iteration = output$ID[which(output$g == k & output$b == j & output$starting %in%  sort(unique(output$starting))[12:17] & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] )]
 							
-				#load(paste("results\\result", sample(iteration, 1), sep = "_"))
+				#load(paste("results\\result", sample(iteration, 6681), sep = "_"))
 				if(length(iteration) > 1) { load(paste("results\\result", sample(iteration, 1), sep = "_")) }
 				if(length(iteration) == 1) { load(paste("results\\result", iteration, sep = "_")) }
 				if(length(iteration) == 0) stop()
@@ -327,32 +327,33 @@ for(i in 1:4) {
 				#extract <- as.vector(matrix(1:10000, ncol = 100, byrow = TRUE)[1:25,1:25])
 				
 				#snapshot <-  which(as.character(result$fit$summary$bestmodel) == as.character(result$out$best))
-				snapshot <-  which(result$fit$best == result$out$best)
 
-				x <- excerpt(result$timeseries[[max(snapshot)]], extr = c(15,15,50,50))
+				x <- excerpt(result$timeseries[[22]], extr = c(15,15,50,50))
 					
 				plot(x, cols = c("grey40","grey80", "white"))
 				par(new=TRUE)
 				plot(NA,NA, xlim = c(1,10000), ylim = c(.00001,1), log ="xy", pch = 20, col = "#00000020", xaxt = "n", yaxt = "n", bty = "n")
 
 				if(result$out$rho_plus == 0 | is.na(result$cumpatch[[22]])) {flag = FALSE} else {
-									dd3 <- data.frame(size = result$cumpatch[[22]]$size, n = result$cumpatch[[22]]$p)
-									if(length(dd3$n) < 3) {flag = FALSE} else {flag = TRUE}
+									dd4 <- do.call("rbind", result$cumpatch)
+									flag = TRUE
+									#if(length(dd4$n) < 3) {flag = FALSE} else {flag = TRUE}
 						}
 
 				if(flag) {
-										
+					
+				
 				
 					models  <- list()
 					models$AIC <- vector()
 					#############
-					PLlm <- lm(I(log(n)) ~  I(log(size)) , data = dd3) 
+					PLlm <- lm(I(log(p)) ~  I(log(size)) , data = dd4) 
 					
 					
-					try({models$PL <- nls(I(log(n)) ~ log(a) - alpha * log(size), 
-						data = dd3,
+					try({models$PL <- nls(I(log(p)) ~ log(a) - alpha * log(size), 
+						data = dd4,
 						start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2]),
-						algorithm = "port",
+						#algorithm = "port",
 						trace = FALSE,
 						nls.control(maxiter = 100)
 						)}, silent = TRUE
@@ -366,12 +367,12 @@ for(i in 1:4) {
 					}
 
 				###########
-				b=1/sum(result$cumpatch[[22]]$n)
-				try({models$TPLup <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) + log(1+b/(a*size^(-alpha))) ), 
-						data = dd3,
-						start = list(a =  exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2]), #, b = 1/sum(result$cumpatch[[j]]$n)
+				b = mean(sapply(2:22, function(x) 1/sum(result$cumpatch[[x]]$n) ))
+				try({models$TPLup <- nls(I(log(p)) ~ I( log(a) - alpha * log(size) + log(1+b/(a*size^(-alpha))) ), 
+						data = dd4,
+						start = list(a =  exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2]), #,, b = mean(sapply(2:22, function(x) 1/sum(result$cumpatch[[x]]$n) ))
   				        trace = FALSE,
-						algorithm = "port",
+						#algorithm = "port",
 						#lower = c(0, 0), upper = c(1, NA),
 						nls.control(maxiter = 50)
 						)}, silent = TRUE
@@ -387,12 +388,12 @@ for(i in 1:4) {
 	
 				###########
 						
-				try( {models$TPLdown <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) - (size * Sx) ), 
-						data = dd3,
+				try( {models$TPLdown <- nls(I(log(p)) ~ I( log(a) - alpha * log(size) - (size * Sx) ), 
+						data = dd4,
 						start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2], Sx = 1/100), 
-						algorithm = "port",						
+						#algorithm = "port",						
 						#lower = c(0, 0, 0), upper = c(NA, NA, NA),
-						trace = FALSE
+						trace = TRUE
 						)}, silent = TRUE
 					)		
 
@@ -406,10 +407,10 @@ for(i in 1:4) {
 
 				###########
 	
-				try( {models$EXP <- nls(I(log(n)) ~ I(log(a) -(eps*size)) , 
-						data = dd3,
+				try( {models$EXP <- nls(I(log(p)) ~ I(log(a) -(eps*size)) , 
+						data = dd4,
 						start = list(a = exp(PLlm$coefficients[1]) ,eps = 1),
- 				        algorithm = "port",
+ 				        #algorithm = "port",
 						trace = FALSE
 						)}, silent = TRUE
 					)
@@ -444,11 +445,11 @@ for(i in 1:4) {
 					color =  c("#FBF2BF","red", "#B2EB83", "red3","violet","#479418")
 
 				if(models$best %in% c(1,2,3,4)) {
+					points(dd4$size, dd4$p, col = "#E0E43066", type = "p", lwd = 2) 
 					(lines(	exp(seq(log(1), log(100000), length = 100)), 
 						exp(predict(models[[models$best+1]], list(size = exp(seq(log(1), log(100000), length = 100 )))) ),
 						col = color[models$best+1], lwd = 4
 					))
-					points(dd3, col = "#404040", type = "l", lwd = 2) 
 				} 
 				if(models$ best == 5) {
 					lines(c(1,result$cumpatch[[22]]$size[2]), c(1,1/sum(result$cumpatch[[22]]$n) ), lwd = 4, col = color[6] ) 

@@ -23,6 +23,12 @@ filenames <- list.files("results/")
 library(foreach)
 library(doSNOW)
 
+workstation <-  list(host = "schneider@kefi118",
+         rscript = "/usr/lib/R/bin/Rscript",
+		 snowlib = "/usr/lib/R/bin/library")
+		
+#workerlist <- rep(list(workstation), times = 23)
+
 workerlist <- rep("localhost", times = 11)
 
 cl <- makeSOCKcluster(workerlist)
@@ -70,15 +76,15 @@ if(flag) {
 	result$fit$AIC <- vector()
 	result$fit$summary <- list()
 	#############
-PLlm <- lm(I(log(n)) ~  I(log(size)) , data = dd4) 
+PLlm <- lm(I(log(p)) ~  I(log(size)) , data = dd4) 
 
 #if( max(dd3$size) <= 7000) {
-try({result$fit$PL <- nls(I(log(n)) ~ log(a) - alpha * log(size), 
+try({result$fit$PL <- nls(I(log(p)) ~ log(a) - alpha * log(size), 
 		data = dd4,
 		start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2]),
 		trace = FALSE,
-		#algorithm = "port",
-		nls.control(maxiter = 100)
+		algorithm = "port",
+		nls.control(maxiter = 50)
 		)}, silent = TRUE
 	)
 #	} 
@@ -95,11 +101,11 @@ try({result$fit$PL <- nls(I(log(n)) ~ log(a) - alpha * log(size),
 ###########
 
 #b=result$cumpatch[[j]]$p[dim(result$cumpatch[[j]])[1]] #1/sum(result$cumpatch[[j]]$n)  
-try({result$fit$TPLup <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) + log(1+b/(a*size^(-alpha))) ), 
+try({result$fit$TPLup <- nls(I(log(p)) ~ I( log(a) - alpha * log(size) + log(1+b/(a*size^(-alpha))) ), 
 		data = dd4,
 		start = list(a =  exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2], b = 1/sum(result$cumpatch[[j]]$n) ), #, b = 1/sum(result$cumpatch[[j]]$n)
         trace = FALSE,
-		#algorithm = "port",
+		algorithm = "port",
 		#lower = c(0, 0), upper = c(1, NA),
 		nls.control(maxiter = 50)
 		)}, silent = TRUE
@@ -117,10 +123,10 @@ try({result$fit$TPLup <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) + log(1+b
 	}
 	
 	
-try( {result$fit$TPLdown <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) - (size * Sx) ), 
+try( {result$fit$TPLdown <- nls(I(log(p)) ~ I( log(a) - alpha * log(size) - (size * Sx) ), 
 		data = dd4,
 		start = list(a = dd3$n[1], alpha =  exp(PLlm$coefficients[2]), Sx = 1/100),
-        #algorithm = "port",
+        algorithm = "port",
 		trace = FALSE
 		)}, silent = TRUE
 	)		
@@ -137,10 +143,10 @@ try( {result$fit$TPLdown <- nls(I(log(n)) ~ I( log(a) - alpha * log(size) - (siz
 
 ###########
 	
-try( {result$fit$EXP <- nls(I(log(n)) ~ I(log(a) -(eps*size)) , 
+try( {result$fit$EXP <- nls(I(log(p)) ~ I(log(a) -(eps*size)) , 
 		data = dd4,
 		start = list(a = exp(PLlm$coefficients[1]) ,eps = 1),
-        #algorithm = "port",
+        algorithm = "port",
 		trace = FALSE
 		)}, silent = TRUE
 	)
@@ -182,7 +188,7 @@ try( {result$fit$EXP <- nls(I(log(n)) ~ I(log(a) -(eps*size)) ,
 
 result$out$largestpatch = mean(lpatches)
 result$out$largestpatch_sd = sd(lpatches)
-result$out$best = result$fit$best
+result$out$best = c("DES","PL", "TPLup", "TPLdown", "EXP", "COV")[result$fit$best+1]
 if(! result$out$best %in% c("DES","COV")) {
 	result$out$p1 = result$fit$summary[[result$fit$best]][[2]]
 	result$out$p2 = result$fit$summary[[result$fit$best]][[3]]
@@ -191,12 +197,12 @@ if(! result$out$best %in% c("DES","COV")) {
 	result$out$p2_sd = result$fit$summary[[result$fit$best]][[6]]
 	result$out$p3_sd = result$fit$summary[[result$fit$best]][[7]]
 } else {
-	result$outp1 = NA
-	result$outp2 = NA
-	result$outp3 = NA
-	result$outp1_sd = NA
-	result$outp2_sd = NA
-	result$outp3_sd = NA
+	result$out$p1 = NA
+	result$out$p2 = NA
+	result$out$p3 = NA
+	result$out$p1_sd = NA
+	result$out$p2_sd = NA
+	result$out$p3_sd = NA
 }
 
 			# save result to file
