@@ -47,9 +47,9 @@ foreach(i = filenames) %dopar% {
 # output$ID[which(output$rho_plus > 0.02  & output$rho_plus < 0.1)] 
 #i = 900# 328 # 2220 # 
 #i = 29880 #5053 #
-#i = 4749
+#i = 9266
 load(paste("results\\", i, sep = ""))
-#load(paste("results\\result_", i, sep = ""))
+#load(paste("results\\result_", 17096, sep = ""))
 
 
 
@@ -65,8 +65,25 @@ result$fit <- list()
 	#j = 6
 		dd4 <- do.call("rbind", result$cumpatch)
 
-	if(any(is.na(dd4)) || dim(result$cumpatch[[22]])[1] < 3) {flag = FALSE} else { flag = TRUE }
+				flag_full = FALSE
 
+				if(result$out$rho_plus < 0.02 ) {
+					flag_desert = TRUE
+					if(result$out$rho_plus > 0 & !is.na(result$cumpatch[[22]])) {
+						lpatches = sapply(2:22, function(x) max(result$cumpatch[[x]]$size))
+					} else {
+						lpatches = 0 
+					}
+				} else { 	# excluding deserts from model fit
+					dd4 <- do.call("rbind", result$cumpatch)
+					b = mean(sapply(2:22, function(x) 1/sum(result$cumpatch[[x]]$n) ))
+					lpatches =  sapply(2:22, function(x) max(result$cumpatch[[x]]$size))
+					flag_desert = FALSE
+					if(mean(sapply(2:22, function(x) length(result$cumpatch[[x]]$size))) < 3) {flag_full = TRUE} else {flag_full = FALSE}
+				}
+				
+				flag = !flag_desert &  !flag_full
+						
 if(flag) {
 
 
@@ -83,7 +100,7 @@ try({result$fit$PL <- nls(I(log(p)) ~ log(a) - alpha * log(size),
 		data = dd4,
 		start = list(a = exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2]),
 		trace = FALSE,
-		algorithm = "port",
+		#algorithm = "port",
 		nls.control(maxiter = 50)
 		)}, silent = TRUE
 	)
@@ -103,9 +120,9 @@ try({result$fit$PL <- nls(I(log(p)) ~ log(a) - alpha * log(size),
 #b=result$cumpatch[[j]]$p[dim(result$cumpatch[[j]])[1]] #1/sum(result$cumpatch[[j]]$n)  
 try({result$fit$TPLup <- nls(I(log(p)) ~ I( log(a) - alpha * log(size) + log(1+b/(a*size^(-alpha))) ), 
 		data = dd4,
-		start = list(a =  exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2], b = 1/sum(result$cumpatch[[j]]$n) ), #, b = 1/sum(result$cumpatch[[j]]$n)
+		start = list(a =  exp(PLlm$coefficients[1]), alpha =  -PLlm$coefficients[2]) , #, b = 1/sum(result$cumpatch[[j]]$n)
         trace = FALSE,
-		algorithm = "port",
+		#algorithm = "port",
 		#lower = c(0, 0), upper = c(1, NA),
 		nls.control(maxiter = 50)
 		)}, silent = TRUE
@@ -125,13 +142,13 @@ try({result$fit$TPLup <- nls(I(log(p)) ~ I( log(a) - alpha * log(size) + log(1+b
 	
 try( {result$fit$TPLdown <- nls(I(log(p)) ~ I( log(a) - alpha * log(size) - (size * Sx) ), 
 		data = dd4,
-		start = list(a = dd3$n[1], alpha =  exp(PLlm$coefficients[2]), Sx = 1/100),
-        algorithm = "port",
+		start = list(a = exp(PLlm$coefficients[1]), alpha =  exp(PLlm$coefficients[2]), Sx = 1/1000),
+        #algorithm = "port",
 		trace = FALSE
 		)}, silent = TRUE
 	)		
 
-	if(!is.null(result$fit$TPLdown)) {
+	if(!is.null(result$fit$TPLdown) & !coefficients(result$fit$TPLdown)[[3]] <= 0) {
 		result$fit$AIC[3] <- AIC(result$fit$TPLdown) 
 		result$fit$summary$TPLdown <- data.frame(a = coefficients(result$fit$TPLdown)[1], alpha = coefficients(result$fit$TPLdown)[2], Sx = coefficients(result$fit$TPLdown)[3], p_a = summary(result$fit$TPLdown)$coefficients[1,4], p_alpha = summary(result$fit$TPLdown)$coefficients[2,4], p_Sx = summary(result$fit$TPLdown)$coefficients[3,4], AIC = AIC(result$fit$TPLdown))
 
@@ -146,7 +163,7 @@ try( {result$fit$TPLdown <- nls(I(log(p)) ~ I( log(a) - alpha * log(size) - (siz
 try( {result$fit$EXP <- nls(I(log(p)) ~ I(log(a) -(eps*size)) , 
 		data = dd4,
 		start = list(a = exp(PLlm$coefficients[1]) ,eps = 1),
-        algorithm = "port",
+        #algorithm = "port",
 		trace = FALSE
 		)}, silent = TRUE
 	)
@@ -169,25 +186,15 @@ try( {result$fit$EXP <- nls(I(log(p)) ~ I(log(a) -(eps*size)) ,
 	
 	result$fit$best <- which.min(result$fit$AIC[-4]+c(+0,0,0))
 
-	lpatches <- sapply(2:22, function(x) max(result$cumpatch[[x]]$size))
-
 	} else {
 	
-		if(any(is.na(dd4))) { 
-			result$fit$best <- 0 
-			lpatches <- 0
-			
-		} else { 
-			result$fit$best <- 5
-			lpatches <- sapply(2:22, function(x) max(result$cumpatch[[x]]$size))
-
-		}
-
+		if(flag_desert) { result$fit$best <- 0 } 
+		if(flag_full)	{result$fit$best <- 5}
 	}
-
 
 result$out$largestpatch = mean(lpatches)
 result$out$largestpatch_sd = sd(lpatches)
+
 result$out$best = c("DES","PL", "TPLup", "TPLdown", "EXP", "COV")[result$fit$best+1]
 if(! result$out$best %in% c("DES","COV")) {
 	result$out$p1 = result$fit$summary[[result$fit$best]][[2]]
