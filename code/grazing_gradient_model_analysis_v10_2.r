@@ -522,7 +522,7 @@ layout(matrix(c(c(1,0,0,0),2:17), ncol = 4, byrow = TRUE))
 	with(temp, rect(b+pos1, 0,b+pos2,1, col =  modelcols[bestnum], border = NA)
 	)
 	}
-	
+		
 	temp <- unst_eq[unst_eq$g == grazing & unst_eq$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & unst_eq$global == c(TRUE, FALSE, TRUE, FALSE)[i] & unst_eq$eq > 0 & unst_eq$eq < unst_eq$rho_plus,]
 	
 	if(length(temp$eq) > 0) {

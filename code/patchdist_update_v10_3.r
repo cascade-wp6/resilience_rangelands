@@ -23,13 +23,13 @@ filenames <- list.files("results/")
 library(foreach)
 library(doSNOW)
 
-workstation <-  list(host = "schneider@kefi118",
+#workstation <-  list(host = "162.38.184.118", user = "schneider",
          rscript = "/usr/lib/R/bin/Rscript",
-		 snowlib = "/usr/lib/R/bin/library")
+		 snowlib = "/usr/lib/R/library/")
 		
 #workerlist <- rep(list(workstation), times = 23)
 
-workerlist <- rep("localhost", times = 11)
+workerlist <-  rep("localhost", times = 10)
 
 cl <- makeSOCKcluster(workerlist)
 

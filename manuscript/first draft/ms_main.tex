@@ -140,15 +140,21 @@ ecting an average individual lifespan of 20 years, if no additional mortality du
 \newpage
 
 \begin{figure}[h]%
-\includegraphics[width=\columnwidth]{figures/stability.pdf}%
-\caption{Stable states of the vegetation cover, $\rho_+$, over gradient of environmental quality, $b$, under different grazing models. a) parent model with static, global grazing mortality, $g_0/0.5$. b) livestock model with density dependend, global grazing mortality, $g_0 / \rho_+$. c) associative protection model with differentiated grazing at patch border, $g_0/0.5 \frac{v}{\hat{v}}$ . d) livestock \& associative protection model with density dependend, differentiated grazing at patch border,  $g_0/ \rho_+ \frac{v}{\hat{v}}$ . Gradient of grazing intensity from grey: $g_0 = 0$, black to red: $g_0 \in \left\{ 0.025, 0.05, 0.075, 0.1 \right\}$.}%
+\includegraphics[width=\columnwidth]{figures/fig3.pdf}%
+\caption{}%
 \label{}%
 \end{figure}
 
 
 \begin{figure}[h]%
-\includegraphics[width=\columnwidth]{figures/patterns.pdf}%
-\caption{Stable states of the vegetation cover, $\rho_+$, over gradient of environmental quality, $b$, under different grazing models. a) parent model with static, global grazing mortality, $g_0/0.5$. b) livestock model with density dependend, global grazing mortality, $g_0 / \rho_+$. c) associative protection model with differentiated grazing at patch border, $g_0/0.5 \frac{v}{\hat{v}}$ . d) livestock \& associative protection model with density dependend, differentiated grazing at patch border,  $g_0/ \rho_+ \frac{v}{\hat{v}}$ . Gradient of grazing intensity from grey: $g_0 = 0$, black to red: $g_0 \in \left\{ 0.025, 0.05, 0.075, 0.1 \right\}$.}%
+\includegraphics[width=\columnwidth]{figures/fig4.pdf}%
+\caption{}%
+\label{}%
+\end{figure}
+
+\begin{figure}[h]%
+\includegraphics[width=\columnwidth]{figures/fig5.pdf}%
+\caption{}%
 \label{}%
 \end{figure}
 
@@ -194,8 +200,8 @@ each time step is devided by the number of updates per year ( = 5) and
  & function & log-transform \\ \cmidrule(rl){2-2} \cmidrule(rl){3-3}
 Power Law &  $n = a s^{- \alpha}$ & $ \log{n} =\log{a} - \alpha \log s$\\
 Limited Power Law &  $n = b + a s^{- \alpha} $ & $ \log{n} = \log a - \alpha \log{s} + \log(1+\frac{b}{a s^{-\alpha} })$\\
-Truncated Power Law & $n = a s^{- \alpha} \mathrm{e}^{\frac{s}{S_x}}$  & $\log{n} = \log a  - \alpha  \log s  - \frac{s}{Sx}  $ \\
-Exponential &  $n = a \mathrm{e}^{-\varepsilon s} $ & $ \log{n} =  \log{a} - \varepsilon s $\\
+Truncated Power Law & $n = a s^{- \alpha} \mathrm{e}^{s \frac{1}{S_x}}$  & $\log{n} = \log a  - \alpha  \log s  - s \frac{1}{Sx}  $ \\
+%Exponential &  $n = a \mathrm{e}^{-\varepsilon s} $ & $ \log{n} =  \log{a} - \varepsilon s $\\
 	\bottomrule
 \multicolumn{3}{p{12.5cm}}{\footnotesize  }
 	\end{tabular}
