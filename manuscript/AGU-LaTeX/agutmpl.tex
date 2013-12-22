@@ -46,7 +46,7 @@
 % (If you are submitting to a journal other than jgrga,
 % substitute the initials of the journal for "jgrga" below.)
 
-\documentclass[draft,ef]{AGUTeX}
+\documentclass[draft,wrr]{AGUTeX}
 % To create numbered lines:
 
 % If you don't already have lineno.sty, you can download it from
@@ -100,10 +100,10 @@
 %% ------------------------------------------------------------------------ %%
 
 % Author names in capital letters:
-\authorrunninghead{BALES ET AL.}
+\authorrunninghead{SCHNEIDER and KÉFI}
 
 % Shorter version of title entered in capital letters:
-\titlerunninghead{SHORT TITLE}
+\titlerunninghead{Grazing and risk of catastrophic shifts}
 
 %Corresponding author mailing address and e-mail address:
 %\authoraddr{Corresponding author: A. B. Smith,
@@ -120,7 +120,7 @@
 %% ------------------------------------------------------------------------ %%
 
 
-\title{Title of article}
+\title{Grazing raises risk of catastrophic shifts in drylands}
 %
 % e.g., \title{Terrestrial ring current:
 % Origin, formation, and decay $\alpha\beta\Gamma\Delta$}
@@ -138,24 +138,10 @@
 % \altaffilmark will produce footnote;
 % matching \altaffiltext will appear at bottom of page.
 
-% \authors{A. B. Smith,\altaffilmark{1}
-% Eric Brown,\altaffilmark{1,2} Rick Williams,\altaffilmark{3}
-% John B. McDougall\altaffilmark{4}, and S. Visconti\altaffilmark{5}}
-
-%\altaffiltext{1}{Department of Hydrology and Water Resources,
-%University of Arizona, Tucson, Arizona, USA.}
-
-%\altaffiltext{2}{Department of Geography, Ohio State University,
-%Columbus, Ohio, USA.}
-
-%\altaffiltext{3}{Department of Space Sciences, University of
-%Michigan, Ann Arbor, Michigan, USA.}
-
-%\altaffiltext{4}{Division of Hydrologic Sciences, Desert Research
-%Institute, Reno, Nevada, USA.}
-
-%\altaffiltext{5}{Dipartimento di Idraulica, Trasporti ed
-%Infrastrutture Civili, Politecnico di Torino, Turin, Italy.}
+\authors{Florian D. Schneider,\altaffilmark{1} and
+Sonia Kéfi,\altaffilmark{1}}
+ 
+\altaffiltext{1}{Institut des Sciences de l'Evolution, CNRS, Université Montpellier 2, France.}
 
 %% ------------------------------------------------------------------------ %%
 %
@@ -190,7 +176,8 @@
 %% ------------------------------------------------------------------------ %%
 
 \section{Introduction}
-(Article text here)
+
+\input{ms_main.tex} 
 
 
 %%% End of body of article:
@@ -430,15 +417,15 @@ More Information and Advice:
 % Single-line equations are centered.
 % Equation arrays will appear left-aligned.
 
-Math coded inside display math mode \[ ...\]
- will not be numbered, e.g.,:
- \[ x^2=y^2 + z^2\]
+%Math coded inside display math mode \[ ...\]
+% will not be numbered, e.g.,:
+% \[ x^2=y^2 + z^2\]
 
- Math coded inside \begin{equation} and \end{equation} will
- be automatically numbered, e.g.,:
- \begin{equation}
- x^2=y^2 + z^2
- \end{equation}
+% Math coded inside \begin{equation} and \end{equation} will
+% be automatically numbered, e.g.,:
+% \begin{equation}
+% x^2=y^2 + z^2
+% \end{equation}
 
 % IF YOU HAVE MULTI-LINE EQUATIONS, PLEASE
 % BREAK THE EQUATIONS INTO TWO OR MORE LINES
@@ -448,12 +435,12 @@ Math coded inside display math mode \[ ...\]
 % To create multiline equations, use the
 % \begin{eqnarray} and \end{eqnarray} environment
 % as demonstrated below.
-\begin{eqnarray}
-  x_{1} & = & (x - x_{0}) \cos \Theta \nonumber \\
-        && + (y - y_{0}) \sin \Theta  \nonumber \\
-  y_{1} & = & -(x - x_{0}) \sin \Theta \nonumber \\
-        && + (y - y_{0}) \cos \Theta.
-\end{eqnarray}
+% \begin{eqnarray}
+%  x_{1} & = & (x - x_{0}) \cos \Theta \nonumber \\
+%        && + (y - y_{0}) \sin \Theta  \nonumber \\
+%  y_{1} & = & -(x - x_{0}) \sin \Theta \nonumber \\
+%        && + (y - y_{0}) \cos \Theta.
+%\end{eqnarray}
 
 %If you don't want an equation number, use the star form:
 %\begin{eqnarray*}...\end{eqnarray*}

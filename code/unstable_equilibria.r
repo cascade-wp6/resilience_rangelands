@@ -76,12 +76,10 @@ height = 100
 	# relative position of the four direct neighbours of a cell
 	interact <- (relrow * dim(X)[2] + relcol)
 
-	
+#setwd("E:\\Eigene Dokumente\\Uni\\projects\\CAS01_grazing\\data\\sim10\\")
 
 output <- read.csv("output.csv")
 #output_fits <- read.csv("output_fits.csv")
-
-output <- output[ output$g != 1 & output$stable == TRUE, ] # & output$ID > 27541
 
 # initial cell states
 states = c("+","0","-")
@@ -95,14 +93,24 @@ delta = 1/5
 library(foreach)
 library(doSNOW)
 
-#workerlist <- rep(list(ubuWorker), times = 2)
-workerlist <- rep("localhost", times = 15)
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+        rscript = "/usr/lib/R/bin/Rscript",
+		 snowlib = "/usr/lib/R/library/")
 
-cl <- makeSOCKcluster(workerlist)
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+        rscript = "/usr/lib/R/bin/Rscript",
+		 snowlib = "/usr/lib/R/library/")
+		
+#workerlist <- rep(list(workstation), times = 23)
+#workerlist <- c( rep(list(winWorker), times = 10),rep(list(workstation), times = 23))
+
+workerlist <- rep("localhost", times = 23)
+
+cl <- makeSOCKcluster(workerlist, outfile='out_messages.txt') #, master = "162.38.106.207"
+
+#clusterCall(cl,function() Sys.info()[c("nodename","machine")])
 
 registerDoSNOW(cl)
-
-
 
 		out <- data.frame(	global =  NA,
 			stock =  NA,
@@ -111,7 +119,7 @@ registerDoSNOW(cl)
 			b = NA, 		# beta*eps 
 			d = 0.1,		# degradation
 			c_ = 0.2, 		# beta*g  
-			del = 0.1,  	# seeds dispersed; (1-del) seeds on nearest neighbourhood
+			del = 0.1,  	# seeds dispersed; (1-del) seeds on nearest neighbourhoods
 			r = 0.01, 	# regeneration rate
 			f = 0.9,		# local fascilitation
 			rho_plus = NA,
@@ -120,34 +128,20 @@ registerDoSNOW(cl)
 			)[-1,]
 			
 write.table(out, "unstable_eq.csv", row.names = FALSE, col.names = TRUE, sep = ",",  append  = FALSE)
-
-for(g in seq(0,.1,0.025)) {
+for(n in 1:10) {
+for(g in c(0, 0.025, 0.05, 0.075, 0.1)) {
 	for(l in 1:4) {	
 
 		foreach(b = seq(0.2,1, 0.005), .combine = "rbind") %dopar% {
-		#foreach(b = seq(0.2,1, 0.01), .combine = "rbind") %do% {
-		#for(b in seq(0.2,1, 0.01)) {
-
-		take = output[which(as.character(output$g) == as.character(g) & output$b < b+0.01 & output$b > b-0.01 & output$stock == c(FALSE, FALSE, TRUE, TRUE)[l] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[l] & output$stable == TRUE),]
-		
+		#foreach(b = seq(0.2,1, 0.4), .combine = "rbind") %do% {
+		#for(b in seq(0.2,0.21, 0.005)) {
+		take = output[which(output$g == g & output$b < b+0.01 & output$b > b-0.01 & output$stock == c(FALSE, FALSE, TRUE, TRUE)[l] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[l] & output$stable == TRUE),]
 		
 		high = max(take$rho_plus)
 		low = 0
-		eq = mean(c(high, low))
+		eq =  mean(c(high, low))
 
-		for(i in 1:15) {
 			
-		initial <- list(  
-			dim = c(as.integer(width), as.integer(height)),  # first element contains the dimensions of the landscape 
-			cells = sample(factor(1:length(states)), width*height, replace = T, prob = c(eq, (1-eq)/2, (1-eq)/2) ) #second element contains a random row-wise, factorial vector to fill the grid 
-		)
-		levels(initial$cells) <- states  #assign cell states 
-		class(initial) <- c("list","landscape") # set class of object (required for plotting)
-
-		#plot(initial, ani = TRUE)
-	
-		x_old <- initial
-		
 		parms_temp <- list( 
 			global =  c(TRUE, FALSE, TRUE, FALSE)[l],
 			stock =  c(FALSE, FALSE, TRUE, TRUE)[l],
@@ -159,11 +153,58 @@ for(g in seq(0,.1,0.025)) {
 			del = 0.1,  	# seeds dispersed; (1-del) seeds on nearest neighbourhood
 			r = 0.01, 	# regeneration rate
 			f = 0.9,		# local fascilitation
-			rho = sum(x_old$cells == "+")/(width*height)  ,
+			rho = NA,
 			vul = NA,
-			equlbr = NA
+			eq = NA
 		)
 		
+		if(high > 0.0001) {
+		
+		for(i in 1:15) {
+			
+		#initial <- list(  
+		#	dim = c(as.integer(width), as.integer(height)),  # first element contains the dimensions of the landscape 
+		#	cells = sample(factor(1:length(states)), width*height, replace = T, prob = c(eq, (1-eq)/2, (1-eq)/2) ) #second element contains a random row-wise, factorial vector to fill the grid 
+		#)
+		#levels(initial$cells) <- states  #assign cell states 
+		#class(initial) <- c("list","landscape") # set class of object (required for plotting)
+
+		init = output$ID[which(output$g == 0 & output$rho_plus < eq+0.01 & output$rho_plus > eq-0.01 & output$stable == TRUE)]
+		
+		check_eq <- 1
+		if(length(init) > 0) {
+			for(m in 1:length(init)) {
+				
+				load(paste("~/herbivory/results/result", init[m], sep = "_"))		
+				#load(paste("results\\result", init[m], sep = "_"))		
+				#close(file(paste("results\\result", init[m], sep = "_")))
+				
+				rhos <- sapply(3:22, function(x) length(which(result$timeseries[[x]]$cells == "+"))/10000 )
+				best <- which.min(abs(rhos-round(eq, digits = 4)))
+				if(abs(rhos[best]-round(eq, digits = 4)) <  check_eq) {
+					check_eq <- abs(rhos[best]-round(eq, digits = 4))
+					initial <- result$timeseries[[best+2]]
+				}
+			}
+		} else {
+			initial <- list(  
+				dim = c(as.integer(width), as.integer(height)),  # first element contains the dimensions of the landscape 
+				cells = sample(factor(1:length(states)), width*height, replace = T, prob = c(eq, (1-eq)/2, (1-eq)/2) ) #second element contains a random row-wise, factorial vector to fill the grid 
+			)
+			levels(initial$cells) <- states  #assign cell states 
+			class(initial) <- c("list","landscape") # set class of object (required for plotting)
+
+			#warning("no initialised landscape found! random landscape generated.")
+		}
+
+ 
+		#plot(initial, ani = TRUE)
+		
+		x_old <- initial
+	
+		parms_temp$rho <- sum(x_old$cells == "+")/(width*height) 
+		
+		rho_collect <- c()
 		
 		for(j in 2:101) {    #calculation loop
 
@@ -227,10 +268,12 @@ for(g in seq(0,.1,0.025)) {
 		#rho_t <- cbind(rho_t, parms_temp$rho)
 		x_old <- x_new
 		parms_temp$rho <- sum(x_new$cells == "+")/(width*height)   # get old rho plus for this timestep 
-
+		if(j > 50) {rho_collect <- c(rho_collect, parms_temp$rho)}
 }
 	
-	if(parms_temp$rho >= eq ) {
+	
+	
+	if(mean(rho_collect) >= eq ) {
 			high = eq
 			eq = mean(c(eq, low))
 	} else {
@@ -238,11 +281,15 @@ for(g in seq(0,.1,0.025)) {
 			eq = mean(c(eq, high))
 	}
 		
-		
-		
 		}
-		parms_temp$equlbr <- eq
 		
+		
+	} else {
+		eq = 0
+	}
+
+		parms_temp$eq <- eq
+		gc()
 		#out <- rbind(out, as.data.frame(parms_temp))
 		return(as.data.frame(parms_temp))
 		} -> out_temp
@@ -252,15 +299,15 @@ for(g in seq(0,.1,0.025)) {
 		#plot(out_temp$b, out_temp$eq, ylim = c(0,1), pch = 20, col = "gray80")
 		#points(take$b, take$rho_plus , pch = 20, col = "gray20")
 	
-		write.table(out_temp, "unstable_eq.csv", row.names = FALSE, col.names = TRUE, sep = ",",  append  = TRUE)
+		write.table(out_temp, "unstable_eq.csv", row.names = FALSE, col.names = FALSE, sep = ",",  append  = TRUE)
 
 		#out <- rbind(out, out_temp)
 		
-	gc() 
+	 
 
 	}
 }
-
+}
 
 stopCluster(cl)
 #write.table(out, "unstable_eq.csv", row.names = FALSE, col.names = TRUE, sep = ",",  append  = FALSE)

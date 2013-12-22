@@ -12,11 +12,15 @@
 **/*.ps
 **/*.mp4
 
-!figures/*
+!figures/figures.pdf
 !manuscript/first\ draft/figures/*
 
 # indesign files
 **/*.indd
+**/*.idlk
+
+# photoshop files
+**/*.psd
 
 # R History files
 .Rhistory

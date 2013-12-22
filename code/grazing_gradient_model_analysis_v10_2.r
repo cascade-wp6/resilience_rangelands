@@ -105,6 +105,18 @@ patches <- function(x, state, cumulative = TRUE) {
 	} 
 
 	
+excerpt <- function(x, extr = NULL) {
+  out <- list()
+  out$dim <- c(length(extr[1]:extr[3]),length(extr[2]:extr[4]))
+  temp  <- matrix(1:length(x$cells), ncol = x$dim[2], byrow = TRUE)
+  if(!is.null(extr[1]) ) temp <- temp[extr[1]:extr[3], extr[2]:extr[4], drop = FALSE]
+  out$cells <-  x$cells[as.vector(temp), drop = FALSE]
+  
+  class(out) <- c("list", "landscape")
+  
+  return(out)
+}
+
 
 # specify lattice
 width = 100
@@ -124,8 +136,8 @@ snapshots <-  (timesteps-20:0*50)/delta+1
 t_eval <- ((timesteps/delta)-100/delta):(timesteps/delta)+1
 	
 
-#setwd("E:\\Eigene Dokumente\\Uni\\projects\\2013 CASCADE grazing\\sim9\\")
-setwd("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\data\\sim10\\")
+setwd("E:\\Eigene Dokumente\\Uni\\projects\\CAS01_grazing\\data\\sim10\\")
+#setwd("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\data\\sim10\\")
 
 if(FALSE) {
 filenames <- list.files("results\\")
@@ -231,7 +243,8 @@ write.table(out_fits, "output_fits.csv", row.names = FALSE, col.names = TRUE, se
 
 output <- read.csv("output.csv")
 #out_fits <- read.csv("output_fits.csv")
-unst_eq <- read.csv("unstable_eq.csv", sep = ";")
+unst_eq <- read.csv("unstable_eq.csv", sep = ",")
+unst_eq <- unst_eq[unst_eq$eq >= 0.01,]
 output <- output[ output$stable == TRUE, ] # & output$ID > 27541
 
 	output$bestnum <- 0
@@ -245,10 +258,19 @@ output <- output[ output$stable == TRUE, ] # & output$ID > 27541
 		
 		
 # define colors for: desert, PL, TPL_up,  TPL_down, exp, covered
-modelcols <- c("#FBF2BF","red", "#B2EB83", "red3","violet","#479418")
-modelcols <- c("#FBF2BF","#FF0000", "#B2EB83", "#8B0000","#EE82EE","#479418")
+modelcols <- c("#FBF2BF","#FF0000", "#B2EB83", "#8B0000","#EE82EE","#479418") # old
+modelcols_bg <- c("#EDE9DC","#FF0000", "#97BD54", "#C29D5E","#EE82EE","#586750") # old
+modelcols_fg <- c("#BDB384","#FF0000", "#58821A", "#8B0000","#EE82EE","#30382C") # old
 
-pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\stability.pdf", height = 7, width = 8, paper = "special")
+#modelcols <- c("#CCCCCC","#AAAAAA", "#888888", "#999999","#EE82EE","#555555") # greyscale images
+#modelcols <- c("#F5FFE1","#DA77FF", "#4FC7D6", "#F7A15D","violet","#566926") #strong contrast
+#modelcols <- c("#E3DFD3","#FF2C00", "#74B7F0", "#F7BC5C","violet","#586750") #weak contrast
+
+
+setwd("E:\\Eigene Dokumente\\Uni\\projects\\CAS01_grazing\\")
+
+if(FALSE) {
+pdf("figures\\stability.pdf", height = 7, width = 8, paper = "special")
 
  par(mfrow = c(2,2), mar = c(2,2,0,0), oma = c(3,3,2,1))
  
@@ -304,20 +326,8 @@ pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\patterns
 #layout(rbind( cbind(A, rep(0, times = dim(A)[2]), A+length(A)), rep(0, times = 9), cbind(A+length(A)*2, c(0,0,0,0), A+length(A)*3) ) , width = c(1,1,1,1,0.4,1,1,1,1), height = c(1,1,1,1,0.4,1,1,1,1))
 
 
-excerpt <- function(x, extr = NULL) {
-  out <- list()
-  out$dim <- c(length(extr[1]:extr[3]),length(extr[2]:extr[4]))
-  temp  <- matrix(1:length(x$cells), ncol = x$dim[2], byrow = TRUE)
-  if(!is.null(extr[1]) ) temp <- temp[extr[1]:extr[3], extr[2]:extr[4], drop = FALSE]
-  out$cells <-  x$cells[as.vector(temp), drop = FALSE]
-  
-  class(out) <- c("list", "landscape")
-  
-  return(out)
-}
-
-set.seed(53)
-jvar = seq(0.5, 0.82, 0.04)
+set.seed(232)
+jvar = seq(0.5, 0.82, 0.04)+0.02
 steps = length(jvar)
 A <- matrix(1:(4*steps), ncol = steps, byrow = TRUE)
 
@@ -327,14 +337,19 @@ par(oma = c(4,4,1,1)+.1, mar = c(0,0,0,0))
 #layout.show(n = 36*4)
 
 for(i in 1:4) {
-	for(k in unique(output$g)[-1]) {
+	for(k in c(0.025, 0.05, 0.075, 0.1 )) {
 		for(j in jvar) {
 			#try({
-				iteration = output$ID[which(output$g == k & output$b == j & output$starting %in%  sort(unique(output$starting))[12:17] & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] )]
-							
+				iteration = output$ID[which(output$g == k & output$b == j & output$starting %in%  sort(unique(output$starting))[12:17] & output$stock == c(FALSE, TRUE, FALSE,TRUE)[i] & output$globalgrazing == c(TRUE, TRUE, FALSE, FALSE)[i] )]
+				
+				powerlaw <- output$best[which(output$g == k & output$b == j & output$starting %in%  sort(unique(output$starting))[12:17] & output$stock == c(FALSE, TRUE, FALSE,TRUE)[i] & output$globalgrazing == c(TRUE, TRUE, FALSE, FALSE)[i] )] == "PL"
+				
+				
 				#load(paste("results\\result", 5879, sep = "_"))
-				if(length(iteration) > 1) { load(paste("results\\result", sample(iteration, 1), sep = "_")) }
-				if(length(iteration) == 1) { load(paste("results\\result", iteration, sep = "_")) }
+				
+				if(length(iteration) > 1) { load(paste("data\\sim10\\results\\result", sample(iteration, 1), sep = "_")) }
+				if(any(powerlaw)) { load(paste("data\\sim10\\results\\result", sample(iteration, 1, prob = powerlaw), sep = "_")) }
+				if(length(iteration) == 1) { load(paste("data\\sim10\\results\\result", iteration, sep = "_")) }
 				if(length(iteration) == 0) stop()
 				
 				#extract <- as.vector(matrix(1:10000, ncol = 100, byrow = TRUE)[1:25,1:25])
@@ -467,7 +482,10 @@ for(i in 1:4) {
 					points(dd4$size, dd4$p, col = "#E0E43066", type = "p", lwd = 2)
 					lines(c(1,mean(sapply(2:22, function(x) max(result$cumpatch[[x]]$size) ))), c(1,b ), lwd = 4, col = modelcols[models$best+1] ) 
 					}
-				
+				if(models$ best == 0) {
+					try({dd4 <- do.call("rbind", result$cumpatch)
+					points(dd4$size, dd4$p, col = "#E0E43066", type = "p", lwd = 2)})
+					}
 				text(25,1, pos = 1, labels = result$out$ID, cex =1.5)
 	
 
@@ -491,20 +509,20 @@ dev.off()
 	
 	
 	
-	
+	}
  
-pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\cpdf_fits.pdf", height = 7.5, width = 12, paper = "special")
+pdf("figures\\cpdf_fits.pdf", height = 7, width = 10, paper = "special", useDingbats = FALSE)
 
-layout(matrix(c(1:4,rep(0, 4),5:8,rep(0, 4),9:12,rep(0, 4),13:16), ncol = 7, byrow = FALSE), width = c(1, 0.1, 1, 0.1, 1, 0.1, 1)) 
 layout(matrix(c(c(1,0,0,0),2:17), ncol = 4, byrow = TRUE)) 
- par( oma = c(3,3,2,1), mar = c(1,1,1,1))
+ par( oma = c(3,3,2,1), mar = c(2,1,0,1))
 
  
  temp <- output[output$g == 0 & output$rho_plus > 0,]
 
  
-	plot(NA, NA , ylim = c(0,1), xlim = c(0.2,1), bty = "n", xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i")
-	rect(0.2, 0, 1, 1, col = "#FBF2BF", border = FALSE )
+	plot(NA, NA , ylim = c(0,1), xlim = c(1,0.2), bty = "n", xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i")
+	rect(0.2, 0, 1, 1, col = modelcols_bg[1], border = FALSE )
+
 	
 	if(length(temp$ID) > 0) {
 	 lvls <- sort(unique(temp$b))
@@ -519,7 +537,7 @@ layout(matrix(c(c(1,0,0,0),2:17), ncol = 4, byrow = TRUE))
 	#temp$repl <-  repl[match(temp$b, lvls)]
 	
 	
-	with(temp, rect(b+pos1, 0,b+pos2,1, col =  modelcols[bestnum], border = NA)
+	with(temp, rect(b+pos1, 0,b+pos2,1, col =  modelcols_bg[bestnum], border = NA)
 	)
 	}
 		
@@ -527,7 +545,7 @@ layout(matrix(c(c(1,0,0,0),2:17), ncol = 4, byrow = TRUE))
 	
 	if(length(temp$eq) > 0) {
 	#points(temp$b, temp$eq , pch = 20, col = "white", cex = 1.25)
-	rect(temp$b, rep(0, length(temp$b)), c(temp$b[-1],1.01), temp$eq ,  border = NA, col = "#FBF2BF")
+	rect(temp$b, rep(0, length(temp$b)), c(temp$b[-1],1.01), temp$eq ,  border = NA, col = modelcols_bg[1])
 	}
 	
 	
@@ -535,18 +553,21 @@ layout(matrix(c(c(1,0,0,0),2:17), ncol = 4, byrow = TRUE))
 	
 	points(temp$b, temp$rho_plus , pch = 20, col = "black", cex = 1.25)
 		axis(2, at = c(0,0.5,1), las = 1)
+		axis(1)	
 		box()
 
-
+ par(mar = c(1,1,1,1))
  
-for(j in sort(unique(output$g)[-1]) ){
+for(j in c(0.025, 0.05, 0.075, 0.1) ){
 	for(i in 1:4) {
 	grazing = j
 	
-	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i] & output$rho_plus > 0,]
+	temp <- output[output$g == grazing & 
+	output$stock == c(FALSE, TRUE, FALSE, TRUE)[i] & 
+	output$globalgrazing == c(TRUE, TRUE, FALSE, FALSE)[i] & output$rho_plus > 0,]
 
-	plot(NA, NA , ylim = c(0,1), xlim = c(0.2,1), bty = "n", xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i")
-	rect(0.2, 0, 1, 1, col = "#FBF2BF", border = FALSE )
+	plot(NA, NA , ylim = c(0,1), xlim = c(1,0.2), bty = "n", xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i")
+	rect(0.2, 0, 1, 1, col = modelcols_bg[1], border = FALSE )
 	
 	if(length(temp$ID) > 0) {
 	 lvls <- sort(unique(temp$b))
@@ -561,19 +582,23 @@ for(j in sort(unique(output$g)[-1]) ){
 	#temp$repl <-  repl[match(temp$b, lvls)]
 	
 	
-	with(temp, rect(b+pos1, 0,b+pos2,1, col =  modelcols[bestnum], border = NA)
+	with(temp, rect(b+pos1, 0,b+pos2,1, col =  modelcols_bg[bestnum], border = NA)
 	)
 	}
 	
-	temp <- unst_eq[unst_eq$g == grazing & unst_eq$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & unst_eq$global == c(TRUE, FALSE, TRUE, FALSE)[i] & unst_eq$eq > 0 & unst_eq$eq < unst_eq$rho_plus,]
-	
+	temp <- unst_eq[as.numeric(unst_eq$g) == grazing & unst_eq$stock == c(FALSE, TRUE, FALSE, TRUE)[i] &unst_eq$global == c(TRUE, TRUE, FALSE, FALSE)[i] & unst_eq$eq > 0 & unst_eq$eq < unst_eq$rho_plus,]
+
 	if(length(temp$eq) > 0) {
-	#points(temp$b, temp$eq , pch = 20, col = "white", cex = 1.25)
-	rect(temp$b, rep(0, length(temp$b)), c(temp$b[-1],1.01), temp$eq ,  border = NA, col = "#FBF2BF")
-	}
+	temp <- data.frame(b = unique(temp$b), eq = sapply(unique(temp$b), function(x) mean(temp$eq[temp$b == x]) ) )
+	temp <- temp[order(temp$b),]
+	
+#rect(temp$b, rep(0, length(temp$b)), c(temp$b[-1],1.01), temp$eq ,  border = NA, col = "#FBF2BF")
+	polygon(c(0,temp$b,1), c(0,temp$eq,0), border = NA, col = modelcols_bg[1])
+	points(temp$b, temp$eq , pch = 20, col = "white", cex = 1.25)
+		}
 	
 	
-	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[i] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[i],]
+	temp <- output[output$g == grazing & output$stock == c(FALSE, TRUE, FALSE, TRUE)[i] & output$globalgrazing == c(TRUE, TRUE, FALSE, FALSE)[i],]
 	
 	points(temp$b, temp$rho_plus , pch = 20, col = "black", cex = 1.25)
 		if(i== 1 ) axis(2, at = c(0,0.5,1), las = 1)	
@@ -600,23 +625,46 @@ dev.off()
 	
 	
  
-pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\models_legend.pdf", height = 1.5, width = 6, paper = "special")
+pdf("figures\\models_grids.pdf", height = 1.5, width = 7, paper = "special", useDingbats = FALSE)
 
-	layout(matrix(c(5:1), ncol = 5, byrow = TRUE))
+	layout(matrix(c(1:5), ncol = 5, byrow = TRUE))
 	
-	select <- c(20390, 6203, 26927, 5166, 13327 )
+	select <- c(19586, 18440, 20449, 19720, 18906 ) # parent model
+	select <- c(18367, 5492, 5067, 4654, 5545 ) # associative protecion model
+	
 
-	par( oma = c(1,1,1,1), mar = c(0.1,0.1,0.1,0.1))
+	par( oma = c(1,1,1,1), mar = c(.5,.5,.5,.5))
 
  for(i in select) {
-	load(paste("results\\result", i, sep = "_"))
+	load(paste("data\\sim10\\results\\result", i, sep = "_"))
 				
 				x <- excerpt(result$timeseries[[22]], extr = c(1,1,50,50))
 					
-				plot(x, cols = c("grey40","grey80", "white"))
-				par(new=TRUE)
-				plot(NA,NA, xlim = c(1,10000), ylim = c(.00001,1), log ="xy", pch = 20, col = "#00000020", xaxt = "n", yaxt = "n", bty = "n")
+				plot(x, cols = c("black","grey80", "white"))
+				box()
+				}
+
+dev.off()
+
+
+pdf("figures\\models_legend.pdf", height = 2.5, width = 7, paper = "special", useDingbats = FALSE)
+
+	layout(matrix(c(1:10), ncol = 5, byrow = FALSE), height = c(1,0.66))
+	
+	par( oma = c(3,3,0,0))
+		
+ for(i in select) {
+	load(paste("data\\sim10\\results\\result", i, sep = "_"))
 				
+				x <- excerpt(result$timeseries[[22]], extr = c(1,1,50,50))
+				par(mar = c(1.5,1.5,1.5,1.5))
+				plot(x, cols = c("black","grey80", "white"))
+				box()
+				
+				par(new=FALSE, mar = c(.5,1,.5,1))
+				plot(NA,NA, xlim = c(1,20000), ylim = c(.00001,1), log ="xy", bty = "l", xaxt = "n", yaxt = "n")
+				axis(1, at = c(1,1000))
+				if(i == select[1]) 	axis(2, at = c(.001,1), las = 1)
 				flag_full = FALSE
 
 				if(result$out$rho_plus < 0.02 | is.na(result$cumpatch[[22]])) {flag_desert = TRUE} else { 	# excluding deserts from model fit
@@ -627,10 +675,10 @@ pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\models_l
 						}
 				flag = !flag_desert &  !flag_full
 						
+					models  <- list()
 				if(flag) {
 					
 				
-					models  <- list()
 					models$AIC <- vector()
 					#############
 					PLlm <- lm(I(log(p)) ~  I(log(size)) , data = dd4) 
@@ -727,24 +775,21 @@ pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\models_l
 					
 
 				if(models$best %in% c(1,2,3,4)) {
-					points(dd4$size, dd4$p, col = "#00000066", type = "p", lwd = 2, pch = 20) 
+					points(dd4$size, dd4$p, col = "#000000", type = "p", lwd = 2, pch = 20) 
 					(lines(	exp(seq(log(1), log(100000), length = 100)), 
 						exp(predict(models[[models$best+1]], list(size = exp(seq(log(1), log(100000), length = 100 )))) ),
-						col = modelcols[models$best+1], lwd = 4
+						col = modelcols_fg[models$best+1], lwd = 4
 					))
 				} 
 				if(models$ best == 5) {
-					points(dd4$size, dd4$p, col = "#00000066", type = "p", lwd = 2, pch = 20)
-					lines(c(1,mean(sapply(2:22, function(x) max(result$cumpatch[[x]]$size) ))), c(1,b ), lwd = 4, col = modelcols[models$best+1] ) 
+					points(dd4$size, dd4$p, col = "#000000", type = "p", lwd = 2, pch = 20)
+					lines(c(1,mean(sapply(2:22, function(x) max(result$cumpatch[[x]]$size) ))), c(1,b ), lwd = 4, col = modelcols_fg[models$best+1] ) 
 					}
 				
 				#text(25,1, pos = 1, labels = result$out$ID, cex =1.5)
 	
 
 	
-
-				
-				box(col = "white")
 				
 				par(new=FALSE)
 			
@@ -759,22 +804,20 @@ dev.off()
 	
 	
  
- 
 	
 	
-	
-pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\alpha.pdf", height = 6, width = 12, paper = "special")
+pdf("figures\\alpha.pdf", height = 5, width = 10, paper = "special", useDingbats = FALSE)
 	
  par(mfcol= c(4,4), oma = c(3,3,2,1), mar = c(1,1,1,1))
 for(l in 1:4) {
  for(i in unique(output$g)[-1]) {
 	grazing = i
 	#l = 4
-	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[l] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[l] & output$rho_plus > 0.02,]
+	temp <- output[output$g == grazing & output$stock == c(FALSE, TRUE, FALSE, TRUE)[l] & output$globalgrazing == c(TRUE, TRUE, FALSE, FALSE)[l] & output$rho_plus > 0.02,]
 
-	plot(NA, NA , ylim = c(0,3), xlim = c(0.2,1), bty = "n", xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i")
-	rect(0.2, 0, 1,3, col = "grey90", border = FALSE )
-	if(i == 1 ) axis(2)
+	plot(NA, NA , ylim = c(3,0), xlim = c(1,0.2), bty = "n", xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i")
+	rect(0.2, 0, 1,3, col = modelcols_bg[1], border = FALSE )
+	#if(i == 1 ) axis(2, at = c(0,-1,-2,-3))
 	
 	if(length(temp$ID) > 0) {
 	 lvls <- sort(unique(temp$b))
@@ -789,15 +832,15 @@ for(l in 1:4) {
 	#temp$repl <-  repl[match(temp$b, lvls)]
 	
 	
-	with(temp, rect(b+pos1, 0,b+pos2,3, col =  c("white", "white", "white", "white", "white", "grey60")[bestnum], border = NA)
+	with(temp, rect(b+pos1, 0,b+pos2,3, col =  c("white", "white", "white", "white", "white", modelcols_bg[6])[bestnum], border = NA)
 	)
 	}
 	
-	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[l] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[l],, drop = FALSE]
+	temp <- output[output$g == grazing & output$stock == c(FALSE, TRUE, FALSE, TRUE)[l] & output$globalgrazing == c(TRUE, TRUE, FALSE, FALSE)[l],, drop = FALSE]
 
 		#plot(NA, NA , ylim = c(0,3), xlim = c(0,1), main = paste("g = ", grazing))
 	
-		points( temp$b, temp$p1 , pch = 20, col = modelcols[temp$bestnum])
+		points( temp$b, temp$p1 , pch = 20, col = modelcols_fg[temp$bestnum])
 		#text(b, c(0.4,0.47,0.54, 0.6), labels = best, col = "white")
 		
 		if(l == 1 ) axis(2, at = c(0,1,2,3), las = 1)	
@@ -809,17 +852,17 @@ for(l in 1:4) {
 
 	
 	
-pdf("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\figures\\largestpatch.pdf", height = 6, width = 12, paper = "special")
+pdf("figures\\largestpatch.pdf", height = 5, width = 10, paper = "special", useDingbats = FALSE)
 	
  par(mfcol= c(4,4), oma = c(3,3,2,1), mar = c(1,1,1,1))
 for(l in 1:4) {
  for(i in unique(output$g)[-1]) {
 	grazing = i
 	#l = 4
-	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[l] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[l] & output$rho_plus > 0.02,]
+	temp <- output[output$g == grazing & output$stock == c(FALSE, TRUE, FALSE, TRUE)[l] & output$globalgrazing == c(TRUE, TRUE, FALSE, FALSE)[l] & output$rho_plus > 0.02,]
 
-	plot(NA, NA , ylim = c(1,10000), log = "y", xlim = c(0.2,1), bty = "n", xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i")
-	rect(0.2, 1, 1,10000, col = "grey90", border = FALSE )
+	plot(NA, NA , ylim = c(1,10000), log = "y", xlim = c(1,0.2), bty = "n", xaxt = "n", yaxt = "n", xaxs = "i", yaxs = "i")
+	rect(0.2, 1, 1,10000, col = modelcols_bg[1], border = FALSE )
 	if(i == 1 ) axis(2)
 	
 	if(length(temp$ID) > 0) {
@@ -835,12 +878,12 @@ for(l in 1:4) {
 	#temp$repl <-  repl[match(temp$b, lvls)]
 	
 	
-	with(temp, rect(b+pos1, 1,b+pos2,10000, col =  c("white", "white", "white", "white", "white", "grey60")[bestnum], border = NA)
+	with(temp, rect(b+pos1, 1,b+pos2,10000, col =  c("white", "white", "white", "white", "white", modelcols_bg[6])[bestnum], border = NA)
 	)
 	}
 	
 	
-	temp <- output[output$g == grazing & output$stock == c(FALSE, FALSE, TRUE, TRUE)[l] & output$globalgrazing == c(TRUE, FALSE, TRUE, FALSE)[l] & output$rho_plus > 0,, drop = FALSE]
+	temp <- output[output$g == grazing & output$stock == c(FALSE, TRUE, FALSE, TRUE)[l] & output$globalgrazing == c(TRUE,  TRUE, FALSE, FALSE)[l] & output$rho_plus > 0,, drop = FALSE]
 		temp <- temp[order(temp$b),]
 		
 		#plot(NA, NA , ylim = c(1,9000), log = "y", xlim = c(0,1), xaxt = "n", yaxt = "n")
@@ -854,7 +897,7 @@ for(l in 1:4) {
 		#points( temp$b, temp$largestpatch+ temp$largestpatch_sd , pch = 20, col = paste(modelcols, "10", sep = "")[temp$bestnum])
 		#points( temp$b, temp$largestpatch- temp$largestpatch_sd , pch = 20, col = paste(modelcols, "10", sep = "")[temp$bestnum])
 		#text(b, c(0.4,0.47,0.54, 0.6), labels = best, col = "white")
-		points( temp$b, temp$largestpatch, pch = 20, col = modelcols[temp$bestnum])
+		points( temp$b, temp$largestpatch, pch = 20, col = modelcols_fg[temp$bestnum])
 
 
 		if(l == 1 ) axis(2, at = c(1,10,100,1000, 10000), las = 1)	
