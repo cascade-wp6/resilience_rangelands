@@ -13,7 +13,7 @@
 **/*.mp4
 
 !figures/figures.pdf
-!manuscript/first\ draft/figures/*
+!manuscript/figures/*
 
 # indesign files
 **/*.indd

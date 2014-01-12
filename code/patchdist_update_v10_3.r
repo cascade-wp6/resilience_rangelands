@@ -2,7 +2,7 @@
 
 rm(list=ls())
 
-#setwd("E:\\Eigene Dokumente\\Uni\\projects\\2013 CASCADE grazing\\sim9\\")
+#setwd("E:\\Eigene Dokumente\\Uni\\projects\\CAS01_grazing\\data\\sim10\\")
 setwd("C:\\Users\\SCHNEIDER\\Documents\\projects\\CAS01_grazing\\data\\sim10\\")
 
 

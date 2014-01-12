@@ -143,44 +143,82 @@ associative protection & $g_0/0.5 \frac{v}{\hat{v}}$  & $g_0/\rho_+ \frac{v}{\ha
 
 \subsection{Numerical simulations}
 
-We applied these rules on a grid of 100 $\times$ 100 cells of 0.25m$^2$. Each timestep is defined as one year. The applicable transition probabilities for each single cell given in equations 1, 2, 3 and 4 are compared against uniform random numbers between 0 and 1 to determine if a transition occurs or if the cell remains unchanged. To initialize the grid with a standardized patchy vegetation structure, each model simulation was run for 500 years without any grazing (g = 0) using an initial environmental value $ b_ini \in \left\{ 0.25, 3, 0.8, 0.9 \right\} $ before grazing is taking action. %(Note: I want to complete this to a highly resoluted gradient, to investigate the unstable equilibria). 
-Starting from the preconditioned grids, the four grazing models (Table 1) with varying grazing intensity ($ g \in \left\{ 0, 0.025, 0.05, 0.075, 0.10 \right\} $) were run over a gradient of environmental quality ($ b \in \left\{ 0.2, ... , 1.0 \right\} $) for 1.500 timesteps. 
+The applicable transition probabilities for each single cell given in equations 1, 2, 3 and 4 are compared against uniform random numbers between 0 and 1 to determine if a transition occurs or if the cell remains unchanged (see appendix for additional detail). To initialize the grid with a standardized patchy vegetation structure, each model simulation was run for 500 years without any grazing ($g = 0$) using random initial environmental values (uniform; $ 0.25 <  b_\mathrm{ini} < 0.9 $) before grazing is taking action. %the lower limit of these causes the desert stable state beeing undetectable if the unstable equilibrium is below rho(b = 0.25) for a given parameter combination. A final simulation run with true random initial conditions, including very low vegetation cover (rho ~ 0.005) would be required.
+ 
+Starting from these preconditioned grids, the four grazing models (Table 1) were run over a gradient of environmental quality with varying grazing intensity for 2.000 timesteps (see below for exact parameter values). 
 
-An average vegetation cover, $\rho_+$, as well as the average cell mortality,$\hat{m}$ , is determined as the average density of all grids of the final 500 timesteps.
-
-
-\subsection{Choice of parameters}
+\subsubsection{Choice of parameters}
+We applied the transition rules on a grid of 100 $\times$ 100 cells, assuming each grid cell to cover an area of 0.25m$^2$, and a timestep to include the dynamics occuring within one year. 
 
 To investigate the bistability properties of the vegetation cover, we simulate a high resolution gradient in environmental quality $b$ ranging from 0.2 to 1 with varying step-width between 0.0025 and 0.025. The models of this study inherit all parameters from the parent model in K\'efi et al. 2007a ($r = 0.01$, $f = 0.9$, $\delta = 0.1$, $c = 0.2$, $d = 0.1$), while substituting mortality with Eq. 4 and Table 1. We assume intrinsic mortality $m_0$ for all models to be 0.05, reflecting an average individual lifespan of 20 years, if no additional mortality due to grazing is taking effect.  
 Further, we run all models over a linear grazing gradient with $g$ taking 0, 0.025, 0.050, 0.075, 0.100.
-For the parent model, this produces average individual lifespans of 20.0, 13.3, 10.0, 8.0, 6.7 years, respectively. 
+For the parent model, this produces average individual lifespans of 20.0, 13.3, 10.0, 8.0, 6.7 years, respectively. The other models generate more dynamic and locally differentiated lifespans.
 
-\subsection{Cumulative patch--size distributions}
-We investigate qualitatively, how the patch size distributions change with environmental quality at the different levels of grazing. Therefore, we assigned each simulation run to one of the following five cases: (1) fully vegetated, if the vegetation cover was significant (\> 2 \% ) and aggregated into one large spanning cluster (ignoring additional patches up to a size of 2 cells); (2) up-bent power law, if the cumulative patch--size distribution was best described by a power law with a lower limit defined by a single large spanning cluster; (3) power law, if the cumulative patch--size distribution  was best described by a power-law; (4) down-bent power law, if the cumulative patch--size distribution was best described by a truncated power law; (5) degraded, if the vegetation cover was insignificant (\< 2\%).
+\subsubsection{Recorded output of the simulations}
 
-We compare the parameter space occupied by those cases. Additionally, we compare the exponent of the power law for the cases 2--4. 
+The average vegetation cover, $\rho_+$, % as well as the average cell mortality,$\hat{m}$,
+is determined as the average density of vegetated cells in all grids of the final 500 timesteps.
+
+The unstable equilibria are estimated by approximating the point of vegetation cover were the dynamics switch from increasing cover to decreasing cover (see appendix for more detail on the estimation). 
+
+In the last 1000 timesteps of the simulation we recorded the largest occuring patch in intervals of 50 timesteps, to determine the average size of the largest patch ($n = 20$).
+
+%\subsection{Cumulative patch--size distributions}
+We investigate qualitatively, how the patch size distributions change with environmental quality at the different levels of grazing. 
+From 20 snapshots taken in 50 year intervals over the last 1000 years of each simulation we calculated the cumulative patch-size distributions (White et al 2008), i.e. the probabilities that an observation is less or equal to a particular patch size. We pooled the 20 patch size distributions to fit three alternative probability density functions for each simulation: a pure power law, an up-bent power law with a lower limit defined by a single large spanning cluster, and a down-bent power law, approximating to a largest possible patch (Table 2; Kéfi et al 2007).
+The models were fitted using nonlinear least-squares on the linearized (i.e. log-transformed) versions of the three models (Table 2).
+
+\begin{table}[t!]
+\label{tab:fitmodels}
+\caption{ Kandidate models describing patch size distribution }
+\centering
+\begin{tabular}{lll}
+
+\toprule
+ & function & log-transform \\ \cmidrule(rl){2-2} \cmidrule(rl){3-3}
+Power Law &  $n = a s^{ \alpha}$ & $ \log{n} =\log{a} + \alpha \log s$\\
+Limited Power Law &  $n = b + a s^{ \alpha} $ & $ \log{n} = \log a + \alpha \log{s} + \log(1+\frac{b}{a s^{\alpha} })$\\
+Truncated Power Law & $n = a s^{ \alpha} \mathrm{e}^{s \frac{1}{S_x}}$  & $\log{n} = \log a  + \alpha  \log s  - s \frac{1}{Sx}  $ \\
+%Exponential &  $n = a \mathrm{e}^{-\varepsilon s} $ & $ \log{n} =  \log{a} - \varepsilon s $\\
+	\bottomrule
+\multicolumn{3}{p{12.5cm}}{\footnotesize  }
+	\end{tabular}
+\end{table}
+
+
+We assigned each simulation replicate to one of the following five cases: (1) fully vegetated, if the vegetation cover was significant ($ > 2 \%$) and aggregated into one large spanning cluster (ignoring patches of size 1 or 2 cells); (2) up-bent power law, if the cumulative patch--size distribution was best described by a power law with a lower limit of one large patch spanning over the whole landscape; (3) power law, if the cumulative patch--size distribution  was best described by a power-law; (4) down-bent power law, if the cumulative patch--size distribution was best described by a truncated power law; (5) degraded, if the vegetation cover was insignificant ($< 2\%$).
+
+We compare the parameter space occupied by these five cases. Additionally, we compare the exponent $\alpha$ of the power law for the cases 2--4. 
 
 \section{Results}
 
-\newpage
+For each model, we investigate the response of the landscape structure to increasing pressure, which might be a decrease in environmental quality or an increase in grazing intensity. Landscape structure is assessed by four different metrics: the vegetation cover of the landscape, the character of the cumulative patch size distribution, the exponent of the most suitable power-law model, and the size of the largest patch. 
 
-\begin{figure}[h]%
+The four models differ strongly regarding the stability of and the transition between the vegetated and the desert state with increasing pressure (Fig. 3). The most apparent difference of the livestock model compared to the parent model is the larger basin of attraction of the desert state: The critical threshold of vegetation cover (white line in Fig. 3a) below which the remaining vegetation will be lost as well, is much more tense in the livestock model. At the same time, the vegetated state becomes more relaxed, reflected by the higher values of vegetation cover and a small shift of the borders between the vegetation categories towards worse environmental conditions (dark, green and red background areas).
+
+\begin{figure}[t]%
 \includegraphics[width=\columnwidth]{figures/fig3.pdf}%
 \caption{}%
 \label{}%
 \end{figure}
 
+The associative protection model has an opposite effect on the stability of the vegetated state, shifting the vegetation categories profoundly towards better environmental conditions and diminishing the average vegetation cover. The desert state, however, becomes more fragile as well. The parameter space, where coexistence of both stable states is detectable by the simulations becomes narrower.
+Remarkably, both models accellerate the breakdown in vegetation cover with decreasing environmental quality and increasing grazing intensity compared to the parent model. The critical threshold of catastrophic shift with increasing pressure becomes more sudden.
+The combined model seems to add the effects of the both models seamlessly. The shift of the vegetated categories is equaled out and similar to the parent model. The critical threshold of sudden vegetation loss is reached even earlier with increasing pressure. \par
 
-\begin{figure}[h]%
+For those cases where the landscape's patch size distribution was best described by one of the power law models we compare the exponents of the power law, $\alpha$ with increasing pressure (Fig.~\ref{fig:fig4}). In the parent model, with incresing pressure  $\alpha$ increases from around -3 to a climax of VALUE . 
+ 
+
+\begin{figure}[t]%
 \includegraphics[width=\columnwidth]{figures/fig4.pdf}%
-\caption{}%
-\label{}%
+\caption{For the cases where a power law description of the cumulative patch size distribution is appropriate, the exponent $\alpha$ of the power law is plotted as a function of environmental quality, $b$. Green symbols are up-bent power laws, red symbols are straight power laws and brown symbols are down-bent power laws. Dark and light grey areas are fully vegetated and desert landscapes, respectively. }%
+\label{fig:fig4}%
 \end{figure}
 
-\begin{figure}[h]%
+\begin{figure}[tb]%
 \includegraphics[width=\columnwidth]{figures/fig5.pdf}%
 \caption{}%
-\label{}%
+\label{fig:fig5}%
 \end{figure}
 
 
@@ -200,12 +238,17 @@ In our model, however, we simplify these factors to a linear negative impact of 
 Undifferentiated model underestimates consequences of grazing with regard to the stability properties of the landscape. 
 A linear increase in grazing causes shifts much  
 
+
+
+
+\newpage
+
 \section{APPENDIX}
 
 \subsection{simulations}
 
 The grid was defined to have periodic borders, connecting the east border to the west, the north to the south.
-Prerun for 100 years. 
+Prerun for 100 years
 during pre-run, environmental conditions $b_ini \in \left\{ 0.250, 0.274, 0.300, 0.329, 0.360, 0.395, 0.433, 0.474, 0.520, 0.570, 0.624, 0.684, 0.749, 0.821, 0.900 \right\} $ emerge a patch structure ranging from low to high vegetation cover. Trajectories towards a stable vegetated state or towards desert are documented and used to approximate the unstable equilibrium.
 
 , the whole grid is updated synchronously multiple times, to increase stochasticity
@@ -213,24 +256,6 @@ each time step is devided by the number of updates per year ( = 5) and
 
 \subsection{model fitting}
  Four models were compared on each snapshot of t
-
-
-\begin{table}[t!]
-\label{tab:fitmodels}
-\caption{ Models describing patch size distribution }
-\centering
-\begin{tabular}{lll}
-
-\toprule
- & function & log-transform \\ \cmidrule(rl){2-2} \cmidrule(rl){3-3}
-Power Law &  $n = a s^{- \alpha}$ & $ \log{n} =\log{a} - \alpha \log s$\\
-Limited Power Law &  $n = b + a s^{- \alpha} $ & $ \log{n} = \log a - \alpha \log{s} + \log(1+\frac{b}{a s^{-\alpha} })$\\
-Truncated Power Law & $n = a s^{- \alpha} \mathrm{e}^{s \frac{1}{S_x}}$  & $\log{n} = \log a  - \alpha  \log s  - s \frac{1}{Sx}  $ \\
-%Exponential &  $n = a \mathrm{e}^{-\varepsilon s} $ & $ \log{n} =  \log{a} - \varepsilon s $\\
-	\bottomrule
-\multicolumn{3}{p{12.5cm}}{\footnotesize  }
-	\end{tabular}
-\end{table}
 
 
 table with log-transformed models

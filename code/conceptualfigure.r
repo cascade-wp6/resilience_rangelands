@@ -552,84 +552,87 @@ dev.off()
 #####
 
 
-pdf("E:\\Eigene Dokumente\\Uni\\projects\\CAS01_grazing\\figures\\conceptual\\fig2_mortalities.pdf", width =3, height = 1.5, paper = "special", useDingbats = FALSE)
+pdf("E:\\Eigene Dokumente\\Uni\\projects\\CAS01_grazing\\figures\\conceptual\\fig2_mortalities.pdf", width =4.5, height = 1.2, paper = "special", useDingbats = FALSE)
 
 
 layout(matrix(c(1,2,1,3,1,4), ncol = 2, byrow = TRUE), width = c(5,2))
-par(mar = c(1,2,0,0), oma = c(3,1,1,3), bty = "n",  las = 1)
+layout(matrix(c(1,0,2,3,4), ncol = 5, byrow = TRUE), width = c(1,0.7,1,1,1))
+par(mar = c(1,1,0,0), oma = c(2,2,1,1), bty = "l",  las = 1, yaxs = "i" , xaxs = "r")
 
-plot(NA,NA, xlim = c(1,0), ylim = c(0,.12), ylab = "", xlab = "", xaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.1, 2))
+plot(NA,NA, xlim = c(1,0), ylim = c(0,.12), ylab = "", xlab = "", xaxt = "n", yaxp = c(0, 0.1, 2))
 #lines(rep(parms_temp$m, times = length(n))*dens ~ dens, data = result, col = "grey80", lwd = 2)
 axis(1, at  = c(0,1), labels = c("", ""), tck = 0)
 ## intrinsic mortality 
 abline(a = 0, b = parms_temp$g/0.5, lty = 1, lwd = 3) # parent model
 
-plot(parent ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
-plot(parent ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3 ), ylab = "", xlab = "vegetation cover", xaxt = "n",yaxt = "n",  yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
 
-plot(parent ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+plot(parent ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n")
+axis(2, at  = c(0,0.2,.4))
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+plot(parent ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42 ), ylab = "", xlab = "vegetation cover", xaxt = "n",yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+
+plot(parent ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
 
 
-
-plot(NA,NA, xlim = c(1,0), ylim = c(0,.12), ylab = "", xlab = "", xaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.1, 2))
+plot(NA,NA, xlim = c(1,0), ylim = c(0,.12), ylab = "", xlab = "", xaxt = "n", yaxp = c(0, 0.1, 2))
 #lines(rep(parms_temp$m, times = length(n))*dens ~ dens, data = result, col = "grey80", lwd = 2)
 
 abline(a = parms_temp$g, b = 0, lty = 1, lwd = 3) # livestock model
 axis(1, at  = c(0,1), labels = c("", ""), tck = 0)
 
-plot(stock ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
-plot(stock ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
-plot(stock ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+plot(stock ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+axis(2, at  = c(0,0.2,.4))
+plot(stock ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+plot(stock ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
 
 
-plot(NA,NA, xlim = c(1,0), ylim = c(0,.12), ylab = "", xlab = "", xaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.1, 2))
+plot(NA,NA, xlim = c(1,0), ylim = c(0,.12), ylab = "", xlab = "", xaxt = "n", yaxp = c(0, 0.1, 2))
 #lines(rep(parms_temp$m, times = length(n))*dens ~ dens, data = result, col = "grey80", lwd = 2)
 
 
 abline(a = 0, b = parms_temp$g/0.5, lty = 1, lwd = 3) # associative protection model
 axis(1, at  = c(0,1), labels = c("", ""), tck = 0)
 
-plot(assoc3_0n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
-axis(4, at  = c(0,.2))
-plot(assoc3_2n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
-plot(assoc3_4n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+plot(assoc3_0n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+axis(2, at  = c(0,0.2,.4))
+#axis(4, at  = c(0,.2))
+plot(assoc3_2n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+plot(assoc3_4n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
 
-plot(NA,NA, xlim = c(1,0), ylim = c(0,.12), ylab = "", xlab = "", xaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.1, 2))
+plot(NA,NA, xlim = c(1,0), ylim = c(0,.12), ylab = "", xlab = "", xaxt = "n", yaxp = c(0, 0.1, 2))
 #lines(rep(parms_temp$m, times = length(n))*dens ~ dens, data = result, col = "grey80", lwd = 2)
-axis(1, at = c(0,0.5,1))
+axis(1, at = c(0,1))
 abline(a = parms_temp$g, b = 0, lty = 1, lwd = 3) # combined model
 
 axis(1, at  = c(0,1), labels = c("", ""), tck = 0)
 
-plot(stockassoc3_0n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
-axis(4, at  = c(0,.2))
+plot(stockassoc3_0n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+axis(2, at  = c(0,0.2,.4))
+#axis(4, at  = c(0,.2))
+axis(1, at  = c(0,1))
 
-plot(stockassoc3_2n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+plot(stockassoc3_2n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+axis(1, at  = c(0,1))
 
-plot(stockassoc3_4n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.3 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxs = "i" , xaxs = "i", yaxp = c(0, 0.2, 1))
-axis(4, at  = c(0,.2))
-abline(h = 0)
-axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
+plot(stockassoc3_4n ~ dens, data = result, type = "l", lwd = 3, xlim = c(1,0), ylim = c(-0.03,.42 ), ylab = "", xlab = "vegetation cover", xaxt = "n", yaxt = "n", yaxp = c(0, 0.2, 1))
+#axis(4, at  = c(0,.2))
+#abline(h = 0)
+#axis(1, at  = c(0,1), labels = c("", ""), tck = 0.2)
 axis(1, at  = c(0,1))
 
 dev.off()

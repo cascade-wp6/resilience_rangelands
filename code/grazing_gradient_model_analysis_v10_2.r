@@ -514,7 +514,7 @@ dev.off()
 pdf("figures\\cpdf_fits.pdf", height = 7, width = 10, paper = "special", useDingbats = FALSE)
 
 layout(matrix(c(c(1,0,0,0),2:17), ncol = 4, byrow = TRUE)) 
- par( oma = c(3,3,2,1), mar = c(2,1,0,1))
+ par( oma = c(3,3,1,1), mar = c(2,1,1,1))
 
  
  temp <- output[output$g == 0 & output$rho_plus > 0,]
@@ -556,10 +556,11 @@ layout(matrix(c(c(1,0,0,0),2:17), ncol = 4, byrow = TRUE))
 		axis(1)	
 		box()
 
- par(mar = c(1,1,1,1))
+ par(mar = c(1,1,2,1))
  
-for(j in c(0.025, 0.05, 0.075, 0.1) ){
-	for(i in 1:4) {
+for(i in 1:4) { 
+	for(j in c(0.025, 0.05, 0.075, 0.1) ){
+
 	grazing = j
 	
 	temp <- output[output$g == grazing & 
@@ -601,8 +602,8 @@ for(j in c(0.025, 0.05, 0.075, 0.1) ){
 	temp <- output[output$g == grazing & output$stock == c(FALSE, TRUE, FALSE, TRUE)[i] & output$globalgrazing == c(TRUE, TRUE, FALSE, FALSE)[i],]
 	
 	points(temp$b, temp$rho_plus , pch = 20, col = "black", cex = 1.25)
-		if(i== 1 ) axis(2, at = c(0,0.5,1), las = 1)	
-		if(j == .1 ) axis(1)
+		if(j == 0.025 ) axis(2, at = c(0,0.5,1), las = 1)	
+		if(i == 4 ) axis(1)
 		box()
 	#text(0.3, .9, labels = paste("g = ", grazing))
 		}
@@ -806,9 +807,9 @@ dev.off()
  
 	
 	
-pdf("figures\\alpha.pdf", height = 5, width = 10, paper = "special", useDingbats = FALSE)
+pdf("figures\\alpha.pdf", height = 5.5, width = 10, paper = "special", useDingbats = FALSE)
 	
- par(mfcol= c(4,4), oma = c(3,3,2,1), mar = c(1,1,1,1))
+ par(mfrow= c(4,4), oma = c(3,3,2,1), mar = c(1,1,2,1))
 for(l in 1:4) {
  for(i in unique(output$g)[-1]) {
 	grazing = i
@@ -843,8 +844,8 @@ for(l in 1:4) {
 		points( temp$b, temp$p1 , pch = 20, col = modelcols_fg[temp$bestnum])
 		#text(b, c(0.4,0.47,0.54, 0.6), labels = best, col = "white")
 		
-		if(l == 1 ) axis(2, at = c(0,1,2,3), las = 1)	
-		if(i == .1 ) axis(1)
+		if(i == .025) axis(2, at = c(0,1,2,3), las = 1)	
+		if(l == 4 ) axis(1)
 		box()
 	}
 	}
@@ -852,9 +853,9 @@ for(l in 1:4) {
 
 	
 	
-pdf("figures\\largestpatch.pdf", height = 5, width = 10, paper = "special", useDingbats = FALSE)
+pdf("figures\\largestpatch.pdf", height = 5.5, width = 10, paper = "special", useDingbats = FALSE)
 	
- par(mfcol= c(4,4), oma = c(3,3,2,1), mar = c(1,1,1,1))
+ par(mfrow= c(4,4), oma = c(3,3,2,1), mar = c(1,1,2,1))
 for(l in 1:4) {
  for(i in unique(output$g)[-1]) {
 	grazing = i
@@ -900,8 +901,8 @@ for(l in 1:4) {
 		points( temp$b, temp$largestpatch, pch = 20, col = modelcols_fg[temp$bestnum])
 
 
-		if(l == 1 ) axis(2, at = c(1,10,100,1000, 10000), las = 1)	
-		if(i == .1 ) axis(1)
+		if(i == 0.025 ) axis(2, at = c(1,10,100,1000, 10000), las = 1)	
+		if(l == 4 ) axis(1)
 		box()
 	}
 	}
