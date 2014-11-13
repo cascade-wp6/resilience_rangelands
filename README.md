@@ -1,8 +1,6 @@
 Implementing realistic grazing in models of catastrophic shift (CAS01)
 ======================================================================
 
-![new concept for project](http://162.38.184.118/gitlist/CAS01_grazing.git/blob/master/newconcept_01_2014.jpg)
-
 ## Objective
 
 This project aims to provide more realistic models for the resilience of dryland systems. 
@@ -55,3 +53,7 @@ We think about splitting the project in the following deliveries.
 #### Manuscript: "Biotic vs abiotic facilitation as drivers of ecosystem resilience and spatial structure"
 
 
+
+## License
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">Towards a spatial resilience framework for arid and semi-arid rangelands</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://fdschneider.github.io" property="cc:attributionName" rel="cc:attributionURL">Florian D. Schneider</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/4.0/">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/cascade-wp6/resilience_rangelands" rel="dct:source">https://github.com/cascade-wp6/resilience_rangelands</a>.
