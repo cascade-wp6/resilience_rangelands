@@ -1,7 +1,7 @@
 ---
 title: "Basic Model formulation"
 author: "Florian D. Schneider"
-date: "Tuesday, November 13, 2014"
+date: "Tuesday, November 18, 2014"
 output:
   pdf_document:
     fig_height: 3.5
@@ -11,14 +11,11 @@ output:
     self_contained: no
 geometry: margin=1.4in
 fontsize: 12pt
+bibliography: ../manuscript/cas02.bib
+csl: ../manuscript/amnat.csl
 ---
-<!--
 
-bibliography: cas02.bib
-csl: amnat.csl
--->
-
-This is supposed to become an interactive model representation of the pair-approximation model. 
+This document is supposed to become an interactive model representation of the pair-approximation model. 
 
 The default form of the differential equation describing vegetation cover is 
 
@@ -38,13 +35,17 @@ defplot <- function(...) plot(...,
             xlim = c(0,1), ylim = c(0,0.2), 
             xaxs = "i", yaxs = "i", 
             xaxp = c(0,1,2), yaxp = c(0,0.2,2), 
-            xlab = "vegetation cover", ) 
+            xlab = "vegetation cover") 
 ```
 
+## non-spatial models
+### logistic growth
 
-## logistic growth
+If assuming phenomenological logistic growth, the gain in vegetation as a function of present vegetation cover is 
 
-$$ G(V) = rV(1-V/K)$$
+$$ G(V) = rV(1-V/K) \,,$$
+
+with the growth rate, $r$, and the carrying capacity, $K$, decelerating the exponential growth as vegetation cover increases and reducing it to zero if $V \geq K$. Thus, it is a decelerating effect (a negative feed-back) at high vegetation cover. 
 
 ```{r, echo=FALSE}
 G <- function(P, r = 0.5, K = 0.9) r*P*(1-P/K)
@@ -53,15 +54,50 @@ rho <- seq(0,1,length = 100)
 defplot(rho, G(rho), ylab = "growth")
 
 ```
+#### mechanistic growth assumptions
 
 
-## functional response
+
+#### decelerating growth at low cover  
+
+In arid ecosystems, growth would be decelerated at very low cover, because retention of water and organic matter in the site is fundamentally reduced. This postive feed-back (low cover reduces growth, leading to even lower cover) was discussed by @vandekoppel97 and @rietkerk97 to explain bistability in arid ecosystems.
+
+$$ G(V) = rV(1-V/K) \,,$$
 
 
-$$ C(V) = c_\mathrm{max} \frac{V}{V+T_h} $$
+### functional response
+
+#### linear plant mortality
+
+In the cellular automata model and mean-field approximations of Sonia, individual plant mortality is a constant rate, which means it is increasing linearly with vegetation cover. 
+
+Plant mortality due to grazing therefore would be described as
+
+$$ C(V) = mV \,, $$
+
+with the grazing mortality, $m$.
 
 ```{r, echo=FALSE}
-C <- function(P, c_max = 0.1, T_h = 0.05) c_max*P/(P+T_h)
+C <- function(V, m = 0.25) (m*V)
+rho <- seq(0,1,length = 100)
+
+defplot(rho, C(rho), ylab = "plant mortality")
+
+```
+
+#### constant plant mortality
+
+In fact, when assuming a constant density of herbivores, grazing mortality will certainly saturate at some point, due to limitations of the herbivores handling times. A very parsimonious model would assume that grazing always is defined by this limitation of handling times, even at very low densities. 
+
+Mortality due to grazing,
+
+$$ C(V) = m \,, $$
+
+thus would be defined as constant, $m$, regardless of the vegetation cover.
+
+
+```{r, echo=FALSE}
+C <- function(V, m = 0.1) m + V*0
 rho <- seq(0,1,length = 100)
 
 defplot(rho, C(rho), ylab = "plant mortality")
@@ -69,11 +105,103 @@ defplot(rho, C(rho), ylab = "plant mortality")
 ```
 
 
-```{r, echo=FALSE}
+#### type 2 functional response
 
-defplot(rho, G(rho), ylab = "growth")
-lines(rho, C(rho, c_max = 0.1, T_h =0.3))
-lines(rho, C(rho, c_max = 0.1))
+In natural systems, however, consumption is defined by saturating functional responses, i.e. at low cover, density dependent mortality defined by search efficiency dominates, but at high cover handling times of the consumer will limit its intake rates. 
+
+Therefore, plant mortality due to grazing should be 
+
+$$ C(V) = \frac{aV}{1+ahV} \,,$$
+
+with the handling time, $h$ [time per resource unit], and the search efficiency, $a$ [area foraged in per time].  
+
+```{r, echo=FALSE}
+C <- function(V, a = 0.5, h = 10) (a*V)/(1+a*h*V)
+rho <- seq(0,1,length = 100)
+
+defplot(rho, C(rho), ylab = "plant mortality")
+
 ```
 
 
+#### type 3 functional response
+
+$$ C(V) = \frac{bV^{1+q}}{1+bhV^{1+q}} $$
+
+
+```{r, echo=FALSE}
+C <- function(V, a = 1, h = 10, q = 1) (a*V^(1+q))/(1+a*h*(V^(1+q)) ) 
+rho <- seq(0,1,length = 100)
+
+defplot(rho, C(rho), ylab = "plant mortality")
+
+```
+
+
+
+### bistability
+
+Plotting the growth rate against the different mortality rates shows how the definition of grazing mortality alters our prediction of the steady states of the system. 
+
+Compared to the more realistic non-linear functions, the constant grazing mortality assumption seems to predict both the attractor of the vegetated state and the tipping point much better than the density dependent mortality used in Kéfi et al 2007 TPB. In fact, the linear density dependent mortality does not predict bistability at all, given a simple logistic growht function. 
+
+The critical threshold that would lead to degradation is overestimated by the constant model. 
+
+The type 3 functional response finally predicts the existance of a stable degraded state that is not a desert, i.e. not entirely unvegetated. 
+
+
+
+```{r, echo=FALSE}
+
+defplot(rho, G(rho), ylab = "growth", col = "green3")
+lines(rho, C(rho, a = 10, q = 1))
+lines(rho, rep(0.1, length(rho)))
+lines(rho, C(rho, a = 3, q = 0))
+lines(rho, C(rho, a = .2, h = 0.00001, q = 0))
+
+```
+
+
+### open questions
+
+#### Intrinsic mortality
+
+The mortality of plants regardless of grazing cover must be considered to be already internalised into the logistic growth definition. 
+
+Alternatively, it can be considered as an independent constant rate, $M(V) = mV$, 
+
+$$ \frac{dV}{dt} = G(V) - M(V) - C(V) $$
+
+and thus would affect the alternative stable states of the ecosystem.
+
+
+```{r, echo=FALSE}
+
+defplot(rho, G(rho), ylab = "growth", col = "green3")
+m <- rho*0.05
+lines(rho, m, lty = 2)
+lines(rho, m+C(rho, a = 10, q = 1))
+lines(rho, m+rep(0.1, length(rho)))
+lines(rho, m+C(rho, a = 3, q = 0))
+lines(rho, m+C(rho, a = .2, h = 0.00001, q = 0))
+
+```
+
+
+
+## spatially-explicit models
+
+The models described above were discussed by @noy-meir75 for grazing systems where vegetation is assumed to be of homogeneous distribution, and no spatially-explicit effects are of relevance. 
+Refugia or fencing of areas, however, could be considered as spatial effects. 
+
+In arid and semi-arid rangelands, spatial vegetation structure was considered to be of major importance for plant growth and mortality [@rietkerk97; @kefi07]. It generates patterns that act as positive feed-backs on the local scale by providing refugia to grazing and overcome growth limitations at low vegetation cover.
+
+These mechanisms can be implemented in the model by using a pair-approximation approach. 
+
+### growth
+
+
+### spatially-explicit grazing mortality
+
+
+# References
