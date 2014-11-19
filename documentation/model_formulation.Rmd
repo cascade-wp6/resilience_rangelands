@@ -8,20 +8,19 @@ output:
     fig_width: 4
   html_document:
     keep_md: yes
-    self_contained: no
-geometry: margin=1.4in
 fontsize: 12pt
-bibliography: ../manuscript/cas02.bib
+geometry: margin=1.4in
 csl: ../manuscript/amnat.csl
+bibliography: ../manuscript/cas02.bib
 ---
 
 This document is supposed to become an interactive model representation of the pair-approximation model. 
 
 The default form of the differential equation describing vegetation cover is 
 
-$$ \frac{dV}{dt} = G(V) - C(V) $$
+$$ \frac{dV}{dt} = G(V) - C(V)H $$
 
-with growth function $G$ and a function $C$ which represents consumption by herbivores. Formally, intrinsic mortality could be included in both terms. In the formulations of @noy-meir75 and @vandekoppel97 it is assumed to be covered by the logistic growth function.
+with growth function $G$ and a function $C$ which represents consumption by a herbivore multiplied by the density of herbivores, $H$. Formally, intrinsic mortality could be included in both terms. In the formulations of @noy-meir75 and @vandekoppel97 it is assumed to be covered by the logistic growth function.
 
 It might become important in the pair-approximation model, where intrinsic plant mortality is included as a proportional loss of mature plants.
 
@@ -36,9 +35,13 @@ defplot <- function(...) plot(...,
             xaxs = "i", yaxs = "i", 
             xaxp = c(0,1,2), yaxp = c(0,0.2,2), 
             xlab = "vegetation cover") 
+
+rho <- seq(0,1,length = 100)
+
 ```
 
 ## non-spatial models
+
 ### logistic growth
 
 If assuming phenomenological logistic growth, the gain in vegetation as a function of present vegetation cover is 
@@ -49,14 +52,32 @@ with the growth rate, $r$, and the carrying capacity, $K$, decelerating the expo
 
 ```{r, echo=FALSE}
 G <- function(P, r = 0.5, K = 0.9) r*P*(1-P/K)
-rho <- seq(0,1,length = 100)
 
 defplot(rho, G(rho), ylab = "growth")
 
 ```
+
 #### mechanistic growth assumptions
 
+The logistic growth model is phenomenological and does not provide a particular ecological explanation, why growth is decelerating to zero with increasing cover. It assumes just some form of global competition leading to a balance of gains and losses at the carrying capacity of the ecosystem. 
 
+Mechanistic explanations can be the limitations by a globally diffuse resource, like water, or the occupation of space and the subsequent limitation of photosynthetic active surface. 
+
+A multitude of such global feedback processes can define the precise shape of the growth function leading to asymetrical or truncated shapes, which could importantly affect the bistability properties of the system [@noy-meir75]. He defines
+
+> The general shape of the growth function relating net growth to plant biomass, $G(V)$, is convex with a single maximum (Fig. 1). The increase in the low-biomass range expresses the increase in photosynthetic capacity with increasing leaf area. The levelling
+off to a plateau and the decrease in the higher range expresses self-interference effects (shading, competition); at the point $V = V_\mathrm{max}$ 'maintenance' losses equal photosynthesis and $G = 0$. Vmax is the maximum (stable) biomass in ungrazed vegetation. [...] Of the explicit forms the best known is the logistic [...] but other functions are possible.
+
+
+```{r, echo=FALSE}
+G <- function(P, r = 0.5, K = 0.9) r*P*(1-P/K)
+
+defplot(rho, G(rho), ylab = "growth")
+
+```
+
+These are global feed-backs. But local feedbacks also could lead to this deceleration:  
+For instance, if plant cover would have a dominantly negative effect on it's surroundings, by depleting nutrients or light, the local neighborhood of a plant cannot be occupied as easy as more remote places. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
 
 #### decelerating growth at low cover  
 
@@ -69,7 +90,7 @@ $$ G(V) = rV(1-V/K) \,,$$
 
 #### linear plant mortality
 
-In the cellular automata model and mean-field approximations of Sonia, individual plant mortality is a constant rate, which means it is increasing linearly with vegetation cover. 
+In the cellular automata model and mean-field approximations of @kefi07, individual plant mortality is a constant rate, which means it is increasing linearly with vegetation cover. 
 
 Plant mortality due to grazing therefore would be described as
 
@@ -79,7 +100,6 @@ with the grazing mortality, $m$.
 
 ```{r, echo=FALSE}
 C <- function(V, m = 0.25) (m*V)
-rho <- seq(0,1,length = 100)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -98,7 +118,6 @@ thus would be defined as constant, $m$, regardless of the vegetation cover.
 
 ```{r, echo=FALSE}
 C <- function(V, m = 0.1) m + V*0
-rho <- seq(0,1,length = 100)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -116,8 +135,7 @@ $$ C(V) = \frac{aV}{1+ahV} \,,$$
 with the handling time, $h$ [time per resource unit], and the search efficiency, $a$ [area foraged in per time].  
 
 ```{r, echo=FALSE}
-C <- function(V, a = 0.5, h = 10) (a*V)/(1+a*h*V)
-rho <- seq(0,1,length = 100)
+C <- function(V, a = 8, h = 10) (a*V)/(1+a*h*V)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -130,8 +148,7 @@ $$ C(V) = \frac{bV^{1+q}}{1+bhV^{1+q}} $$
 
 
 ```{r, echo=FALSE}
-C <- function(V, a = 1, h = 10, q = 1) (a*V^(1+q))/(1+a*h*(V^(1+q)) ) 
-rho <- seq(0,1,length = 100)
+C <- function(V, a = 8, h = 10, q = 1) (a*V^(1+q))/(1+a*h*(V^(1+q)) ) 
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -200,6 +217,17 @@ These mechanisms can be implemented in the model by using a pair-approximation a
 
 ### growth
 
+In the formalism of the pair-approximation model of @kefi07, growth, *i.e.* the total amount of empty cells transitioning into vegetated cells, becomes a complex function of the relative cover of the multiple pairs including a $+$.
+
+growth part of equation (28) from @kefi07:
+
+$$  \rho_{0}w_{0,+} = \left( \delta \rho_+ + (1-\delta) \frac{\rho_+ - \rho_{+-} - \rho_{++} }{1 - \rho_+ - \rho_-} \right) (b - c \rho_+)(1- \rho_+ - \rho_-)  $$
+
+The goal of this exercise would be to transform this equation into a function of $\rho_+$, assuming that the landscape is at a vegetated equilibrium. 
+
+Therefore, 
+
+$$ \frac{d\rho_+}{dt} = \frac{d\rho_{+,-}}{dt} = \frac{d\rho_-}{dt} =0$$
 
 ### spatially-explicit grazing mortality
 
