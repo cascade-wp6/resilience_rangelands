@@ -180,24 +180,52 @@ lines(rho_0 ~ time, data = out, col = "grey50")
 
 
 ## simulating over given $\rho_+$
-For the project, we need a prediction of growth for a given value of $\rho_+$. To achieve this, I reformulate the ODE system to be a function of $\rho_+$, which I add to the list of parameters. 
+For the project, we need a prediction of growth for a given value of $\rho_+$. To achieve this, I am simulating a gradient of replicates with different environmental conditions. 
+
+
+```{r, echo = FALSE}
+library(foreach)
+library(doSNOW)
+
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+                     rscript = "/usr/lib/R/bin/Rscript",
+                     snowlib = "/usr/lib/R/library")
+
+workerlist <- c(rep("localhost", times = 10)) 
+
+cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+
+registerDoSNOW(cl)
+
+```
+
+
 
 ```{r}
 
+first_ID = 1  #
 
-odesys <- function (t, rho, parms = model_parms) {
-  list(c(
-    d_rho_pm(rho, parms),
-    d_rho_pp(rho, parms),
-    d_rho_mm(rho, parms),
-    model_parms$rho_p,
-    d_rho_m(rho, parms)
-    ))
-}
+global <- list(  
+  m = 0.1, #intrinsic mortality
+  d = 0.1,    # degradation
+  c = 0.2, 		# beta*g  
+  delta = 0.1,  	# seeds dispersed; (1-del) seeds on nearest neighbourhood
+  r = 0.01, 	# regeneration rate
+  f = 0.9		# local fascilitation
+)
+
+parameters <- list(
+  b = seq(0,1,.01) #seq(0,1,.002)+0.001
+)
+
+iterations <- expand.grid(parameters)
+iterations <- cbind(ID = 1:dim(iterations)[1],iterations, global)
+str(iterations)
+
+
 
 # initial vegetation cover
-rho_ini <- 0.6
-model_parms$rho_p <- rho_ini
+rho_ini <- 0.2
 
 rho <- c(rho_pm = rho_ini*0.4, # rho[1]
          rho_pp = rho_ini*0.4 , # rho[2]
@@ -208,23 +236,31 @@ rho <- c(rho_pm = rho_ini*0.4, # rho[1]
 
 ```
 
-
-
 ```{r}
-# running the ode-solver
-runmodel <- ode(y = rho, func = odesys, times = 1.1^(1:60), parms = model_parms)
 
-# transfer into ouput and calculate missing rho values
-out <- as.data.frame(runmodel)
-out$rho_0 <- 1 - out$rho_p - out$rho_m
-out$rho_p0 <- with(out, rho_p-rho_pm-rho_pp)
-out$rho_m0 <- with(out, rho_m-rho_pm-rho_mm)
-out$rho_00 <- with(out, rho_0-rho_m0-rho_p0)
+foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+ model_parms <- as.list(iterations[iteration,])
+  
+  # running the ode-solver
+  runmodel <- ode(y = rho, func = odesys, times = c(1,60), parms = model_parms)
+ 
+  # transfer into ouput and calculate missing rho values
+  out <- as.data.frame(runmodel)
+  out$rho_0 <- 1 - out$rho_p - out$rho_m
+  out$rho_p0 <- with(out, rho_p-rho_pm-rho_pp)
+  out$rho_m0 <- with(out, rho_m-rho_pm-rho_mm)
+  out$rho_00 <- with(out, rho_0-rho_m0-rho_p0)
+  out$ID <- iteration
 
-# plot 
-plot(rho_p ~ time, data = out, type = "l", lwd = 2, ylab = "rho_plus", main = "pair-approximation", ylim = c(0,1))
-lines(rho_m ~ time, data = out, lty = 3)
-lines(rho_0 ~ time, data = out, col = "grey50")
+  return(out[dim(out)[1],])
+  } -> output
+
+plot(output$rho_p ~ iterations$b, type = "l", ylim = c(0,1))
+
+
+stopCluster(cl)
+
+
 ```
 
 
