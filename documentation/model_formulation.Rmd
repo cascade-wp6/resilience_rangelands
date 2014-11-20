@@ -3,11 +3,11 @@ title: "Basic Model formulation"
 author: "Florian D. Schneider"
 date: "Tuesday, November 18, 2014"
 output:
+  html_document:
+    keep_md: yes
   pdf_document:
     fig_height: 3.5
     fig_width: 4
-  html_document:
-    keep_md: yes
 fontsize: 12pt
 geometry: margin=1.4in
 csl: ../manuscript/amnat.csl
@@ -225,11 +225,24 @@ $$  \rho_{0}w_{0,+} = \left( \delta \rho_+ + (1-\delta) \frac{\rho_+ - \rho_{+-}
 
 The goal of this exercise would be to transform this equation into a function of $\rho_+$, assuming that the landscape is at a vegetated equilibrium. 
 
-Therefore, 
+Therefore, we are looking for the general case of $G(\rho_+)$ where
 
-$$ \frac{d\rho_+}{dt} = \frac{d\rho_{+,-}}{dt} = \frac{d\rho_-}{dt} =0$$
+$$ \frac{d\rho_+}{dt} = \frac{d\rho_-}{dt} = \frac{d\rho_{+,-}}{dt}  = \frac{d\rho_{+,+}}{dt} = \frac{d\rho_{-,-}}{dt}   = 0$$
+
+Equilibrium has to fulfil
+
+$$ \rho_0w_{0,+} = - m \rho_+ \,.$$
+
+
+thus
+
+$$  - m \rho_+ = \left( \delta \rho_+ + (1-\delta) \frac{\rho_+ - \rho_{+-} - \rho_{++} }{1 - \rho_+ - \rho_-} \right) (b - c \rho_+)(1- \rho_+ - \rho_-)  $$
+
+
 
 ### spatially-explicit grazing mortality
+
+
 
 
 # References
