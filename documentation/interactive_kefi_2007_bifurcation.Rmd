@@ -1,0 +1,140 @@
+---
+title: "Pair-approximation model"
+author: "Florian Schneider"
+date: "Thursday, November 20, 2014"
+output: html_document
+runtime: shiny
+---
+
+
+## original model (Kéfi et al 2007)
+
+Running the pair approximation model of Kéfi et al 2007 TPB dynamically. 
+
+```{r, echo = FALSE}
+# provides parallel backend
+library(foreach)
+library(doSNOW)
+
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+                     rscript = "/usr/lib/R/bin/Rscript",
+                     snowlib = "/usr/lib/R/library")
+
+workerlist <- c(rep("localhost", times = 10)) 
+
+cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+
+registerDoSNOW(cl)
+
+```
+
+
+### plant and soil parameters
+```{r, echo=FALSE}
+
+inputPanel(
+  sliderInput("m", label = "plant mortality:",
+              min = 0.0, max = 1, value = 0.25, step = 0.01),
+  sliderInput("c", label = "competition:",
+              min = 0.0, max = 1, value = 0.2, step = 0.01),
+  sliderInput("delta", label = "seed distpersal:",
+              min = 0.0, max = 1, value = 0.9, step = 0.01),
+  sliderInput("f", label = "facilitation:",
+              min = 0.0, max = 1, value = 0.9, step = 0.01), 
+  sliderInput("r", label = "regeneration rate:",
+              min = 0.0, max = 1, value = 0.01, step = 0.01), 
+  sliderInput("d", label = "degradation rate:",
+              min = 0.0, max = 1, value = 0.1, step = 0.01)
+)
+
+```
+
+
+### initial conditions
+```{r, echo=FALSE}
+
+
+renderPlot({
+
+# sets parameters of iterations
+
+global <- list(  
+  m = as.numeric(input$m), #intrinsic mortality
+  d = as.numeric(input$d),    # degradation
+  c = as.numeric(input$c) ,     # beta*g  
+  delta = as.numeric(input$delta) ,  	# seeds dispersed; (1-del) seeds on nearest neighbourhood
+  r = as.numeric(input$r), 	# regeneration rate
+  f = as.numeric(input$f)		# local fascilitation
+)
+
+parameters <- list(
+  b = seq(0,1,.005) #seq(0,1,.002)+0.001
+)
+
+iterations <- expand.grid(parameters)
+iterations <- cbind(ID = 1:dim(iterations)[1],iterations, global)
+
+rho_ini <- 0.8
+rho <- c(rho_pm = rho_ini*0.4, # rho[1]
+         rho_pp = rho_ini*0.4 , # rho[2]
+         rho_mm = (1-rho_ini)*0.6, # rho[3]
+         rho_p = rho_ini,  # rho[4]
+         rho_m = (1-rho_ini)*0.9   # rho[5]
+        )
+
+foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+  setwd("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock")
+  source("code/ode_kefi.r")
+  
+  model_parms <- as.list(iterations[iteration,])
+  
+  # running the ode-solver
+  runmodel <- ode(y = rho, func = odesys, times = c(1,10000), parms = model_parms)
+ 
+  # transfer into ouput and calculate missing rho values
+  out <- as.data.frame(runmodel)
+  out$rho_0 <- 1 - out$rho_p - out$rho_m
+  out$rho_p0 <- with(out, rho_p-rho_pm-rho_pp)
+  out$rho_m0 <- with(out, rho_m-rho_pm-rho_mm)
+  out$rho_00 <- with(out, rho_0-rho_m0-rho_p0)
+  out$ID <- iteration
+
+  return(out[dim(out)[1],])
+  } -> output
+
+plot(output$rho_p ~ iterations$b, type = "l", ylim = c(0,1))
+
+
+rho_ini <- 0.01
+rho <- c(rho_pm = rho_ini*0.4, # rho[1]
+         rho_pp = rho_ini*0.4 , # rho[2]
+         rho_mm = (1-rho_ini)*0.6, # rho[3]
+         rho_p = rho_ini,  # rho[4]
+         rho_m = (1-rho_ini)*0.9   # rho[5]
+        )
+
+foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+  setwd("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock")
+  source("code/ode_kefi.r")
+  
+  model_parms <- as.list(iterations[iteration,])
+  
+  # running the ode-solver
+  runmodel <- ode(y = rho, func = odesys, times = c(1,10000), parms = model_parms)
+ 
+  # transfer into ouput and calculate missing rho values
+  out <- as.data.frame(runmodel)
+  out$rho_0 <- 1 - out$rho_p - out$rho_m
+  out$rho_p0 <- with(out, rho_p-rho_pm-rho_pp)
+  out$rho_m0 <- with(out, rho_m-rho_pm-rho_mm)
+  out$rho_00 <- with(out, rho_0-rho_m0-rho_p0)
+  out$ID <- iteration
+
+  return(out[dim(out)[1],])
+  } -> output
+
+lines(output$rho_p ~ iterations$b)
+
+} )
+
+```
