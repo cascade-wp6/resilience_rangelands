@@ -1,4 +1,18 @@
 
+@article{soetaert10,
+	title = {Solving Differential Equations in R: Package {\mboxdeSolve}},
+	volume = {33},
+	issn = {1548-7660},
+	shorttitle = {Solving Differential Equations in R},
+	url = {http://www.jstatsoft.org/v33/i09},
+	abstract = {In this paper we present the R package {deSolve} to solve initial value problems {(IVP)} written as ordinary differential equations {(ODE)}, differential algebraic equations {(DAE)} of index 0 or 1 and partial differential equations {(PDE)}, the latter solved using the method of lines approach. The differential equations can be represented in R code or as compiled code. In the latter case, R is used as a tool to trigger the integration and post-process the results, which facilitates model development and application, whilst the compiled code significantly increases simulation speed. The methods implemented are efficient, robust, and well documented public-domain Fortran routines. They include four integrators from the {ODEPACK} package {(LSODE}, {LSODES}, {LSODA}, {LSODAR)}, {DVODE} and {DASPK2.0.} In addition, a suite of {Runge-Kutta} integrators and special-purpose solvers to efficiently integrate 1-, 2- and 3-dimensional partial differential equations are available. The routines solve both stiff and non-stiff systems, and include many options, e.g., to deal in an efficient way with the sparsity of the Jacobian matrix, or finding the root of equations. In this article, our objectives are threefold: (1) to demonstrate the potential of using R for dynamic modeling, (2) to highlight typical uses of the different methods implemented and (3) to compare the performance of models specified in R code and in compiled code for a number of test cases. These comparisons demonstrate that, if the use of loops is avoided, R code can efficiently integrate problems comprising several thousands of state variables. Nevertheless, the same problem may be solved from 2 to more than 50 times faster by using compiled code compared to an implementation using only R code. Still, amongst the benefits of R are a more flexible and interactive implementation, better readability of the code, and access to R\~{A}{\textcent}\^{A}?\^{A}?s high-level procedures. {deSolve} is the successor of package odesolve which will be deprecated in the future; it is free software and distributed under the {GNU} General Public License, as part of the R software project.},
+	number = {i09},
+	journal = {Journal of Statistical Software},
+	author = {Soetaert, Karline and Petzoldt, Thomas and Setzer, R. Woodrow},
+	year = {2010},
+	pages = {1{\textendash}25}
+},
+
 @article{kefi07,
 	title = {Local facilitation, bistability and transitions in arid ecosystems},
 	volume = {71},
@@ -29,6 +43,18 @@
 	pages = {69{\textendash}76}
 },
 
+@article{schwinning99,
+	title = {The stability of grazing systems revisited: spatial models and the role of heterogeneity},
+	volume = {13},
+	shorttitle = {The stability of grazing systems revisited},
+	url = {http://onlinelibrary.wiley.com/doi/10.1046/j.1365-2435.1999.00382.x/full},
+	number = {6},
+	journal = {Functional Ecology},
+	author = {Schwinning, S. and Parsons, A. J.},
+	year = {1999},
+	pages = {737{\textendash}747}
+},
+
 @article{suding04,
 	title = {Alternative states and positive feedbacks in restoration ecology},
 	volume = {19},
@@ -41,6 +67,22 @@
 	month = jan,
 	year = {2004},
 	pages = {46--53}
+},
+
+@article{parsons01,
+	title = {Plant growth functions and possible spatial and temporal scaling errors in models of herbivory},
+	volume = {56},
+	issn = {1365-2494},
+	url = {http://onlinelibrary.wiley.com/doi/10.1046/j.1365-2494.2001.00243.x/abstract},
+	doi = {10.1046/j.1365-2494.2001.00243.x},
+	abstract = {Recent studies have provided detail of the mechanisms by which plants and animals interact, but attempts to apply this knowledge to understand function at the scale of whole fields or grazed ecosystems can be fraught with difficulties. Faced with a plethora of detail, and yet demands to make models more comprehensive, modellers face pressure to revert to simplified accounts for what are assumed to be well-established biological phenomena, for example, for describing plant growth and intake, but this raises the risk that important insights may be lost, or that the analyses may face errors of scaling. The predictions of a previously described spatial model are compared with those of a non-spatial rendition of the same model to identify the differences in predictions and the sources of these differences. In particular, the use of the conventional empirical growth functions and their interaction with temporal and spatial scaling errors are examined. The comparison exposed how substantial errors could be made in predicting yield and stability under grazing. It is proposed that such errors might be avoided by ensuring that the functional responses used capture the insights of more detailed studies, and by recognizing the difficulties of scaling-up from the level of processes to the field scale and beyond.},
+	number = {1},
+	journal = {Grass and Forage Science},
+	author = {Parsons, A. J. and Schwinning, S. and Carr\`{e}re, P.},
+	month = mar,
+	year = {2001},
+	keywords = {Grazing, Herbivory, heterogeneity, {MODEL}, scaling, spatial},
+	pages = {21--34}
 },
 
 @article{fynn00,
@@ -137,6 +179,32 @@
 	pages = {253{\textendash}267}
 },
 
+@article{mouissie08,
+	title = {Creation and preservation of vegetation patterns by grazing},
+	volume = {218},
+	issn = {0304-3800},
+	url = {http://www.sciencedirect.com/science/article/pii/S0304380008003025},
+	doi = {10.1016/j.ecolmodel.2008.06.018},
+	abstract = {Structural patterns of tall stands ({\textquotedblleft}tussock{\textquotedblright}) and short stands ({\textquotedblleft}lawn{\textquotedblright}) are observed in grazed vegetation throughout the world. Such structural vegetation diversity influences plant and animal diversity. A possible mechanism for the creation and preservation of such patterns is a positive feedback between grazing and plant palatability. Although some theoretical studies have addressed this point in a non-spatial setting, the spatial consequences of this feedback mechanism on the stability and spatial characteristics of vegetation structure patterns have not been studied.
+
+We addressed this issue by analyzing a spatially explicit individual-based plant-grazer simulation model, based on published empirical relations and the assumption of optimal foraging.
+
+In the model, the selection by the grazer of short stands (that have a higher energy content and are more palatable) is affected by traveling costs and the spatial organization of swards. Nevertheless, the most selected biomass in this type of short stands was the optimal biomass predicted by cropping and digestion constraints. As a result of the optimal foraging strategy, the grazers displayed L\'{e}vy-flight traveling behavior during the simulations with characteristic exponent $\mu$ ? 2.
+
+Patterns of short and tall stands created by grazing were preserved for at least a decade. Even in seasonal habitat, the spatial organization of the patterns remained relatively constant, despite fluctuations in the area of short stands. Heterogeneity of initial vegetation increased heterogeneity of the grazing-induced pattern, but did not affect its stability.
+
+The area of short stands that was preserved by grazing scaled with the herbivore mass to the power 0.4 and with the carrying capacity of the vegetation to the power -0.75.
+
+Patterns of tall and short stands can be created and perpetuated by optimally grazing ruminants, irrespective of possible underlying soil patterns. The simulations generate predictions for the stability and spatial characteristics of such structural vegetation patterns.},
+	number = {1{\textendash}2},
+	journal = {Ecological Modelling},
+	author = {Mouissie, A. Maarten and Apol, M. Emile F. and Heil, Gerrit W. and van Diggelen, Rudy},
+	month = oct,
+	year = {2008},
+	keywords = {Functional response, Grazing, L\'{e}vy-flight, Micropatterns, optimal foraging, Pattern analysis, Ruminants, Scaling laws, spatially explicit model},
+	pages = {60--72}
+},
+
 @article{scheffer93,
 	title = {Alternative equilibria in shallow lakes},
 	volume = {8},
@@ -225,7 +293,7 @@
 	url = {http://www.sciencedirect.com/science/article/pii/S0169534797011336},
 	number = {9},
 	journal = {Trends in Ecology \& Evolution},
-	author = {van de Koppel, Johan and Rietkerk, Max and Weissing, Franz J.},
+	author = {{van de Koppel}, Johan and Rietkerk, Max and Weissing, Franz J.},
 	year = {1997},
 	pages = {352{\textendash}356}
 },

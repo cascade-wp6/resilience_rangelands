@@ -1,15 +1,15 @@
 ---
-title: " Solving ODEs in R"
+title: ' Solving ODEs in R'
 author: "Florian Schneider"
 date: "Thursday, November 20, 2014"
 output:
   html_document:
     keep_md: yes
   pdf_document:
-    fig_height: 3.5
-    fig_width: 4
-fontsize: 12pt
-geometry: margin=1.4in
+    fig_height: 5
+    fig_width: 7
+fontsize: 10pt
+geometry: margin=1.2in
 csl: ../manuscript/amnat.csl
 bibliography: ../manuscript/cas02.bib
 ---
@@ -112,7 +112,8 @@ d_rho_m <- function(rho, parms, z = 4) {
 
 ## solving the ODE-system
 
-In R, the package 'deSolve' provides solvers for differential equations. 
+In R, the package 'deSolve' provides solvers for differential equations [@soetaert10].
+
 ```{r}
 library("deSolve")
 ```
@@ -132,24 +133,31 @@ odesys <- function (t, rho, parms = model_parms) {
     ))
 }
 
+
 ```
 
-We need to define the constants, as well as the initial vegetation structure which is unambigously given by the values $\rho_{+-}$, $\rho_{++}$, $\rho_{--}$, $\rho_{+}$ and $\rho_{-}$. We define the starting values as a static function of $\rho_{+}$ and store all of them in a single vector called `rho` which is expected by the functions defined above. 
+**Important:** *Equations of ODE and function for ODE solver are saved in file `code/ode_kefi.r` for further use in simulations and applications.*
+
+We need to define the constants, which I take from the example of @kefi07, Fig. 3 to evaluate this implementation (looks very similar, differences might originate from the starting conditions, which are not given precisely in the paper).
 
 ```{r}
 # model parameters
 model_parms <- list(
-  delta = 0.1, # proportion of seeds dispersed globally
-  b = 0.75, # environmental quality
-  m = 0.15, # plant mortality
-  f = 0.9, # effect of abiotic facilitation on regeneration
-  r = 0.01, # intrinsic regeneration 
-  d = 0.1, # rate of degradation
-  c = 0.2 # global competition among plants 
+  delta = 0, # proportion of seeds dispersed globally
+  b = 0.4, # environmental quality
+  m = 0.1, # plant mortality
+  f = 0.8, # effect of abiotic facilitation on regeneration
+  r = 0.0, # intrinsic regeneration 
+  d = 0.2, # rate of degradation
+  c = 0.3 # global competition among plants 
   )
+```
 
+And the initial vegetation structure which is unambigously given by the values $\rho_{+-}$, $\rho_{++}$, $\rho_{--}$, $\rho_{+}$ and $\rho_{-}$. We define the starting values as a static function of $\rho_{+}$ and store all of them in a single vector called `rho` which is expected by the functions defined above. 
+
+```{r}
 # initial vegetation cover
-rho_ini <- 0.2
+rho_ini <- 0.1
 
 rho <- c(rho_pm = rho_ini*0.4, # rho[1]
          rho_pp = rho_ini*0.4 , # rho[2]
@@ -161,9 +169,11 @@ rho <- c(rho_pm = rho_ini*0.4, # rho[1]
 
 Finally, the model is run by calling the function `ode()`. The output is stored in object `out` and the missing $\rho$s are completed. 
 
+Note that I am determining the timesteps exponentially, to have a decline in resolution as the dynamics steady out. 
+
 ```{r}
 # running the ode-solver
-runmodel <- ode(y = rho, func = odesys, times = 1.1^(1:60), parms = model_parms)
+runmodel <- ode(y = rho, func = odesys, times = 1.1^(1:53), parms = model_parms)
 
 # transfer into ouput and calculate missing rho values
 out <- as.data.frame(runmodel)
@@ -171,19 +181,23 @@ out$rho_0 <- 1 - out$rho_p - out$rho_m
 out$rho_p0 <- with(out, rho_p-rho_pm-rho_pp)
 out$rho_m0 <- with(out, rho_m-rho_pm-rho_mm)
 out$rho_00 <- with(out, rho_0-rho_m0-rho_p0)
-
-# plot 
-plot(rho_p ~ time, data = out, type = "l", lwd = 2, ylab = "rho_plus", main = "pair-approximation", ylim = c(0,1))
+```
+```{r, "fig1"}
+# plot
+plot(rho_p ~ time, data = out, type = "l", lwd = 2, ylab = "vegetation cover", ylim = c(0,1))
 lines(rho_m ~ time, data = out, lty = 3)
 lines(rho_0 ~ time, data = out, col = "grey50")
+legend(60,1, c("rho_+", "rho_-", "rho_0"), col = c("black", "black", "grey50"), lty = c(1,3,1), lwd = c(2,1,1), bty = "n", horiz = TRUE)
 ```
 
 
-## simulating over given $\rho_+$
+## simulating gradients
+
 For the project, we need a prediction of growth for a given value of $\rho_+$. To achieve this, I am simulating a gradient of replicates with different environmental conditions. 
 
+First, we need to generate a parallel backend for the use of the `foreach()` function. 
 
-```{r, echo = FALSE}
+```{r, }
 library(foreach)
 library(doSNOW)
 
@@ -199,6 +213,7 @@ registerDoSNOW(cl)
 
 ```
 
+Then, build a database of parameters, using a global dataset (valid for all iterations) plus a gradient over $b$, stored in `parameters` (I use `expand.grid()` to blow up the parameter space if varying multiple parameters at a time). 
 
 
 ```{r}
@@ -206,26 +221,28 @@ registerDoSNOW(cl)
 first_ID = 1  #
 
 global <- list(  
-  m = 0.1, #intrinsic mortality
+  m = 0.2, #intrinsic mortality
   d = 0.1,    # degradation
   c = 0.2, 		# beta*g  
-  delta = 0.1,  	# seeds dispersed; (1-del) seeds on nearest neighbourhood
+  delta = 0.9,  	# seeds dispersed; (1-del) seeds on nearest neighbourhood
   r = 0.01, 	# regeneration rate
   f = 0.9		# local fascilitation
 )
 
 parameters <- list(
-  b = seq(0,1,.01) #seq(0,1,.002)+0.001
+  b = seq(0,1,.0025) #seq(0,1,.002)+0.001
 )
 
 iterations <- expand.grid(parameters)
 iterations <- cbind(ID = 1:dim(iterations)[1],iterations, global)
-str(iterations)
 
+```
 
+In a first simulation run, the initial vegetation cover should be high. 
 
+```{r}
 # initial vegetation cover
-rho_ini <- 0.2
+rho_ini <- 0.8
 
 rho <- c(rho_pm = rho_ini*0.4, # rho[1]
          rho_pp = rho_ini*0.4 , # rho[2]
@@ -233,16 +250,16 @@ rho <- c(rho_pm = rho_ini*0.4, # rho[1]
          rho_p = rho_ini,  # rho[4]
          rho_m = (1-rho_ini)*0.9   # rho[5]
         )
-
 ```
 
-```{r}
+Then, call `foreach()` to run all iterations in parallel. 
 
+```{r}
 foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
  model_parms <- as.list(iterations[iteration,])
   
   # running the ode-solver
-  runmodel <- ode(y = rho, func = odesys, times = c(1,60), parms = model_parms)
+  runmodel <- ode(y = rho, func = odesys, times = c(1,10000), parms = model_parms)
  
   # transfer into ouput and calculate missing rho values
   out <- as.data.frame(runmodel)
@@ -253,14 +270,49 @@ foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %
   out$ID <- iteration
 
   return(out[dim(out)[1],])
-  } -> output
+  } -> output_high
 
-plot(output$rho_p ~ iterations$b, type = "l", ylim = c(0,1))
+```
 
+In a second run, we initialise the same set of parameters, but starting from low cover: 
 
+```{r}
+# initial vegetation cover
+rho_ini <- 0.01
+
+rho <- c(rho_pm = rho_ini*0.4, # rho[1]
+         rho_pp = rho_ini*0.4 , # rho[2]
+         rho_mm = (1-rho_ini)*0.6, # rho[3]
+         rho_p = rho_ini,  # rho[4]
+         rho_m = (1-rho_ini)*0.9   # rho[5]
+        )
+
+foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+ model_parms <- as.list(iterations[iteration,])
+  
+  # running the ode-solver
+  runmodel <- ode(y = rho, func = odesys, times = c(1,10000), parms = model_parms)
+ 
+  # transfer into ouput and calculate missing rho values
+  out <- as.data.frame(runmodel)
+  out$rho_0 <- 1 - out$rho_p - out$rho_m
+  out$rho_p0 <- with(out, rho_p-rho_pm-rho_pp)
+  out$rho_m0 <- with(out, rho_m-rho_pm-rho_mm)
+  out$rho_00 <- with(out, rho_0-rho_m0-rho_p0)
+  out$ID <- iteration
+
+  return(out[dim(out)[1],])
+  } -> output_low
+```
+
+```{r, "fig2"}
+plot(output_high$rho_p ~ iterations$b, type = "p", pch = 20, cex =0.75, ylim = c(0,1), xlab = "environmental quality, b", ylab = "vegetation cover, rho_+")
+points(output_low$rho_p ~ iterations$b, pch = 20, cex =0.75)
+```
+
+Don't forget to shut down the parallel backend.
+```{r}
 stopCluster(cl)
-
-
 ```
 
 
