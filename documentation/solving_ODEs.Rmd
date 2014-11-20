@@ -1,0 +1,232 @@
+---
+title: " Solving ODEs in R"
+author: "Florian Schneider"
+date: "Thursday, November 20, 2014"
+output:
+  html_document:
+    keep_md: yes
+  pdf_document:
+    fig_height: 3.5
+    fig_width: 4
+fontsize: 12pt
+geometry: margin=1.4in
+csl: ../manuscript/amnat.csl
+bibliography: ../manuscript/cas02.bib
+---
+
+To evaluate a spatially explicit model, we can run the pair-approximation descibed by @kefi07 into equilibrium. 
+ 
+We translate the system of five equations given in @kefi07 for the pair-approximation model into `R` functions. 
+
+(25)
+$$ \frac{d\rho_{+-}}{dt} = d(\rho_+ - \rho_{+-} - \rho_{++}) +  (\rho_- - \rho_{--} - \rho_{+-}) \times \left( \delta\rho_+ + \frac{z-1}{z}(1-\delta)\frac{\rho_+ - \rho_{+-}  \rho_{++}}{1 - \rho_{+}  \rho_{-}}  \right) \times (b-c\rho_+) - \rho_{+-}\left( r + \frac{f}{z}+\frac{z-1}{z}f\frac{\rho_{+-}}{\rho_-}+m \right) $$
+
+where $z$ is the number of neighbors considered, i.e. $z = 4$.
+
+```{r}
+d_rho_pm <- function(rho, parms, z = 4) { 
+  with(parms,                             
+      d * (rho[4] - rho[1] - rho[2]) + 
+        (rho[5] - rho[3] - rho[1]) * 
+        (delta*rho[4] + (z-1)/z * (1 - delta) * 
+           (rho[4] - rho[1] - rho[2])/(1 - rho[4] - rho[5]) ) *
+        (b - c*rho[4]) - 
+        rho[1]*( r + f/z + (z-1)/z * f * rho[1]/rho[5] + m)
+   )
+}
+
+```
+
+(26)
+
+
+$$  \frac{\mathrm{d}\rho_{++}}{\mathrm{d}t} = 
+  2(\rho_+ - \rho_{+-}  \rho_{++}) \times \left( \delta\rho_+ + \frac{1-\delta}{z} + \frac{z-1}{z}(1-\delta)\frac{\rho_+ - \rho_{+-}  \rho_{++}}{1 - \rho_{+}  \rho_{-}}  \right) \times
+  (b-c\rho_+) - 2\rho_{++}m
+  $$
+
+
+```{r}
+d_rho_pp <- function(rho, parms, z = 4) { 
+  with(parms,                             
+      2 * (rho[4] - rho[1] - rho[2]) * 
+        (delta*rho[4] + (1-delta)/z +(z-1)/z * (1 - delta) * 
+           (rho[4] - rho[1] - rho[2])/(1 - rho[4] - rho[5]) ) *
+        (b - c*rho[4]) - 2*rho[2]*m
+   )
+}
+
+```
+
+(27)
+
+$$  \frac{\mathrm{d}\rho_{--}}{\mathrm{d}t} = 
+    2d(\rho_{-} - \rho_{--} - \rho_{+-}) - 2\rho_{--} 
+    \left( r + \frac{z-1}{z} f \frac{\rho_{+-}}{\rho_{-}} \right) $$
+
+
+```{r}
+d_rho_mm <- function(rho, parms, z = 4) { 
+  with(parms,                             
+      2 * (rho[5] - rho[3] - rho[1]) - 
+        2*rho[3]*(r+(z-1)/z*f*rho[1]/rho[5])
+   )
+}
+
+```
+
+
+(28)
+
+$$  \frac{\mathrm{d}\rho_{+}}{\mathrm{d}t} = 
+    \left( \delta\rho_+ + (1-\delta)\frac{\rho_+ - \rho_{+-} -  \rho_{++}}{1 - \rho_{+}  \rho_{-}}  \right) \times
+    (b-c\rho_+)(1-\rho_+ - \rho_-) - m\rho_{+}
+     $$
+
+```{r}
+d_rho_p <- function(rho, parms, z = 4) { 
+  with(parms,                             
+      (delta*rho[4] + (1 - delta) * 
+           (rho[4] - rho[1] - rho[2])/(1 - rho[4] - rho[5]) ) *
+        (b-c*rho[4])*(1-rho[4]-rho[5])-m*rho[4]
+      )
+}
+
+```
+
+
+(29)
+$$  \frac{\mathrm{d}\rho_{-}}{\mathrm{d}t} = 
+d (1-\rho_+ - \rho_-) - \left(r + f \frac{\rho_{+-}}{\rho_{-}}  \right)\rho_{-} $$
+
+
+```{r}
+d_rho_m <- function(rho, parms, z = 4) { 
+  with(parms,                             
+      d*(1-rho[4]-rho[5])-(r+f*rho[1]/rho[5])*rho[5]
+      )
+}
+
+```
+
+
+## solving the ODE-system
+
+In R, the package 'deSolve' provides solvers for differential equations. 
+```{r}
+library("deSolve")
+```
+
+It requires a single function that calculates the current state of a system from a previous state of the system (entered as a vector, here `rho`) with a timestep `t`. The third parameter expects any parameters that are required inside the function. 
+
+I define a function `odesys()` that returns the results of the single equations concenated into a vector. 
+
+```{r}
+odesys <- function (t, rho, parms = model_parms) {
+  list(c(
+    d_rho_pm(rho, parms),
+    d_rho_pp(rho, parms),
+    d_rho_mm(rho, parms),
+    d_rho_p(rho, parms),
+    d_rho_m(rho, parms)
+    ))
+}
+
+```
+
+We need to define the constants, as well as the initial vegetation structure which is unambigously given by the values $\rho_{+-}$, $\rho_{++}$, $\rho_{--}$, $\rho_{+}$ and $\rho_{-}$. We define the starting values as a static function of $\rho_{+}$ and store all of them in a single vector called `rho` which is expected by the functions defined above. 
+
+```{r}
+# model parameters
+model_parms <- list(
+  delta = 0.1, # proportion of seeds dispersed globally
+  b = 0.75, # environmental quality
+  m = 0.15, # plant mortality
+  f = 0.9, # effect of abiotic facilitation on regeneration
+  r = 0.01, # intrinsic regeneration 
+  d = 0.1, # rate of degradation
+  c = 0.2 # global competition among plants 
+  )
+
+# initial vegetation cover
+rho_ini <- 0.2
+
+rho <- c(rho_pm = rho_ini*0.4, # rho[1]
+         rho_pp = rho_ini*0.4 , # rho[2]
+         rho_mm = (1-rho_ini)*0.6, # rho[3]
+         rho_p = rho_ini,  # rho[4]
+         rho_m = (1-rho_ini)*0.9   # rho[5]
+        )
+```
+
+Finally, the model is run by calling the function `ode()`. The output is stored in object `out` and the missing $\rho$s are completed. 
+
+```{r}
+# running the ode-solver
+runmodel <- ode(y = rho, func = odesys, times = 1.1^(1:60), parms = model_parms)
+
+# transfer into ouput and calculate missing rho values
+out <- as.data.frame(runmodel)
+out$rho_0 <- 1 - out$rho_p - out$rho_m
+out$rho_p0 <- with(out, rho_p-rho_pm-rho_pp)
+out$rho_m0 <- with(out, rho_m-rho_pm-rho_mm)
+out$rho_00 <- with(out, rho_0-rho_m0-rho_p0)
+
+# plot 
+plot(rho_p ~ time, data = out, type = "l", lwd = 2, ylab = "rho_plus", main = "pair-approximation", ylim = c(0,1))
+lines(rho_m ~ time, data = out, lty = 3)
+lines(rho_0 ~ time, data = out, col = "grey50")
+```
+
+
+## simulating over given $\rho_+$
+For the project, we need a prediction of growth for a given value of $\rho_+$. To achieve this, I reformulate the ODE system to be a function of $\rho_+$, which I add to the list of parameters. 
+
+```{r}
+
+
+odesys <- function (t, rho, parms = model_parms) {
+  list(c(
+    d_rho_pm(rho, parms),
+    d_rho_pp(rho, parms),
+    d_rho_mm(rho, parms),
+    model_parms$rho_p,
+    d_rho_m(rho, parms)
+    ))
+}
+
+# initial vegetation cover
+rho_ini <- 0.6
+model_parms$rho_p <- rho_ini
+
+rho <- c(rho_pm = rho_ini*0.4, # rho[1]
+         rho_pp = rho_ini*0.4 , # rho[2]
+         rho_mm = (1-rho_ini)*0.6, # rho[3]
+         rho_p = rho_ini,  # rho[4]
+         rho_m = (1-rho_ini)*0.9   # rho[5]
+        )
+
+```
+
+
+
+```{r}
+# running the ode-solver
+runmodel <- ode(y = rho, func = odesys, times = 1.1^(1:60), parms = model_parms)
+
+# transfer into ouput and calculate missing rho values
+out <- as.data.frame(runmodel)
+out$rho_0 <- 1 - out$rho_p - out$rho_m
+out$rho_p0 <- with(out, rho_p-rho_pm-rho_pp)
+out$rho_m0 <- with(out, rho_m-rho_pm-rho_mm)
+out$rho_00 <- with(out, rho_0-rho_m0-rho_p0)
+
+# plot 
+plot(rho_p ~ time, data = out, type = "l", lwd = 2, ylab = "rho_plus", main = "pair-approximation", ylim = c(0,1))
+lines(rho_m ~ time, data = out, lty = 3)
+lines(rho_0 ~ time, data = out, col = "grey50")
+```
+
+
+
+# References
