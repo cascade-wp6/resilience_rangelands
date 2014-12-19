@@ -37,7 +37,7 @@ inputPanel(
               min = 0.0, max = 1, value = 0.25, step = 0.01),
   sliderInput("c", label = "competition:",
               min = 0.0, max = 1, value = 0.2, step = 0.01),
-  sliderInput("delta", label = "seed distpersal:",
+  sliderInput("delta", label = "seed dispersal:",
               min = 0.0, max = 1, value = 0.9, step = 0.01),
   sliderInput("f", label = "facilitation:",
               min = 0.0, max = 1, value = 0.9, step = 0.01), 
@@ -102,7 +102,7 @@ foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %
   return(out[dim(out)[1],])
   } -> output
 
-plot(output$rho_p ~ iterations$b, type = "l", ylim = c(0,1))
+plot(output$rho_p ~ iterations$b, type = "p",pch  =20, ylim = c(0,1))
 
 
 rho_ini <- 0.01
@@ -133,7 +133,7 @@ foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %
   return(out[dim(out)[1],])
   } -> output
 
-lines(output$rho_p ~ iterations$b)
+points(output$rho_p ~ iterations$b, pch = 20)
 
 } )
 

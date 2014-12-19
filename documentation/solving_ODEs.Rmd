@@ -310,6 +310,22 @@ plot(output_high$rho_p ~ iterations$b, type = "p", pch = 20, cex =0.75, ylim = c
 points(output_low$rho_p ~ iterations$b, pch = 20, cex =0.75)
 ```
 
+## Mortality vs Growth (simulated)
+
+It would be great to solve the equation system into a function of vegetation cover, $\rho_+$, if this is possible.
+
+```{r}
+output_high$M <- output_high$rho_p * model_parms$m
+output_high$G <- with(output_high, (rho_p * model_parms$delta + (1 - model_parms$delta ) * (rho_p - rho_pm - rho_pp)/(1-rho_p*rho_m))*(model_parms$b - model_parms$c * rho_p)*(1-rho_p-rho_m)  )
+
+plot( output_high$G ~ output_high$rho_p,
+      type = "l",
+      xlim = c(0,1) )
+
+lines(  output_high$M ~ output_high$rho_p, type = "l")
+
+```
+
 Don't forget to shut down the parallel backend.
 ```{r}
 stopCluster(cl)
