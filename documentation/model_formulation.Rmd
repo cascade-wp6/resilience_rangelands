@@ -14,13 +14,13 @@ csl: ../manuscript/amnat.csl
 bibliography: ../manuscript/cas02.bib
 ---
 
-This document is supposed to become an interactive model representation of the pair-approximation model. 
+This document is supposed to develop a model representation of the global mean field as well as pair-approximations of local feed back mechanisms. 
 
 The default form of the differential equation describing vegetation cover is 
 
-$$ \frac{dV}{dt} = G(V) - C(V)H $$
+$$ \frac{dV}{dt} = G(V) - C(V)g $$
 
-with growth function $G$ and a function $C$ which represents consumption by a herbivore multiplied by the density of herbivores, $H$. Formally, intrinsic mortality could be included in both terms. In the formulations of @noy-meir75 and @vandekoppel97 it is assumed to be covered by the logistic growth function.
+with growth function $G$ and a function $C$ which represents consumption by a herbivore multiplied by the density of herbivores, the livestock rate, $g$. Formally, intrinsic mortality could be included in both terms. In the formulations of @noy-meir75 and @vandekoppel97 it is assumed to be covered by the logistic growth function.
 
 It might become important in the pair-approximation model, where intrinsic plant mortality is included as a proportional loss of mature plants.
 
@@ -31,9 +31,9 @@ defplot <- function(...) plot(...,
             type = "l", 
             bty = "l", cex = 0.7, las = 1, 
             family = "Times",
-            xlim = c(0,1), ylim = c(0,0.2), 
+            xlim = c(0,1), ylim = c(0,1), 
             xaxs = "i", yaxs = "i", 
-            xaxp = c(0,1,2), yaxp = c(0,0.2,2), 
+            xaxp = c(0,1,2), yaxp = c(0,1,2), 
             xlab = "vegetation cover") 
 
 rho <- seq(0,1,length = 100)
@@ -51,7 +51,8 @@ $$ G(V) = rV(1-V/K) \,,$$
 with the growth rate, $r$, and the carrying capacity, $K$, decelerating the exponential growth as vegetation cover increases and reducing it to zero if $V \geq K$. Thus, it is a decelerating effect (a negative feed-back) at high vegetation cover. 
 
 ```{r, echo=FALSE}
-G <- function(P, r = 0.5, K = 0.9) r*P*(1-P/K)
+
+G <- function(P, r = 2, K = 0.9) r*P*(1-P/K)
 
 defplot(rho, G(rho), ylab = "growth")
 
@@ -70,7 +71,7 @@ off to a plateau and the decrease in the higher range expresses self-interferenc
 
 
 ```{r, echo=FALSE}
-G <- function(P, r = 0.5, K = 0.9) r*P*(1-P/K)
+G <- function(P, r = 2, K = 0.9) r*P*(1-P/K)
 
 defplot(rho, G(rho), ylab = "growth")
 
@@ -79,12 +80,30 @@ defplot(rho, G(rho), ylab = "growth")
 These are global feed-backs. But local feedbacks also could lead to this deceleration:  
 For instance, if plant cover would have a dominantly negative effect on it's surroundings, by depleting nutrients or light, the local neighborhood of a plant cannot be occupied as easy as more remote places. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
 
-#### decelerating growth at low cover  
+#### accelerating growth   
 
-In arid ecosystems, growth would be decelerated at very low cover, because retention of water and organic matter in the site is fundamentally reduced. This postive feed-back (low cover reduces growth, leading to even lower cover) was discussed by @vandekoppel97 and @rietkerk97 to explain bistability in arid ecosystems.
+In arid ecosystems, growth would be low at very low cover and accelerate as cover increases, because retention of water and organic matter in the site is fundamentally reduced. This postive feed-back (low cover reduces growth, leading to even lower cover) was discussed by @vandekoppel97 and @rietkerk97 to explain bistability in arid ecosystems.
 
-$$ G(V) = rV(1-V/K) \,,$$
+Starting out from the logistic growth term, we now additionally assume that $r$ is accelerated with cover,
 
+$$ r = r_0 * V^a $$
+
+$$ G(V) = r_0 V^{a+1} (1-V/K) \,,$$
+
+
+```{r, echo=FALSE}
+
+
+r <- function(P, r_0 = 2, a = 2) r_0*P^a
+
+defplot(rho, r(rho), ylab = "growth")
+
+
+G <- function(P, r_0 = 2, a = 2, K = 0.9) r(P, r_0, a)*P*(1-P/K)
+
+defplot(rho, G(rho), ylab = "growth")
+
+```
 
 ### functional response
 

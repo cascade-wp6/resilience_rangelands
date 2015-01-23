@@ -1,0 +1,70 @@
+---
+title: "Untitled"
+author: "Florian Schneider"
+date: "Friday, January 23, 2015"
+output: html_document
+runtime: shiny
+---
+
+
+```{r, echo=FALSE}
+# Default plotting function
+
+defplot <- function(...) plot(..., 
+            type = "l", 
+            bty = "l", cex = 0.7, las = 1, 
+            family = "Times",
+            xlim = c(0,1), ylim = c(0,1), 
+            xaxs = "i", yaxs = "i", 
+            xaxp = c(0,1,2), yaxp = c(0,1,2), 
+            xlab = "vegetation cover") 
+
+rho <- seq(0,1,length = 100)
+
+```
+
+
+Starting out from the logistic growth term, we now additionally assume that $r$ is accelerated with cover,
+
+$$ r = r_0 * V^a $$
+
+$$ G(V) = r_0 V^{a+1} (1-V/K) \,,$$
+
+
+```{r, echo=FALSE}
+
+r <- function(P, r_0 = 2, a = 2) r_0*(P^(-a))
+
+G <- function(P, r_0 = 2, a = 2, K = 0.9) r(rho, r_0, a)*P*(1-P/K)
+
+```
+
+
+```{r, echo=FALSE}
+inputPanel(
+  sliderInput("a", label = "a",
+              min = 1, max = 10, value = 1, step = 0.2),
+  
+  sliderInput("r_0", label = "r_0",
+              min = 0, max = 10, value = 1, step = 0.2)
+)
+```
+
+```{r, echo=FALSE}
+renderPlot({
+  
+defplot(rho, r(rho, as.numeric(input$r_0), as.numeric(input$a)), ylab = "growth")
+
+})
+
+renderPlot({
+  
+defplot(rho, G(rho, as.numeric(input$r_0), as.numeric(input$a)), ylab = "growth")
+
+})
+
+```
+
+
+
+
