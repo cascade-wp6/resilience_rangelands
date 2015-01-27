@@ -29,8 +29,7 @@ It might become important in the pair-approximation model, where intrinsic plant
 
 defplot <- function(...) plot(..., 
             type = "l", 
-            bty = "l", cex = 0.7, las = 1, 
-            family = "Times",
+            bty = "l", cex = 0.7, las = 1,
             xlim = c(0,1), ylim = c(0,1), 
             xaxs = "i", yaxs = "i", 
             xaxp = c(0,1,2), yaxp = c(0,1,2), 
@@ -46,7 +45,7 @@ rho <- seq(0,1,length = 100)
 
 If assuming phenomenological logistic growth, the gain in vegetation as a function of present vegetation cover is 
 
-$$ G(V) = rV(1-V/K) \,,$$
+$$ G(V) = rV(1-\frac{V}{K}) \,,$$
 
 with the growth rate, $r$, and the carrying capacity, $K$, decelerating the exponential growth as vegetation cover increases and reducing it to zero if $V \geq K$. Thus, it is a decelerating effect (a negative feed-back) at high vegetation cover. 
 
@@ -71,14 +70,18 @@ off to a plateau and the decrease in the higher range expresses self-interferenc
 
 
 ```{r, echo=FALSE}
-G <- function(P, r = 2, K = 0.9) r*P*(1-P/K)
+G <- function(P, r = 2.25, K = 0.9) r*P*(1-P/K)
 
 defplot(rho, G(rho), ylab = "growth")
 
 ```
 
+**This model is going to be the starting point for the model development**
+
 These are global feed-backs. But local feedbacks also could lead to this deceleration:  
 For instance, if plant cover would have a dominantly negative effect on it's surroundings, by depleting nutrients or light, the local neighborhood of a plant cannot be occupied as easy as more remote places. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
+
+
 
 #### accelerating growth   
 
@@ -88,7 +91,7 @@ Starting out from the logistic growth term, we now additionally assume that $r$ 
 
 $$ r = r_0 * V^a $$
 
-$$ G(V) = r_0 V^{a+1} (1-V/K) \,,$$
+$$ G(V) = r_0 V^{a+1} (1-\frac{V}{K}) \,,$$
 
 
 ```{r, echo=FALSE}
@@ -99,9 +102,9 @@ r <- function(P, r_0 = 2, a = 2) r_0*P^a
 defplot(rho, r(rho), ylab = "growth")
 
 
-G <- function(P, r_0 = 2, a = 2, K = 0.9) r(P, r_0, a)*P*(1-P/K)
+G_sig <- function(P, r_0 = 2, a = 2, K = 0.9) r(P, r_0, a)*P*(1-P/K)
 
-defplot(rho, G(rho), ylab = "growth")
+defplot(rho, G_sig(rho), ylab = "growth")
 
 ```
 
@@ -113,12 +116,13 @@ In the cellular automata model and mean-field approximations of @kefi07, individ
 
 Plant mortality due to grazing therefore would be described as
 
-$$ C(V) = mV \,, $$
+$$ C(V) = gVL \,, $$
 
-with the grazing mortality, $m$.
+with the grazing mortality, $g$, per grazer individual multiplied by livestock density, $L$. That is to say, per individual, a constant percentage of cover is eaten. That is, ecologically speaking, not realistic. 
+
 
 ```{r, echo=FALSE}
-C <- function(V, m = 0.25) (m*V)
+C <- function(V, L = 10, g = 0.01) (g*V*L)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -130,18 +134,19 @@ In fact, when assuming a constant density of herbivores, grazing mortality will 
 
 Mortality due to grazing,
 
-$$ C(V) = m \,, $$
+$$ C(V) = gL \,, $$
 
-thus would be defined as constant, $m$, regardless of the vegetation cover.
+thus would be defined as constant, $g$, per grazer individual regardless of the vegetation cover.
 
 
 ```{r, echo=FALSE}
-C <- function(V, m = 0.1) m + V*0
+C <- function(V, L = 10, g = 0.01) g * L + V*0
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
 ```
 
+Note that grazing mortality can exceed 1, meaning that grazers would exploit more biomass than provided at full cover. Thus stability can be only reached if growth is sufficiently higher and the landscape regenerates itself multiple times per year. 
 
 #### type 2 functional response
 
@@ -149,77 +154,91 @@ In natural systems, however, consumption is defined by saturating functional res
 
 Therefore, plant mortality due to grazing should be 
 
-$$ C(V) = \frac{aV}{1+ahV} \,,$$
+$$ C(V) = \frac{aVL}{1+ahV} \,,$$
 
-with the handling time, $h$ [time per resource unit], and the search efficiency, $a$ [area foraged in per time].  
+with the handling time, $h$ [time per landscape unit], and the search efficiency, $a$ [percent of landscape foraged in per time]. 
 
 ```{r, echo=FALSE}
-C <- function(V, a = 8, h = 10) (a*V)/(1+a*h*V)
+C <- function(V, L = 10, a = 0.6, h = 100) (a*V*L)/(1+a*h*V)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
 ```
 
+Since we are calculating in fractions of landscape, and not in cells, the handling time defines the time a grazer individual would need to handle the entire landscape as readily available fodder. The search time is the percentage of the landscape foraged in over the course of one year.  
+
 
 #### type 3 functional response
+
+The 
 
 $$ C(V) = \frac{bV^{1+q}}{1+bhV^{1+q}} $$
 
 
 ```{r, echo=FALSE}
-C <- function(V, a = 8, h = 10, q = 1) (a*V^(1+q))/(1+a*h*(V^(1+q)) ) 
+C <- function(V, L = 10, a = 0.6, h = 100, q = 1) (a*V^(1+q)*L)/(1+a*h*(V^(1+q)) ) 
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
 ```
 
+#### null model
+
+We assume the classic type II functional response plus an intrinsic mortality rate, 
+
+$$ C(V) = m*V + \frac{aVL}{1+ahV} \,,$$
+
+
+```{r, echo=FALSE}
+
+C <- function(V, m_0 = 0.05, L = 10, a = 0.6, h = 100, q = 0) (m_0 * V) +(a*V^(1+q)*L)/(1+a*h*(V^(1+q)) ) 
+
+defplot(rho, C(rho), ylab = "plant mortality")
+abline(a = 0, b = 0.05, lty = 2)
+```
+
+**This model is going to be the starting point for our model development**
 
 
 ### bistability
 
 Plotting the growth rate against the different mortality rates shows how the definition of grazing mortality alters our prediction of the steady states of the system. 
 
-Compared to the more realistic non-linear functions, the constant grazing mortality assumption seems to predict both the attractor of the vegetated state and the tipping point much better than the density dependent mortality used in Kéfi et al 2007 TPB. In fact, the linear density dependent mortality does not predict bistability at all, given a simple logistic growht function. 
-
-The critical threshold that would lead to degradation is overestimated by the constant model. 
-
-The type 3 functional response finally predicts the existance of a stable degraded state that is not a desert, i.e. not entirely unvegetated. 
-
+Compared to the more realistic non-linear functions, the constant grazing mortality assumption seems to predict both the attractor of the vegetated state and the tipping point much better than the density dependent mortality used in Kéfi et al 2007 TPB. In fact, the linear density dependent mortality does not predict bistability at all, given a simple logistic growth function. 
 
 
 ```{r, echo=FALSE}
 
 defplot(rho, G(rho), ylab = "growth", col = "green3")
-lines(rho, C(rho, a = 10, q = 1))
-lines(rho, rep(0.1, length(rho)))
-lines(rho, C(rho, a = 3, q = 0))
-lines(rho, C(rho, a = .2, h = 0.00001, q = 0))
+lines(rho, C(rho, L = 10, a = 0.01, h = 0.00001))
+lines(rho, C(rho, L = 25, a = 0.01, h = 0.00001))
+lines(rho, C(rho, L = 50, a = 0.01, h = 0.00001))
+abline( h = 0.1 )
+abline( h = 0.25 )
+abline( h = 0.5 )
+```
+
+
+When assuming a type II functional response, the system gains true bistability. 
+
+```{r, echo=FALSE}
+
+defplot(rho, G(rho), ylab = "growth", col = "green3")
+lines(rho, C(rho, L = 10))
+lines(rho, C(rho, L = 25))
+lines(rho, C(rho, L = 50))
 
 ```
 
 
-### open questions
-
-#### Intrinsic mortality
-
-The mortality of plants regardless of grazing cover must be considered to be already internalised into the logistic growth definition. 
-
-Alternatively, it can be considered as an independent constant rate, $M(V) = mV$, 
-
-$$ \frac{dV}{dt} = G(V) - M(V) - C(V) $$
-
-and thus would affect the alternative stable states of the ecosystem.
-
+The type 3 functional response finally predicts the existance of a stable degraded state that is not a desert, i.e. not entirely unvegetated. 
 
 ```{r, echo=FALSE}
 
 defplot(rho, G(rho), ylab = "growth", col = "green3")
-m <- rho*0.05
-lines(rho, m, lty = 2)
-lines(rho, m+C(rho, a = 10, q = 1))
-lines(rho, m+rep(0.1, length(rho)))
-lines(rho, m+C(rho, a = 3, q = 0))
-lines(rho, m+C(rho, a = .2, h = 0.00001, q = 0))
+lines(rho, C(rho, L = 10, q = 1))
+lines(rho, C(rho, L = 25, q = 1))
+lines(rho, C(rho, L = 50, q = 1))
 
 ```
 
@@ -233,33 +252,60 @@ Refugia or fencing of areas, however, could be considered as spatial effects.
 In arid and semi-arid rangelands, spatial vegetation structure was considered to be of major importance for plant growth and mortality [@rietkerk97; @kefi07]. It generates patterns that act as positive feed-backs on the local scale by providing refugia to grazing and overcome growth limitations at low vegetation cover.
 
 These mechanisms can be implemented in the model by using a pair-approximation approach. 
-
-### growth
+In numerical simulations $G$ and $C$ can be implemented as the transition rates in a two-state spatial model. 
 
 In the formalism of the pair-approximation model of @kefi07, growth, *i.e.* the total amount of empty cells transitioning into vegetated cells, becomes a complex function of the relative cover of the multiple pairs including a $+$.
 
-growth part of equation (28) from @kefi07:
+In a model with only global effects, the transition probability of indiviual plant death would be
 
-$$  \rho_{0}w_{0,+} = \left( \delta \rho_+ + (1-\delta) \frac{\rho_+ - \rho_{+-} - \rho_{++} }{1 - \rho_+ - \rho_-} \right) (b - c \rho_+)(1- \rho_+ - \rho_-)  $$
+$$ w_{1,0} = C(V)/V = m + \frac{aL}{1+ahV} $$
 
-The goal of this exercise would be to transform this equation into a function of $\rho_+$, assuming that the landscape is at a vegetated equilibrium. 
+and the transition probability of individual plant growth
 
-Therefore, we are looking for the general case of $G(\rho_+)$ where
+$$ w_{0,1} = G(V)/V = r (1-\frac{V}{K}) \,.$$
 
-$$ \frac{d\rho_+}{dt} = \frac{d\rho_-}{dt} = \frac{d\rho_{+,-}}{dt}  = \frac{d\rho_{+,+}}{dt} = \frac{d\rho_{-,-}}{dt}   = 0$$
+### spatially-explicit growth
 
-Equilibrium has to fulfil
+We implement the accelerating and decelerating features on a local level.
 
-$$ \rho_0w_{0,+} = - m \rho_+ \,.$$
+#### accelerating growth
+
+This is assuming that growth rate is enhanced by a local facilitation term similar to the implementation in Kéfi et al 2007. The growth rate becomes a function of local vegetation cover $\nu$:
+
+$$ r = r_0 + f \nu \,,$$
+
+with an intrinsic growth rate $r_0$ which determines the probability of growth in absence of local vegetation and the additive facilitation $f$ which gradually determines the enhancement of the growth with an increasing local vegetation cover (maximizing at $\nu = 1$ if the cell has 4 neighbors). 
+
+#### decelerating growth
+
+This is assuming that growth is diminished locally by competition, $c$. This affects carrying capacity rather than growth rate itself.
+
+$$ K = K_0 (1 - c \nu)$$
+
+### spatially-explicit mortality
+
+On the mortality side, we can implement spatially explicit effects on the parameters of the functional response. 
+
+#### accelerating mortality
+
+Mortality becomes enhanced in sparse environments by patches that are attracting grazers. We assume this attractivity, $v$, reduces search times locally. 
+
+$$ a = a_0 * (1 - v * \nu) $$
+
+#### decelerating mortality
+
+Plants in grazed habitats develop protective traits, such as thorns or cushion growth. They thereby provide protected habitat to their direct neighborhood, or share the investments in those traits with their neighbors. Overall grazing mortality thus is reduced through an increase in handling time by associational resistance, $p$
+
+$$ h = h_0 * p * \nu $$
 
 
-thus
 
-$$  - m \rho_+ = \left( \delta \rho_+ + (1-\delta) \frac{\rho_+ - \rho_{+-} - \rho_{++} }{1 - \rho_+ - \rho_-} \right) (b - c \rho_+)(1- \rho_+ - \rho_-)  $$
+$$ $$
+
+#### decelerating mortality
 
 
 
-### spatially-explicit grazing mortality
 
 
 
