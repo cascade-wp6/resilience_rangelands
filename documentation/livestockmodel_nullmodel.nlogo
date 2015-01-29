@@ -63,7 +63,7 @@ end
 to update-patch
    let neighb_ij count neighbors4 with [state = 1] / 4
    let r random-float 1
-   let growth growth_max * aridity * (1 - (cover / (capacity)) ) / ( 1 - cover ) 
+   let growth growth_max * aridity * cover  * (1 - (cover / capacity) ) / (1 - cover)
    let death mortality + ( search * livestock ) / ( 1 + (search * handling * cover) )
    set change TRUE
 
@@ -161,7 +161,7 @@ initial_cover
 initial_cover
 0
 1
-0.86
+0.155
 0.005
 1
 NIL
@@ -312,7 +312,7 @@ false
 "" ""
 PENS
 "pen-1" 1.0 0 -3844592 true "" "plotxy cover ( mortality * cover + ( search * livestock ) / ( 1 + (search * handling * cover) ) * cover )"
-"pen-2" 1.0 0 -7500403 true "" "plotxy cover ( growth_max * aridity * (1 - (cover / (capacity)) )   )"
+"pen-2" 1.0 0 -7500403 true "" "plotxy cover ( growth_max * aridity * cover * (1 - (cover / (capacity)) )    )"
 
 SLIDER
 44
@@ -338,8 +338,8 @@ aridity
 aridity
 0
 1
-1
-1
+0.9
+0.01
 1
 NIL
 HORIZONTAL
