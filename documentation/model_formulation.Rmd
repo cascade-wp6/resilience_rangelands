@@ -51,7 +51,7 @@ with the growth rate, $r$, and the carrying capacity, $K$, decelerating the expo
 
 ```{r, echo=FALSE}
 
-G <- function(P, r = 2, K = 0.9) r*P*(1-P/K)
+G <- function(P, r = 2, K = 1) r*P*(1-P/K)
 
 defplot(rho, G(rho), ylab = "growth")
 
@@ -59,14 +59,15 @@ defplot(rho, G(rho), ylab = "growth")
 
 #### mechanistic growth assumptions
 
-The logistic growth model is phenomenological and does not provide a particular ecological explanation, why growth is decelerating to zero with increasing cover. It assumes just some form of global competition leading to a balance of gains and losses at the carrying capacity of the ecosystem. 
+In the first place the logistic growth model is phenomenological and does not provide a particular ecological explanation, why growth is decelerating to zero with increasing cover. It assumes just some form of global competition leading to a balance of gains and losses at the carrying capacity of the ecosystem. 
 
 Mechanistic explanations can be the limitations by a globally diffuse resource, like water, or the occupation of space and the subsequent limitation of photosynthetic active surface. 
 
 A multitude of such global feedback processes can define the precise shape of the growth function leading to asymetrical or truncated shapes, which could importantly affect the bistability properties of the system [@noy-meir75]. He defines
 
-> The general shape of the growth function relating net growth to plant biomass, $G(V)$, is convex with a single maximum (Fig. 1). The increase in the low-biomass range expresses the increase in photosynthetic capacity with increasing leaf area. The levelling
-off to a plateau and the decrease in the higher range expresses self-interference effects (shading, competition); at the point $V = V_\mathrm{max}$ 'maintenance' losses equal photosynthesis and $G = 0$. Vmax is the maximum (stable) biomass in ungrazed vegetation. [...] Of the explicit forms the best known is the logistic [...] but other functions are possible.
+> The general shape of the growth function relating net growth to plant biomass, $G(V)$, is convex with a single maximum (Fig. 1). The increase in the low-biomass range expresses the increase in photosynthetic capacity with increasing leaf area. The levelling off to a plateau and the decrease in the higher range expresses self-interference effects (shading, competition); at the point $V = V_\mathrm{max}$ 'maintenance' losses equal photosynthesis and $G = 0$. Vmax is the maximum (stable) biomass in ungrazed vegetation. [...] Of the explicit forms the best known is the logistic [...] but other functions are possible.
+
+We consider these multiple competitive effects being of minor relevance for now and start with a single limitation by the factor space. As the landscape becomes more and more filled with vegetation, the empty space become scarce. Thus, growth declines until each potentially habitable spot is occupied. We implement a generally valid carrying capacity, $K$. 
 
 
 ```{r, echo=FALSE}
@@ -78,43 +79,44 @@ defplot(rho, G(rho), ylab = "growth")
 
 **This model is going to be the starting point for the model development**
 
-These are global feed-backs. But local feedbacks also could lead to this deceleration:  
-For instance, if plant cover would have a dominantly negative effect on it's surroundings, by depleting nutrients or light, the local neighborhood of a plant cannot be occupied as easy as more remote places. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
+We assume that growth rate is linearly related to environmental quality, $b$, which is inverse to aridity. Since drylands are water limited in the first place, this factor defines the reproduction rate (i.e. number of seeds produced per plant, number of seedlings surviving the harshness of the dry soils). We assume that
 
+$$ r = r_0 * b $$ 
 
+to have a gradient of environmental harshness, $b$, reaching from 0 to 1. 
+The model thus starts out with the assumption of decelerating growth due to competition for space. 
 
 #### accelerating growth   
 
-In arid ecosystems, growth would be low at very low cover and accelerate as cover increases, because retention of water and organic matter in the site is fundamentally reduced. This postive feed-back (low cover reduces growth, leading to even lower cover) was discussed by @vandekoppel97 and @rietkerk97 to explain bistability in arid ecosystems.
+In arid ecosystems, growth rates would be lowest at very low cover and accelerate as cover increases, because retention of water and organic matter in the site is fundamentally reduced and water runoff is high. This postive feed-back (low cover reduces growth, leading to even lower cover) was discussed by @vandekoppel97 and @rietkerk97 to explain bistability in arid ecosystems.
 
 Starting out from the logistic growth term, we now additionally assume that $r$ is accelerated with cover,
 
-$$ r = r_0 * V^a $$
+$$ r = r_0 b V^a $$
 
-$$ G(V) = r_0 V^{a+1} (1-\frac{V}{K}) \,,$$
+$$ G(V) = r_0 b V^{a+1} (1-\frac{V}{K}) \,,$$
 
 
 ```{r, echo=FALSE}
 
 
-r <- function(P, r_0 = 2, a = 2) r_0*P^a
+r <- function(P, r_0 =  2.25, a = 1) r_0 *P^a
 
-defplot(rho, r(rho), ylab = "growth")
+#defplot(rho, r(rho), ylab = "growth")
 
-
-G_sig <- function(P, r_0 = 2, a = 2, K = 0.9) r(P, r_0, a)*P*(1-P/K)
+G_sig <- function(P, r_0 = 2.25, a = 1,  K = 0.9) r(P, r_0, a)*P*(1-P/K)
 
 defplot(rho, G_sig(rho), ylab = "growth")
-
+lines(rho, G_sig(rho, a = 0))
+lines(rho, G_sig(rho,r_0 = 2.25, a = 1))
+lines(rho, G_sig(rho,r_0 = 2.25, a = 0.2))
 ```
 
-### functional response
+### plant mortality
 
 #### linear plant mortality
 
-In the cellular automata model and mean-field approximations of @kefi07, individual plant mortality is a constant rate, which means it is increasing linearly with vegetation cover. 
-
-Plant mortality due to grazing therefore would be described as
+In the cellular automata model and mean-field approximations of @kefi07, individual plant mortality is a constant rate, which means it is increasing linearly with vegetation cover. Total plant mortality due to grazing therefore would be described as
 
 $$ C(V) = gVL \,, $$
 
@@ -136,7 +138,7 @@ Mortality due to grazing,
 
 $$ C(V) = gL \,, $$
 
-thus would be defined as constant, $g$, per grazer individual regardless of the vegetation cover.
+thus could be defined as constant, $g$, per grazer individual regardless of the vegetation cover.
 
 
 ```{r, echo=FALSE}
@@ -150,9 +152,7 @@ Note that grazing mortality can exceed 1, meaning that grazers would exploit mor
 
 #### type 2 functional response
 
-In natural systems, however, consumption is defined by saturating functional responses, i.e. at low cover, density dependent mortality defined by search efficiency dominates, but at high cover handling times of the consumer will limit its intake rates. 
-
-Therefore, plant mortality due to grazing should be 
+In natural systems, however, consumption is defined by saturating functional responses, i.e. at low cover, density dependent mortality defined by search efficiency dominates, but at high cover handling times of the consumer will limit its intake rates. Therefore, plant mortality due to grazing should be 
 
 $$ C(V) = \frac{aVL}{1+ahV} \,,$$
 
@@ -165,7 +165,7 @@ defplot(rho, C(rho), ylab = "plant mortality")
 
 ```
 
-Since we are calculating in fractions of landscape, and not in cells, the handling time defines the time a grazer individual would need to handle the entire landscape as readily available fodder. The search time is the percentage of the landscape foraged in over the course of one year.  
+Since we are calculating in fractions of landscape, i.e. vegetation cover, and not in cells, the handling time defines the time a grazer individual would need to handle the entire landscape as readily available fodder. The search time is the percentage of the landscape foraged in over the course of one year.  
 
 
 #### type 3 functional response
@@ -242,6 +242,107 @@ lines(rho, C(rho, L = 50, q = 1))
 
 ```
 
+### population dynamics
+
+The differential equation describing population cover above with $V$ and $C$ substituted would then become  
+
+$$ \frac{\mathrm{d}\rho_1}{\mathrm{d}t} = r b V (1-\frac{V}{K}) - m V - \frac{aVL}{1+ahV} $$
+
+Given a parameter set  
+```{r, echo=FALSE}
+
+parms <- list(
+    m = 0.05,
+    r = 1,
+    b = 0.9, 
+    K = 0.9, 
+    a = 0.6,
+    h = 100,
+    L = 10
+  )
+
+ as.data.frame(parms)
+```
+we receive a projection of the intersection of growth and mortality.
+
+```{r, echo=FALSE}
+plot(rho,  with(parms,  m * rho + (a * rho * L)/(1 + a * h * rho)), ylab = "growth", type = "l", ylim = c(0,0.5))
+lines(rho, with(parms, r* b* rho * (1 - rho/K) ), col = "green3" )
+
+```
+
+And solving the ODE, starting with values larger than the unstable equilibrium point on the left,  returns a timeseries 
+
+```{r, echo=FALSE}
+d_rho <- function(rho, parms, z = 4) { 
+  with(parms, r* b* rho * (1 - rho/K) - m * rho - (a * rho * L)/(1 + a * h * rho) )  
+}
+
+
+odesys <- function (t, rho, parms = model_parms) {
+  list( d_rho(rho, parms)  )
+}
+
+library(deSolve)
+# running the ode-solver
+runmodel <- ode(y = 0.90, func = odesys, times = 1.1^(1:53), parms = parms)
+
+# transfer into ouput and calculate missing rho values
+ODEnullmodel <- as.data.frame(runmodel)
+
+
+plot(ODEnullmodel, type = "l", ylim = c(0,1))
+
+```
+
+### Cellular Automata
+
+The differential equations are formulated as changes in vegetation cover. Growth are positive changes, and deaths are negative changes.
+
+Now, the CA uses transition probabilities. That is, a) the individual risk of death of vegetated cells and b) the individual chance of becoming vegetated for an empty cell.
+To translate into the CA context, we need to find rules that apply to a) the vegetated cells, and b) the empty cells. Thus, it would be a) the reduction of term of the population of vegetated cells, divided by cover, to get the individual risk of death
+
+$$ w_{1,0} = m + \frac{aL}{1+ah\rho_1} $$
+
+
+This would be b) the growth term for the population of empty cells, divided by cover of empty cells, to get the individual chance of growth.
+
+$$ w_{0,1} = \frac{r \rho_1 b (1-\frac{\rho_1}{K})}{1-\rho_1} $$
+ 
+
+From an individual cell perspective, the probabilities would change along with cover like this
+
+```{r, echo=FALSE}
+par(mar = c(4,4,2,4))
+plot(rho,  with(parms,  r * b *  ( 1 - (rho / K)) / (1 - rho) ) , ylab = "individual growth on empty cells", type = "l", ylim = c(0,2.5), las = 1, yaxs = "i")
+
+lines(rho, with(parms, m + ( a * L )/( 1 + a * h * rho ) ), col = "red3" )
+axis(4, las = 1)
+mtext("individual risk of death of vegetated cells", 4, 3)
+```
+
+Running this in a timeseries of 150 years yields
+
+```{r, echo = FALSE}
+
+source("../code/simfunctions.r")
+
+set.seed(584232) # setting seed for random number generation
+
+nullmodel <- runCA(0.9, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval = 50, isstable = 0.0001, saveeach = 5)
+
+
+plot(nullmodel$rho_one ~ nullmodel$time, 
+     ylim = c(0,1), ylab = expression( rho["+"]), 
+     xlab = "time [yr]", type = "l")
+     
+
+lines(ODEnullmodel, lty = 3)
+
+#animateCA(nullmodel, "ca_nullmodel.gif")
+
+
+```
 
 
 ## spatially-explicit models
@@ -265,12 +366,12 @@ and the transition probability of individual plant growth
 $$ w_{0,1} = G(V)/V = r (1-\frac{V}{K}) \,.$$
 
 ### spatially-explicit growth
-
-We implement the accelerating and decelerating features on a local level.
+  
+We implement accelerating and decelerating features on growth and mortality on the local level.
 
 #### accelerating growth
 
-This is assuming that growth rate is enhanced by a local facilitation term similar to the implementation in Kéfi et al 2007. The growth rate becomes a function of local vegetation cover $\nu$:
+This is assuming that the local environmental suitability is enhanced by a local facilitation term similar to the implementation in Kéfi et al 2007. Thus, the growth rate becomes a function of local vegetation cover $\nu$:
 
 $$ r = r_0 + f \nu \,,$$
 
@@ -278,9 +379,11 @@ with an intrinsic growth rate $r_0$ which determines the probability of growth i
 
 #### decelerating growth
 
+For instance, if plant cover would have a dominantly negative effect on it's surroundings, by depleting nutrients or light, the local neighborhood of a plant cannot be occupied as easy as more remote places. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
 This is assuming that growth is diminished locally by competition, $c$. This affects carrying capacity rather than growth rate itself.
 
 $$ K = K_0 (1 - c \nu)$$
+
 
 ### spatially-explicit mortality
 
@@ -299,11 +402,36 @@ Plants in grazed habitats develop protective traits, such as thorns or cushion g
 $$ h = h_0 * p * \nu $$
 
 
+### implementation in a cellular automaton
 
-$$ $$
+It is straigthforward to implement the model in a cellular automata model. It is defined on a defined grid of cells where each cell can take the values '1' if it is vegetated and '0' if it is empty. The transition rules between those states depend either on global vegetation cover $\rho_1$ or on the local cover in the direct neighborhood of the cell $\nu_1$ (closest 4 cells, von-Neumann-neighborhood). 
 
-#### decelerating mortality
+Thus, two transition probabilities need to be defined: the probability of **growth**, $w_{0,1}$, turning an empty cell into a vegetated, and the probability of **death**, $w_{0,1}$, removing vegetation from the cell.
 
+The null model, i.e. the model with only global effects on mortality and growth, with the basic assumption of a type II functional response and logistic growth, would thus be defined by
+
+$$ w_{0,1} = r (1-\frac{\rho_1}{K})$$
+
+$$ w_{1,0} =  m + \frac{aL}{1+ah\rho_1} $$
+
+
+### implementation in a pair-approximation model
+
+The pair-approximation framework (Matsuda et al 1992) is defined as a system of ordinary differential equations, describing the populations of *pairs* of cells. In a two state system, three pairs can be defined with population densities $\rho_{1,1}$ , $\rho_{0,0}$, and $\rho_{0,1}$. Besides, there are the population densities of singletons, $\rho_0$ and $\rho_1$. 
+
+There are conservation equations which allow to calculate population densities of one pair out of the other pairs and singletons.
+
+$$ \rho_1 + \rho_0 = 1$$
+
+$$ \rho_{1,1} + \rho_{0,1} = \rho_1$$
+
+$$ \rho_{0,1} + \rho_{0,0} = \rho_0$$
+
+This means, the system can be fully described by two differential equations: 
+
+$$ \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = $$
+
+$$ \frac{\mathrm{d}\rho_0}{\mathrm{d}t} = $$
 
 
 
