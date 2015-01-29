@@ -234,7 +234,9 @@ animateCA <- function(result, filename) {
   library(animation)
   if(Sys.info()[['sysname']] == "Linux") X11.options(antialias = "none") #for Linux Systems to enable pixel-wise plotting in (animated) gif-files. 
   if(Sys.info()[['sysname']] == "Windows") windows.options(antialias = "none") #for Windows Systems to enable pixel-wise plotting in (animated) gif-files. 
-  
+  width = result$timeseries[[1]]$dim[1]
+  height = result$timeseries[[1]]$dim[2]
+    
   saveGIF( 
     for(i in 1:length(result$timeseries) ) {
       par(mar = c(0,0,0,0))
@@ -289,6 +291,7 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
   
   # initialise simulation variables: 
   x_old <- initial  # ghost matrix at t_i
+  x_new <- x_old
   stability <- 1  # check value for stability
   i = 0  # iterator for simulation timesteps
   
@@ -296,8 +299,7 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
   while(stability > isstable & i <= t_max/delta & parms_temp$rho_one > 0) {
     
     i <- i +1  # increase iterator
-    x_new <- x_old   	# copy x_old into an object x_new to allocate memory	
-    
+   
     # model specific part:
     # 1 - setting time-step parameters
     #parms_temp$local <- count(x_old, "1")/4  # count local density of occupied fields for each cell:
@@ -308,7 +310,7 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
     # 3 - setting transition probabilities
     growth <- with(parms_temp, r * b * rho_one * ( 1 - (rho_one / K)) / (1 - rho_one)  *delta)  # recolonisation rates of all cells 
     
-    death <- with(parms_temp, m + ( a * L )/( 1 + a * h * rho_one ) *delta)   # set probability of death for each cell
+    death <- with(parms_temp, (m + ( a * L )/( 1 + a * h * rho_one )) *delta)   # set probability of death for each cell
     
     # check for sum of probabilities to be inferior 1 and superior 0
     if(any(c(growth, death) > 1 )) warning(paste("a set probability is exceeding 1 in time step", i, "! decrease delta!!!")) 
