@@ -314,22 +314,22 @@ From an individual cell perspective, the probabilities would change along with c
 
 ```{r, echo=FALSE}
 par(mar = c(4,4,2,4))
-plot(rho,  with(parms,  r * b *  ( 1 - (rho / K)) / (1 - rho) ) , ylab = "individual growth on empty cells", type = "l", ylim = c(0,2.5), las = 1, yaxs = "i")
+plot(rho,  with(parms,  r * b * rho * ( 1 - (rho / K)) / (1 - rho) ) , ylab = "individual growth on empty cells", type = "l", ylim = c(0,2.5), las = 1, yaxs = "i")
 
 lines(rho, with(parms, m + ( a * L )/( 1 + a * h * rho ) ), col = "red3" )
 axis(4, las = 1)
 mtext("individual risk of death of vegetated cells", 4, 3)
 ```
 
-Running this in a timeseries of 150 years yields
+Running this on a 100 x 100 grid of cells in a timeseries of 150 years yields (dashed line: ODE prediction as reference)
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning = FALSE}
 
 source("../code/simfunctions.r")
 
 set.seed(584232) # setting seed for random number generation
 
-nullmodel <- runCA(0.9, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval = 50, isstable = 0.0001, saveeach = 5)
+nullmodel <- runCA(0.9, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval = 50, isstable = 0.0001, saveeach = 1)
 
 
 plot(nullmodel$rho_one ~ nullmodel$time, 
@@ -338,12 +338,13 @@ plot(nullmodel$rho_one ~ nullmodel$time,
      
 
 lines(ODEnullmodel, lty = 3)
-
-#animateCA(nullmodel, "ca_nullmodel.gif")
-
-
 ```
 
+And the animated lattice would look like this:
+```{r, eval = FALSE, echo = FALSE, warning = FALSE}
+animateCA(nullmodel, "ca_nullmodel.gif")
+```
+![](ca_nullmodel.gif)
 
 ## spatially-explicit models
 
