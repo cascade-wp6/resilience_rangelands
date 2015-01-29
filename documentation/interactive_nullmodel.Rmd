@@ -1,0 +1,100 @@
+---
+title: "null-model ode"
+author: "Florian Schneider"
+date: "Thursday, November 20, 2014"
+output: html_document
+runtime: shiny
+---
+
+   
+## original model (Kéfi et al 2007)
+
+Running the pair approximation model of Kéfi et al 2007 TPB dynamically. 
+
+
+```{r, echo=FALSE}
+
+library("deSolve")
+
+rho <- seq(0,1,length = 100)
+
+```
+
+### plant and soil parameters
+```{r, echo=FALSE}
+
+inputPanel(
+  sliderInput("m", label = "intrinsic mortality:",
+              min = 0.0, max = 1, value = 0.05, step = 0.01),
+  sliderInput("r", label = "max. growth rate:",
+              min = 0.0, max = 3, value = 1, step = 0.01),
+  sliderInput("b", label = "environmental quality:",
+              min = 0.0, max = 1, value = 0.9, step = 0.01),
+  sliderInput("K", label = "carrying capacity:",
+              min = 0.0, max = 1, value = 0.9, step = 0.01),
+  sliderInput("a", label = "search efficiency:",
+              min = 0.0, max = 1, value = 0.6, step = 0.01), 
+  sliderInput("h", label = "handling time:",
+              min = 0.0, max = 1000, value = 100, step = 1), 
+  sliderInput("L", label = "livestock units:",
+              min = 0.0, max = 100, value = 10, step = 1)
+)
+
+  
+```
+
+### initial conditions
+```{r, echo=FALSE}
+
+inputPanel(
+  sliderInput("rho_1", label = "initial plant cover:",
+              min = 0.0, max = 1, value = 0.9, step = 0.01)
+  )
+
+renderPlot({
+
+ parms <- list()
+  parms$m <- as.numeric(input$m)
+  parms$r <- as.numeric(input$r)
+  parms$b <- as.numeric(input$b) 
+  parms$K <- as.numeric(input$K) 
+  parms$a <- as.numeric(input$a) 
+  parms$h <- as.numeric(input$h) 
+  parms$L <- as.numeric(input$L) 
+
+  plot(rho,  with(parms,  m * rho + (a * rho * L)/(1 + a * h * rho)), ylab = "growth", type = "l", ylim = c(0,0.5))
+  lines(rho, with(parms, r* b* rho * (1 - rho/K) ), col = "green3" )
+
+  })
+ 
+renderPlot({ 
+  
+d_rho <- function(rho, parms, z = 4) { 
+  with(parms, r* b* rho * (1 - rho/K) - m * rho - (a * rho * L)/(1 + a * h * rho) )  
+}
+
+
+odesys <- function (t, rho, parms = model_parms) {
+  list( d_rho(rho, parms)  )
+}
+
+ parms <- list()
+  parms$m <- as.numeric(input$m)
+  parms$r <- as.numeric(input$r)
+  parms$b <- as.numeric(input$b) 
+  parms$K <- as.numeric(input$K) 
+  parms$a <- as.numeric(input$a) 
+  parms$h <- as.numeric(input$h) 
+  parms$L <- as.numeric(input$L) 
+
+# running the ode-solver
+runmodel <- ode(y = input$rho_1, func = odesys, times = 1.1^(1:53), parms = parms)
+
+# transfer into ouput and calculate missing rho values
+out <- as.data.frame(runmodel)
+
+plot(out, type = "l", ylim = c(0,1))
+axis(2, at = round(tail(out,1)[["1"]],2), las = 1 )
+
+} )
+```
