@@ -3,11 +3,11 @@ title: "Basic Model formulation"
 author: "Florian D. Schneider"
 date: "Tuesday, November 18, 2014"
 output:
+  pdf_document:
+    fig_height: 4
+    fig_width: 6
   html_document:
     keep_md: yes
-  pdf_document:
-    fig_height: 3.5
-    fig_width: 4
 fontsize: 12pt
 geometry: margin=1.4in
 csl: ../manuscript/amnat.csl
@@ -57,6 +57,8 @@ defplot(rho, G(rho), ylab = "growth")
 
 ```
 
+**This model is going to be the starting point for the model development**
+
 #### mechanistic growth assumptions
 
 In the first place the logistic growth model is phenomenological and does not provide a particular ecological explanation, why growth is decelerating to zero with increasing cover. It assumes just some form of global competition leading to a balance of gains and losses at the carrying capacity of the ecosystem. 
@@ -69,19 +71,9 @@ A multitude of such global feedback processes can define the precise shape of th
 
 We consider these multiple competitive effects being of minor relevance for now and start with a single limitation by the factor space. As the landscape becomes more and more filled with vegetation, the empty space become scarce. Thus, growth declines until each potentially habitable spot is occupied. We implement a generally valid carrying capacity, $K$. 
 
-
-```{r, echo=FALSE}
-G <- function(P, r = 2.25, K = 0.9) r*P*(1-P/K)
-
-defplot(rho, G(rho), ylab = "growth")
-
-```
-
-**This model is going to be the starting point for the model development**
-
 We assume that growth rate is linearly related to environmental quality, $b$, which is inverse to aridity. Since drylands are water limited in the first place, this factor defines the reproduction rate (i.e. number of seeds produced per plant, number of seedlings surviving the harshness of the dry soils). We assume that
 
-$$ r = r_0 * b $$ 
+$$ r = r_0 b $$ 
 
 to have a gradient of environmental harshness, $b$, reaching from 0 to 1. 
 The model thus starts out with the assumption of decelerating growth due to competition for space. 
@@ -170,9 +162,15 @@ Since we are calculating in fractions of landscape, i.e. vegetation cover, and n
 
 #### type 3 functional response
 
-The 
+As an accelerating assumption on plant mortality we add the formulation of density dependent search efficiencies. 
+
+$$ b = b_0 N^q $$
+
+Which turns the consumption term into 
 
 $$ C(V) = \frac{bV^{1+q}}{1+bhV^{1+q}} $$
+
+Thus, plant mortality is accelerating with increasing cover, protecting plants at low cover, due to inefficient search behaviour, and then saturates at the inverse of handling time, $h$. 
 
 
 ```{r, echo=FALSE}
@@ -182,11 +180,11 @@ defplot(rho, C(rho), ylab = "plant mortality")
 
 ```
 
-#### null model
+#### consumption null model
 
 We assume the classic type II functional response plus an intrinsic mortality rate, 
 
-$$ C(V) = m*V + \frac{aVL}{1+ahV} \,,$$
+$$ C(V) = mV + \frac{aVL}{1+ahV} \,,$$
 
 
 ```{r, echo=FALSE}
@@ -246,7 +244,7 @@ lines(rho, C(rho, L = 50, q = 1))
 
 The differential equation describing population cover above with $V$ and $C$ substituted would then become  
 
-$$ \frac{\mathrm{d}\rho_1}{\mathrm{d}t} = r b V (1-\frac{V}{K}) - m V - \frac{aVL}{1+ahV} $$
+$$ \frac{\mathrm{d}V}{\mathrm{d}t} = r b V (1-\frac{V}{K}) - m V - \frac{aVL}{1+ahV} $$
 
 Given a parameter set  
 ```{r, echo=FALSE}
@@ -292,14 +290,74 @@ ODEnullmodel <- as.data.frame(runmodel)
 
 
 plot(ODEnullmodel, type = "l", ylim = c(0,1))
+axis(4, at = round(tail(ODEnullmodel,1)[["1"]],2),cex.axis = 0.8, las = 1 )
 
 ```
 
+#### global model
+
+The ODE that includes the additional global feed backs of water runoff and  reduced search efficience at low cover would read: 
+
+$$ \frac{\mathrm{d}V}{\mathrm{d}t} = r b V^{1 + \alpha} (1-\frac{V}{K}) - m V - \frac{aV^{1+q}L}{1+ahV^{1+q}} $$
+
+We extend the parameter set by 
+
+```{r, echo=FALSE}
+
+parms <- list(
+    m = 0.05,
+    r = 1,
+    b = 0.9, 
+    K = 0.9, 
+    a = 0.6,
+    h = 100,
+    L = 16, 
+    alpha = 0.1,
+    q = 1
+  )
+
+ as.data.frame(parms)
+```
+
+which gives us the prediction of complex bistability.
+
+```{r, echo=FALSE}
+plot(rho,  with(parms,  m * rho + (a * rho^( 1 + q) * L)/(1 + a * h * rho^( 1 + q))), ylab = "growth", type = "l", ylim = c(0,0.5))
+  lines(rho, with(parms, r* b* rho^( 1 + alpha) * (1 - rho/K) ), col = "green3" )
+
+
+d_rho <- function(rho, parms, z = 4) { 
+  with(parms, r* b* rho^( 1 + alpha) * (1 - rho/K) - m * rho - (a * rho^( 1 + q) * L)/(1 + a * h * rho^( 1 + q)) )  
+  }
+  
+# running the ode-solver
+ODEglobal_high <- ode(y = 0.9, func = odesys, times = 1.1^(1:50), parms = parms)
+
+# transfer into ouput and calculate missing rho values
+ODEglobal_high <- as.data.frame(ODEglobal_high)
+
+plot(ODEglobal_high, type = "l", ylim = c(0,1))
+axis(4, at = round(tail(ODEglobal_high,1)[["1"]],2),cex.axis = 0.75, las = 1 )
+
+
+# running the ode-solver
+ODEglobal_low <- ode(y = 0.1, func = odesys, times = 1.1^(1:50), parms = parms)
+
+# transfer into ouput and calculate missing rho values
+ODEglobal_low <- as.data.frame(ODEglobal_low)
+axis(4, at = round(tail(ODEglobal_low,1)[["1"]],2),cex.axis = 0.75, las = 1 )
+
+lines(ODEglobal_low)
+
+```
+
+
 ### Cellular Automata
 
-The differential equations are formulated as changes in vegetation cover. Growth are positive changes, and deaths are negative changes.
+It is straigthforward to implement the model in a cellular automata model. It is defined on a defined grid of cells where each cell can take the values '1' if it is vegetated and '0' if it is empty. The transition rules between those states depend on global vegetation cover, $\rho_1$. 
 
-Now, the CA uses transition probabilities. That is, a) the individual risk of death of vegetated cells and b) the individual chance of becoming vegetated for an empty cell.
+While the differential equations are formulated as changes in vegetation cover(growth are positive changes, and deaths are negative changes), the CA uses transition probabilities between the two possible cell states. Thus, two transition probabilities need to be defined: the probability of **growth**, $w_{0,1}$, turning an empty cell into a vegetated, and the probability of **death**, $w_{0,1}$, removing vegetation from the cell.
+
 To translate into the CA context, we need to find rules that apply to a) the vegetated cells, and b) the empty cells. Thus, it would be a) the reduction of term of the population of vegetated cells, divided by cover, to get the individual risk of death
 
 $$ w_{1,0} = m + \frac{aL}{1+ah\rho_1} $$
@@ -313,6 +371,19 @@ $$ w_{0,1} = \frac{r \rho_1 b (1-\frac{\rho_1}{K})}{1-\rho_1} $$
 From an individual cell perspective, the probabilities would change along with cover like this
 
 ```{r, echo=FALSE}
+
+parms <- list(
+    m = 0.05,
+    r = 1,
+    b = 0.9, 
+    K = 0.9, 
+    a = 0.6,
+    h = 100,
+    L = 10, 
+    alpha = 0,
+    q = 0
+  )
+
 par(mar = c(4,4,2,4))
 plot(rho,  with(parms,  r * b * rho * ( 1 - (rho / K)) / (1 - rho) ) , ylab = "individual growth on empty cells", type = "l", ylim = c(0,2.5), las = 1, yaxs = "i")
 
@@ -343,8 +414,52 @@ lines(ODEnullmodel, lty = 3)
 And the animated lattice would look like this:
 ```{r, eval = FALSE, echo = FALSE, warning = FALSE}
 animateCA(nullmodel, "ca_nullmodel.gif")
-```
+
 ![](ca_nullmodel.gif)
+
+```
+
+
+#### additional feedbacks
+
+The next step is to include the additional global feedback terms into the model. This is straightforward 
+
+$$ w_{1,0} = m + \frac{aL\rho_1^{q}}{1+ah\rho_1^{1+q}} $$
+
+$$ w_{0,1} = \frac{r \rho_1^{1+\alpha} b (1-\frac{\rho_1}{K})}{1-\rho_1} $$
+
+```{r, echo=FALSE}
+
+parms <- list(
+    m = 0.05,
+    r = 1,
+    b = 0.9, 
+    K = 0.9, 
+    a = 0.6,
+    h = 100,
+    L = 16, 
+    alpha = 0.1,
+    q = 1
+  )
+
+set.seed(5535732) # setting seed for random number generation
+
+globalmodel <- runCA(0.9, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval = 50, isstable = 0.0001, saveeach = 1)
+
+
+plot(globalmodel$rho_one ~ globalmodel$time, 
+     ylim = c(0,1), ylab = expression( rho["+"]), 
+     xlab = "time [yr]", type = "l")
+     
+
+globalmodel <- runCA(0.1, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval = 50, isstable = 0.0001, saveeach = 1)
+lines(globalmodel$rho_one ~ globalmodel$time)
+lines(ODEglobal_low, lty = 3)
+lines(ODEglobal_high, lty = 3)
+```
+
+
+\newpage
 
 ## spatially-explicit models
 
@@ -353,18 +468,7 @@ Refugia or fencing of areas, however, could be considered as spatial effects.
 
 In arid and semi-arid rangelands, spatial vegetation structure was considered to be of major importance for plant growth and mortality [@rietkerk97; @kefi07]. It generates patterns that act as positive feed-backs on the local scale by providing refugia to grazing and overcome growth limitations at low vegetation cover.
 
-These mechanisms can be implemented in the model by using a pair-approximation approach. 
-In numerical simulations $G$ and $C$ can be implemented as the transition rates in a two-state spatial model. 
-
-In the formalism of the pair-approximation model of @kefi07, growth, *i.e.* the total amount of empty cells transitioning into vegetated cells, becomes a complex function of the relative cover of the multiple pairs including a $+$.
-
-In a model with only global effects, the transition probability of indiviual plant death would be
-
-$$ w_{1,0} = C(V)/V = m + \frac{aL}{1+ahV} $$
-
-and the transition probability of individual plant growth
-
-$$ w_{0,1} = G(V)/V = r (1-\frac{V}{K}) \,.$$
+These mechanisms can be implemented in the model by using a pair-approximation approach and numerical simulations, where $G$ and $C$ can be implemented as the transition rates in a two-state spatial model depending on global and local vegetation cover. 
 
 ### spatially-explicit growth
   
@@ -372,19 +476,20 @@ We implement accelerating and decelerating features on growth and mortality on t
 
 #### accelerating growth
 
-This is assuming that the local environmental suitability is enhanced by a local facilitation term similar to the implementation in Kéfi et al 2007. Thus, the growth rate becomes a function of local vegetation cover $\nu$:
+This is assuming that the local environmental suitability is enhanced by a local facilitation term similar to the implementation in Kéfi et al 2007. Thus, the reduction in growth rate, $r$, by aridity, $a$, is compensated by a function of $q_{0|1}$, the local density of cells in state 1 (i.e. vegetation) given that the focal cell is in state 0 (i.e. empty), and maximizes to one if the cell has four neighbors:
 
-$$ r = r_0 + f \nu \,,$$
+$$ a = a_0 + (f - a_0) q_{0|1} \,,$$
 
-with an intrinsic growth rate $r_0$ which determines the probability of growth in absence of local vegetation and the additive facilitation $f$ which gradually determines the enhancement of the growth with an increasing local vegetation cover (maximizing at $\nu = 1$ if the cell has 4 neighbors). 
+with the effect of aridity, $a_0$ in absence of local vegetation being increased to the value of $f$ if additive facilitation due to the presence of neighboring plants occurs. This term gradually determines the enhancement of the growth with an increasing local vegetation cover (maximizing at $q_{0|1} = 1$ if the cell has 4 neighbors). 
 
 #### decelerating growth
 
 For instance, if plant cover would have a dominantly negative effect on it's surroundings, by depleting nutrients or light, the local neighborhood of a plant cannot be occupied as easy as more remote places. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
 This is assuming that growth is diminished locally by competition, $c$. This affects carrying capacity rather than growth rate itself.
 
-$$ K = K_0 (1 - c \nu)$$
+$$ K = K_0 (1 - c q_{0|1})$$
 
+That is, if a cell has a fully vegetated local neighborhood, it's carrying capacity will be reduced by $c$. Thus, $c \geq K$ otherwise carrying capacity will fall below $0$ at high cover.
 
 ### spatially-explicit mortality
 
@@ -392,33 +497,23 @@ On the mortality side, we can implement spatially explicit effects on the parame
 
 #### accelerating mortality
 
-Mortality becomes enhanced in sparse environments by patches that are attracting grazers. We assume this attractivity, $v$, reduces search times locally. 
+Mortality becomes enhanced in sparse environments by patches that are attracting grazers. We assume this attractivity enhances search efficiency locally by the value $v$
 
-$$ a = a_0 * (1 - v * \nu) $$
+$$ b = b_0  + v q_{1|1} $$
+
+Thus, at low local cover feeding will be high on plants with neighbors, whereas at high cover the term has no effect since handling time is limiting consumption. An enhanced search efficiency will raise the critical thresholds for a collapse. 
 
 #### decelerating mortality
 
-Plants in grazed habitats develop protective traits, such as thorns or cushion growth. They thereby provide protected habitat to their direct neighborhood, or share the investments in those traits with their neighbors. Overall grazing mortality thus is reduced through an increase in handling time by associational resistance, $p$
+Plants in grazed habitats develop protective traits, such as thorns or cushion growth. They thereby provide protected habitat to their direct neighborhood, or share the investments in those traits with their neighbors. Overall grazing mortality thus is reduced through an increase in handling time by associational resistance, $p$,
 
-$$ h = h_0 * p * \nu $$
+$$ h = h_0  / (1 - p  q_{1|1}) $$
 
-
-### implementation in a cellular automaton
-
-It is straigthforward to implement the model in a cellular automata model. It is defined on a defined grid of cells where each cell can take the values '1' if it is vegetated and '0' if it is empty. The transition rules between those states depend either on global vegetation cover $\rho_1$ or on the local cover in the direct neighborhood of the cell $\nu_1$ (closest 4 cells, von-Neumann-neighborhood). 
-
-Thus, two transition probabilities need to be defined: the probability of **growth**, $w_{0,1}$, turning an empty cell into a vegetated, and the probability of **death**, $w_{0,1}$, removing vegetation from the cell.
-
-The null model, i.e. the model with only global effects on mortality and growth, with the basic assumption of a type II functional response and logistic growth, would thus be defined by
-
-$$ w_{0,1} = r (1-\frac{\rho_1}{K})$$
-
-$$ w_{1,0} =  m + \frac{aL}{1+ah\rho_1} $$
-
+An alternative formulation should be found. The term is highly non-linear and provokes relevant changes only at values above 0.9. It is defined within $(0,1($ 
 
 ### implementation in a pair-approximation model
 
-The pair-approximation framework (Matsuda et al 1992) is defined as a system of ordinary differential equations, describing the populations of *pairs* of cells. In a two state system, three pairs can be defined with population densities $\rho_{1,1}$ , $\rho_{0,0}$, and $\rho_{0,1}$. Besides, there are the population densities of singletons, $\rho_0$ and $\rho_1$. 
+The pair-approximation framework [@matsuda92] is defined as a system of ordinary differential equations, describing the populations of *pairs* of cells. In a two state system, three pairs can be defined with population densities $\rho_{1,1}$ , $\rho_{0,0}$, and $\rho_{0,1}$. Besides, there are the population densities of singletons, $\rho_0$ and $\rho_1$. 
 
 There are conservation equations which allow to calculate population densities of one pair out of the other pairs and singletons.
 
@@ -428,13 +523,27 @@ $$ \rho_{1,1} + \rho_{0,1} = \rho_1$$
 
 $$ \rho_{0,1} + \rho_{0,0} = \rho_0$$
 
-This means, the system can be fully described by two differential equations: 
 
-$$ \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = $$
+Since formally $q_{i|j}$ is a conditional probability (given that one neighbor is in state $i$, what is the probability to find the other in state $j$) we can express it in terms of densities of pairs and ‘singletons,’ as  
 
-$$ \frac{\mathrm{d}\rho_0}{\mathrm{d}t} = $$
+$$ q_{i|j} = \frac{\rho_{ij}}{\rho_i} $$
 
 
+The vegetation dynamics of the system can be fully described by two differential equations (omitting indexed zeros of equations for easier reading): 
+
+$$ \frac{\mathrm{d}\rho_1}{\mathrm{d}t} = r ( a + (f - a) q_{0|1} ) \rho_1^{1 + \alpha} (1-\frac{\rho_1}{K (1 - c q_{0|1})}) - m \rho_1 - \frac{(b  + v q_{1|1} )\rho_1^{1+q}L}{1+( b  + v q_{1|1} ) ( h  / (p  q_{1|1}))\rho_1^{1+q}} $$
+
+$$ \frac{\mathrm{d}\rho_0}{\mathrm{d}t} =  m \rho_1 + \frac{(b  + v q_{1|1} )\rho_1^{1+q}L}{1+( b  + v q_{1|1} ) ( h  / (p  q_{1|1}))\rho_1^{1+q}} - r ( a + (f - a) q_{0|1} ) \rho_1^{1 + \alpha} (1-\frac{\rho_1}{K (1 - c q_{0|1})})$$
+
+Next steps: 
+
+- formulate equations for $\frac{\mathrm{d}\rho_{0,1}}{\mathrm{d}t}$, $\frac{\mathrm{d}\rho_{0,0}}{\mathrm{d}t}$, and $\frac{\mathrm{d}\rho_{1,1}}{\mathrm{d}t}$
+
+### implementation in CA
+
+It is quite straightforward to implement the mechanisms described above in the syntax of a cellular automata model, where the probabilities of transition can not only depend on the global cover $\rho_1$ but also on the local cover in the direct neighborhood of the cell $\nu_1$ (closest 4 cells, von-Neumann-neighborhood). 
+
+see implementation in NetLogo: `documentation/livestockmodel.nlogo` 
 
 
 
