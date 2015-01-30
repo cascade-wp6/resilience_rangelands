@@ -308,9 +308,9 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
     rnum <- runif(width*height) # one random number between 0 and 1 for each cell
     
     # 3 - setting transition probabilities
-    growth <- with(parms_temp, r * b * rho_one * ( 1 - (rho_one / K)) / (1 - rho_one)  *delta)  # recolonisation rates of all cells 
+    growth <- with(parms_temp, (r * b * rho_one^(1 + alpha) * ( 1 - (rho_one / K)) / (1 - rho_one))  *delta)  # recolonisation rates of all cells 
     
-    death <- with(parms_temp, (m + ( a * L )/( 1 + a * h * rho_one )) *delta)   # set probability of death for each cell
+    death <- with(parms_temp, (m + ( a * L * rho_one^(q) )/( 1 + a * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
     
     # check for sum of probabilities to be inferior 1 and superior 0
     if(any(c(growth, death) > 1 )) warning(paste("a set probability is exceeding 1 in time step", i, "! decrease delta!!!")) 
