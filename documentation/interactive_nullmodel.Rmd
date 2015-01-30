@@ -7,10 +7,9 @@ runtime: shiny
 ---
 
    
-## original model (Kéfi et al 2007)
+## developping the null model
 
-Running the pair approximation model of Kéfi et al 2007 TPB dynamically. 
-
+Non-spatial null model solved as ordinary differential equations.
 
 ```{r, echo=FALSE}
 
