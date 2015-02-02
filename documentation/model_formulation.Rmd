@@ -715,6 +715,7 @@ plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = 
 
 
 parms$L <- seq(0,20,0.2) #seq(0,1,.002)+0.001
+parms$b <- 0.4
 parms$rho_ini <- c(0.9, 0.01)
 
 iterations <- expand.grid(parms)
