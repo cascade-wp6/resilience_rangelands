@@ -354,3 +354,35 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
 }
 
 
+ini_rho <- function(rho_1) {
+  c(
+    rho_1 = rho_1,
+    rho_11 = rho_1*rho_1,
+    rho_10 = rho_1*(1-rho_1)*2,
+    rho_00 = (1-rho_1)*(1-rho_1),
+    rho_0 = 1-rho_1
+  )
+  
+}
+
+d_rho_1 <- function(rho, parms) { 
+  with(parms,
+       r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
+  )  
+}
+
+
+d_rho_11 <- function(rho,  parms) { 
+  with(parms,
+       2* (rho[1] - rho[2]) * r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
+  )  
+}
+
+
+odesys_spex <- function(t, rho, parms = model_parms) {
+  rho_1 <- d_rho_1(rho, parms)
+  rho_11 <- d_rho_11(rho, parms)
+  list(c(rho_1, rho_11, rho_1-rho_11, 1-rho_1-(rho_1-rho_11),1-rho_1  
+  ) )
+}
+
