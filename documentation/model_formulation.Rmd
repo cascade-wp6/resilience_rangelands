@@ -476,9 +476,9 @@ We implement accelerating and decelerating features on growth and mortality on t
 
 #### accelerating growth
 
-This is assuming that the local environmental suitability is enhanced by a local facilitation term similar to the implementation in Kéfi et al 2007. Thus, the reduction in growth rate, $r$, by aridity, $a$, is compensated by a function of $q_{0|1}$, the local density of cells in state 1 (i.e. vegetation) given that the focal cell is in state 0 (i.e. empty), and maximizes to one if the cell has four neighbors:
+This is assuming that the local environmental suitability is enhanced by a local facilitation term similar to the implementation in Kéfi et al 2007. Thus, the reduction in growth rate, $r$, by aridity, i.e. the inverse of environmental quality $b$, is compensated by a function of $q_{0|1}$, the local density of cells in state 1 (i.e. vegetation) given that the focal cell is in state 0 (i.e. empty), and maximizes to one if the cell has four neighbors:
 
-$$ a = a_0 + (f - a_0) q_{0|1} \,,$$
+$$ b = b^* + (f - b^*) q_{0|1} \,,$$
 
 with the effect of aridity, $a_0$ in absence of local vegetation being increased to the value of $f$ if additive facilitation due to the presence of neighboring plants occurs. This term gradually determines the enhancement of the growth with an increasing local vegetation cover (maximizing at $q_{0|1} = 1$ if the cell has 4 neighbors). 
 
@@ -487,7 +487,7 @@ with the effect of aridity, $a_0$ in absence of local vegetation being increased
 For instance, if plant cover would have a dominantly negative effect on it's surroundings, by depleting nutrients or light, the local neighborhood of a plant cannot be occupied as easy as more remote places. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
 This is assuming that growth is diminished locally by competition, $c$. This affects carrying capacity rather than growth rate itself.
 
-$$ K = K_0 (1 - c q_{0|1})$$
+$$ K = K^* (1 - c q_{0|1})$$
 
 That is, if a cell has a fully vegetated local neighborhood, it's carrying capacity will be reduced by $c$. Thus, $c \geq K$ otherwise carrying capacity will fall below $0$ at high cover.
 
@@ -497,9 +497,9 @@ On the mortality side, we can implement spatially explicit effects on the parame
 
 #### accelerating mortality
 
-Mortality becomes enhanced in sparse environments by patches that are attracting grazers. We assume this attractivity enhances search efficiency locally by the value $v$
+Mortality becomes enhanced in sparse environments by patches that are attracting grazers. We assume this attractivity enhances search efficiency, $a$, locally by the value $v$
 
-$$ b = b_0  + v q_{1|1} $$
+$$ a = a^*  + v q_{1|1} $$
 
 Thus, at low local cover feeding will be high on plants with neighbors, whereas at high cover the term has no effect since handling time is limiting consumption. An enhanced search efficiency will raise the critical thresholds for a collapse. 
 
@@ -507,9 +507,23 @@ Thus, at low local cover feeding will be high on plants with neighbors, whereas 
 
 Plants in grazed habitats develop protective traits, such as thorns or cushion growth. They thereby provide protected habitat to their direct neighborhood, or share the investments in those traits with their neighbors. Overall grazing mortality thus is reduced through an increase in handling time by associational resistance, $p$,
 
-$$ h = h_0  / (1 - p  q_{1|1}) $$
+$$ h = h^*  / (1 - p  q_{1|1}) $$
 
 An alternative formulation should be found. The term is highly non-linear and provokes relevant changes only at values above 0.9. It is defined within $(0,1($ 
+
+### implementation in CA
+
+It is quite straightforward to implement the mechanisms described above in the syntax of a cellular automata model, where the probabilities of transition can not only depend on the global cover $\rho_1$ but also on the local cover in the direct neighborhood of the cell $\nu_1$ (closest 4 cells, von-Neumann-neighborhood). 
+
+the transition probabilities therefore become 
+
+$$ w_{1,0} = m + ( a^*  + v q_{1|1})L\rho_1^{q}{1+( a^*  + v q_{1|1})(h^*/ (1 - p  q_{1|1}))\rho_1^{1+q}} $$
+
+$$ w_{0,1} = \frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} $$
+
+
+see implementation in NetLogo: `documentation/livestockmodel.nlogo` 
+
 
 ### implementation in a pair-approximation model
 
@@ -524,28 +538,126 @@ $$ \rho_{1,1} + \rho_{0,1} = \rho_1$$
 $$ \rho_{0,1} + \rho_{0,0} = \rho_0$$
 
 
+
+We can use the transition probabilities of cells  to describe the full system of differential equations.
+
+$$  \frac{\mathrm{d}\rho_{11}}{\mathrm{d}t} = 2 \rho_{10}w_{0,1} - 2 \rho_{11} w_{1,0}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}w_{0,1} - \rho_{1}w_{1,0}   $$
+
+$$  \frac{\mathrm{d}\rho_{10}}{\mathrm{d}t} = 2 \rho_{00}w_{0,1} + 2 \rho_{11}w_{1,0} - \rho_{10}w_{0,1}    $$
+
+$$  \frac{\mathrm{d}\rho_{0}}{\mathrm{d}t} = \rho_{1}w_{1,0} - \rho_{0}w_{0,1} $$
+
+$$  \frac{\mathrm{d}\rho_{00}}{\mathrm{d}t} = 2 \rho_{10}w_{1,0} - 2 \rho_{00}w_{0,1}  $$
+
+Due to the conservation equations, two of these are sufficient to fully describe the dynamics of the system. 
+
+We chose to go with the first two and substitute
+
+$$  \frac{\mathrm{d}\rho_11}{\mathrm{d}t} = 2 \rho_{10} \frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v q_{1|1})L\rho_1^{q}}{1+(a^*  + v q_{1|1})(h^*  / (1 - p  q_{1|1}))\rho_1^{1+q}}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}\frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - \rho_{1}m - \frac{(a^*  + v q_{1|1})L\rho_1^{1+q}}{1+(a^*  + v q_{1|1})(h^*  / (1 - p  q_{1|1}))\rho_1^{1+q}}   $$
+
+they can be simplified to 
+
+
+$$  \frac{\mathrm{d}\rho_11}{\mathrm{d}t} = 2 \rho_{10} \frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v q_{1|1})L\rho_1^{q}}{1+(a^*  + v q_{1|1})(h^*  / (1 - p  q_{1|1}))\rho_1^{1+q}}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})}) - \rho_{1}m - \frac{(a^*  + v q_{1|1})L\rho_1^{1+q}}{1+(a^*  + v q_{1|1})(h^*  / (1 - p  q_{1|1}))\rho_1^{1+q}}   $$
+
+
+as a matter of fact the equation for $\frac{\mathrm{d}\rho_{1}}{\mathrm{d}t}$ will re-convert into the regular population equation. 
+
 Since formally $q_{i|j}$ is a conditional probability (given that one neighbor is in state $i$, what is the probability to find the other in state $j$) we can express it in terms of densities of pairs and ‘singletons,’ as  
 
 $$ q_{i|j} = \frac{\rho_{ij}}{\rho_i} $$
 
+thus,
 
-The vegetation dynamics of the system can be fully described by two differential equations (omitting indexed zeros of equations for easier reading): 
+$$ q_{0|1} = \frac{\rho_{10}}{\rho_0} =  \frac{\rho_{1} - \rho_{11}}{1 - \rho_1} $$
 
-$$ \frac{\mathrm{d}\rho_1}{\mathrm{d}t} = r ( a + (f - a) q_{0|1} ) \rho_1^{1 + \alpha} (1-\frac{\rho_1}{K (1 - c q_{0|1})}) - m \rho_1 - \frac{(b  + v q_{1|1} )\rho_1^{1+q}L}{1+( b  + v q_{1|1} ) ( h  / (p  q_{1|1}))\rho_1^{1+q}} $$
+$$ q_{1|1} = \frac{\rho_{11}}{\rho_1} $$
 
-$$ \frac{\mathrm{d}\rho_0}{\mathrm{d}t} =  m \rho_1 + \frac{(b  + v q_{1|1} )\rho_1^{1+q}L}{1+( b  + v q_{1|1} ) ( h  / (p  q_{1|1}))\rho_1^{1+q}} - r ( a + (f - a) q_{0|1} ) \rho_1^{1 + \alpha} (1-\frac{\rho_1}{K (1 - c q_{0|1})})$$
-
-Next steps: 
-
-- formulate equations for $\frac{\mathrm{d}\rho_{0,1}}{\mathrm{d}t}$, $\frac{\mathrm{d}\rho_{0,0}}{\mathrm{d}t}$, and $\frac{\mathrm{d}\rho_{1,1}}{\mathrm{d}t}$
-
-### implementation in CA
-
-It is quite straightforward to implement the mechanisms described above in the syntax of a cellular automata model, where the probabilities of transition can not only depend on the global cover $\rho_1$ but also on the local cover in the direct neighborhood of the cell $\nu_1$ (closest 4 cells, von-Neumann-neighborhood). 
-
-see implementation in NetLogo: `documentation/livestockmodel.nlogo` 
+and substituting yields
 
 
+$$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 2 (\rho_1 - \rho_{11}) \frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L\rho_1^{q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})(h^*  / (1 - p  \frac{\rho_{11}}{\rho_1}))\rho_1^{1+q}}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (f - b^*) \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) - \rho_{1}m -  \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L\rho_1^{1+q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})(h^*  / (1 - p  \frac{\rho_{11}}{\rho_1}))\rho_1^{1+q}}   $$
+
+Thus, we can solve the ODE for a given set of parameters
+
+
+
+```{r}
+
+parms <- list(
+    m = 0.05,  # intrinsic mortality of plants 
+    r = 1,   # growth rate
+    f = 0.7, #  local facilitation
+    b = 0.3,  # environmental quality inverse of aridity
+    K = 0.9,  # carrying capacity
+    alpha = 0.1, # water runoff
+    c = 0.2, # local competition
+    a = 0.6, # search efficiency
+    v = 0.1, # attraction effect
+    h = 50, # handling time (one individual on landscape unit)
+    p = 0.2, # protection effect
+    L = 4, # livestock units per landscape unit 
+    q = 1 # search ineffiency at low cover
+  )
+
+```
+
+we get the following dynamics
+
+```{r, echo=FALSE}
+
+rho <- c(rho_1 = 0.9, rho_11 = 0.8, rho_10 = 0.1, rho_00 = 0, rho_0 = 0.1)
+
+d_rho_1 <- function(rho, parms) { 
+  with(parms,
+       r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
+       )  
+  }
+  
+
+d_rho_11 <- function(rho,  parms) { 
+  with(parms,
+       2* (rho[1] - rho[2]) * r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
+       )  
+  }
+  
+
+odesys_spex <- function(t, rho, parms = model_parms) {
+  rho_1 <- d_rho_1(rho, parms)
+  rho_11 <- d_rho_11(rho, parms)
+  list(c(rho_1, rho_11, rho_1-rho_11, 1-rho_1-(rho_1-rho_11),1-rho_1  
+               ) )
+}
+
+
+# running the ode-solver
+ODE_spex <- ode(y = rho, func = odesys_spex, times = 1.1^(1:50), parms = parms)
+
+
+# transfer into ouput and calculate missing rho values
+ODE_spex <- as.data.frame(ODE_spex )
+
+plot(rho_1 ~ time , data = ODE_spex , type = "l", ylim = c(0,1))
+axis(4, at = round(tail(ODE_spex,1)$rho_1,2),cex.axis = 0.7, las = 1 )
+
+```
+
+Now, we can also plot the clustering coefficient of this landscape, being 
+
+$$ c_11 = q_{1|1}/\rho_1 = \frac{\rho_11}{\rho_1^2}$$
+
+```{r, echo=FALSE}
+plot(I(rho_11/rho_1^2) ~ time , data = ODE_spex , type = "l", ylim = c(0,2))
+
+```
 
 
 # References
