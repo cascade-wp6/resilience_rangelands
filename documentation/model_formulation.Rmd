@@ -595,16 +595,16 @@ Thus, we can solve the ODE for a given set of parameters
 parms <- list(
     m = 0.05,  # intrinsic mortality of plants 
     r = 1,   # growth rate
-    f = 0.7, #  local facilitation
-    b = 0.3,  # environmental quality inverse of aridity
+    f = 0.8, #  local facilitation
+    b = 0.4,  # environmental quality inverse of aridity
     K = 0.9,  # carrying capacity
     alpha = 0.1, # water runoff
     c = 0.2, # local competition
     a = 0.6, # search efficiency
     v = 0.1, # attraction effect
     h = 50, # handling time (one individual on landscape unit)
-    p = 0.2, # protection effect
-    L = 4, # livestock units per landscape unit 
+    p = 0.8, # protection effect
+    L = 6, # livestock units per landscape unit 
     q = 1 # search ineffiency at low cover
   )
 
@@ -658,6 +658,96 @@ $$ c_11 = q_{1|1}/\rho_1 = \frac{\rho_11}{\rho_1^2}$$
 plot(I(rho_11/rho_1^2) ~ time , data = ODE_spex , type = "l", ylim = c(0,2))
 
 ```
+
+### Bifurcation diagrams
+
+
+```{r, echo=FALSE}
+
+parms$b <- seq(0,1,.005) #seq(0,1,.002)+0.001
+parms$rho_ini <- c(0.9, 0.01)
+
+iterations <- expand.grid(parms)
+iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
+
+iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
+
+
+# provides parallel backend
+library(foreach)
+library(doSNOW)
+
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+                     rscript = "/usr/lib/R/bin/Rscript",
+                     snowlib = "/usr/lib/R/library")
+
+workerlist <- c(rep("localhost", times = 10)) 
+
+cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+
+registerDoSNOW(cl)
+
+
+foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+  
+  model_parms <- as.list(iterations[iteration,])
+  
+  # running the ode-solver
+  runmodel <- ode(y = ini_rho(model_parms$rho_ini), func = odesys_spex, times = c(1,1000), parms = model_parms)
+ 
+  # transfer into ouput and calculate missing rho values
+  return(as.data.frame(runmodel)[dim(runmodel)[1],])
+  } -> output
+
+output <- cbind(output, iterations)
+
+plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
+
+
+```
+
+
+
+
+
+```{r, echo=FALSE}
+
+
+parms$L <- seq(0,20,0.2) #seq(0,1,.002)+0.001
+parms$rho_ini <- c(0.9, 0.01)
+
+iterations <- expand.grid(parms)
+iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
+
+iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
+
+
+foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+  
+  model_parms <- as.list(iterations[iteration,])
+  
+  # running the ode-solver
+  runmodel <- ode(y = ini_rho(model_parms$rho_ini), func = odesys_spex, times = c(1,1000), parms = model_parms)
+ 
+  # transfer into ouput and calculate missing rho values
+  return(as.data.frame(runmodel)[dim(runmodel)[1],])
+  } -> output
+
+output <- cbind(output, iterations)
+
+plot(rho_1 ~ L, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
+
+
+
+
+stopCluster(cl)
+
+
+```
+
+
 
 
 # References
