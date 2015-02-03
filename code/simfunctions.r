@@ -302,15 +302,15 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
    
     # model specific part:
     # 1 - setting time-step parameters
-    #parms_temp$local <- count(x_old, "1")/4  # count local density of occupied fields for each cell:
+    parms_temp$q_one_one <- count(x_old, "1")/4  # count local density of occupied fields for each cell:
     
     # 2 - drawing random numbers
     rnum <- runif(width*height) # one random number between 0 and 1 for each cell
     
     # 3 - setting transition probabilities
-    growth <- with(parms_temp, (r * b * rho_one^(1 + alpha) * ( 1 - (rho_one / K)) / (1 - rho_one))  *delta)  # recolonisation rates of all cells 
+    growth <- with(parms_temp, (r * (b + (1-b)*f*q_one_one) * rho_one^(1 + alpha) * ( 1 - (rho_one / (K * (1-c*q_one_one) ))) / (1 - rho_one))  *delta)  # recolonisation rates of all cells 
     
-    death <- with(parms_temp, (m + ( a * L * rho_one^(q) )/( 1 + a * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
+    death <- with(parms_temp, (m + ( (a + v*q_one_one) * L * (1-p*q_one_one) * rho_one^(q) )/( 1 + (a + v*q_one_one) * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
     
     # check for sum of probabilities to be inferior 1 and superior 0
     if(any(c(growth, death) > 1 )) warning(paste("a set probability is exceeding 1 in time step", i, "! decrease delta!!!")) 
@@ -367,14 +367,13 @@ ini_rho <- function(rho_1) {
 
 d_rho_1 <- function(rho, parms) { 
   with(parms,
-       r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
+       r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
   )  
 }
 
-
 d_rho_11 <- function(rho,  parms) { 
   with(parms,
-       2* (rho[1] - rho[2]) * r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
+       2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
   )  
 }
 

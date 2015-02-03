@@ -18,9 +18,9 @@ This document is supposed to develop a model representation of the global mean f
 
 The default form of the differential equation describing vegetation cover is 
 
-$$ \frac{dV}{dt} = G(V) - C(V)g $$
+$$ \frac{dV}{dt} = G(V) - C(V)L $$
 
-with growth function $G$ and a function $C$ which represents consumption by a herbivore multiplied by the density of herbivores, the livestock rate, $g$. Formally, intrinsic mortality could be included in both terms. In the formulations of @noy-meir75 and @vandekoppel97 it is assumed to be covered by the logistic growth function.
+with growth function $G$ and a function $C$ which represents consumption by a herbivore multiplied by the density of herbivores, the livestock rate, $L$. Formally, intrinsic mortality could be included in both terms. In the formulations of @noy-meir75 and @vandekoppel97 it is assumed to be covered by the logistic growth function.
 
 It might become important in the pair-approximation model, where intrinsic plant mortality is included as a proportional loss of mature plants.
 
@@ -30,7 +30,7 @@ It might become important in the pair-approximation model, where intrinsic plant
 defplot <- function(...) plot(..., 
             type = "l", 
             bty = "l", cex = 0.7, las = 1,
-            xlim = c(0,1), ylim = c(0,1), 
+            xlim = c(0,1), ylim = c(0,0.4), 
             xaxs = "i", yaxs = "i", 
             xaxp = c(0,1,2), yaxp = c(0,1,2), 
             xlab = "vegetation cover") 
@@ -51,7 +51,7 @@ with the growth rate, $r$, and the carrying capacity, $K$, decelerating the expo
 
 ```{r, echo=FALSE}
 
-G <- function(P, r = 2, K = 1) r*P*(1-P/K)
+G <- function(P, r = 1, K = 1) r*P*(1-P/K)
 
 defplot(rho, G(rho), ylab = "growth")
 
@@ -92,16 +92,16 @@ $$ G(V) = r_0 b V^{a+1} (1-\frac{V}{K}) \,,$$
 ```{r, echo=FALSE}
 
 
-r <- function(P, r_0 =  2.25, a = 1) r_0 *P^a
+r <- function(P, r_0 =  1, a = 1) r_0 *P^a
 
 #defplot(rho, r(rho), ylab = "growth")
 
-G_sig <- function(P, r_0 = 2.25, a = 1,  K = 0.9) r(P, r_0, a)*P*(1-P/K)
+G_sig <- function(P, r_0 = 1, a = 1,  K = 0.9) r(P, r_0, a)*P*(1-P/K)
 
 defplot(rho, G_sig(rho), ylab = "growth")
 lines(rho, G_sig(rho, a = 0))
-lines(rho, G_sig(rho,r_0 = 2.25, a = 1))
-lines(rho, G_sig(rho,r_0 = 2.25, a = 0.2))
+lines(rho, G_sig(rho, a = 1))
+lines(rho, G_sig(rho, a = 0.2))
 ```
 
 ### plant mortality
@@ -116,7 +116,7 @@ with the grazing mortality, $g$, per grazer individual multiplied by livestock d
 
 
 ```{r, echo=FALSE}
-C <- function(V, L = 10, g = 0.01) (g*V*L)
+C <- function(V, L = 5, g = 0.01) (g*V*L)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -134,7 +134,7 @@ thus could be defined as constant, $g$, per grazer individual regardless of the 
 
 
 ```{r, echo=FALSE}
-C <- function(V, L = 10, g = 0.01) g * L + V*0
+C <- function(V, L = 5, g = 0.01) g * L + V*0
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -151,7 +151,7 @@ $$ C(V) = \frac{aVL}{1+ahV} \,,$$
 with the handling time, $h$ [time per landscape unit], and the search efficiency, $a$ [percent of landscape foraged in per time]. 
 
 ```{r, echo=FALSE}
-C <- function(V, L = 10, a = 0.6, h = 100) (a*V*L)/(1+a*h*V)
+C <- function(V, L = 5, a = 0.6, h = 100) (a*V*L)/(1+a*h*V)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -174,7 +174,7 @@ Thus, plant mortality is accelerating with increasing cover, protecting plants a
 
 
 ```{r, echo=FALSE}
-C <- function(V, L = 10, a = 0.6, h = 100, q = 1) (a*V^(1+q)*L)/(1+a*h*(V^(1+q)) ) 
+C <- function(V, L = 5, a = 0.6, h = 100, q = 1) (a*V^(1+q)*L)/(1+a*h*(V^(1+q)) ) 
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -189,7 +189,7 @@ $$ C(V) = mV + \frac{aVL}{1+ahV} \,,$$
 
 ```{r, echo=FALSE}
 
-C <- function(V, m_0 = 0.05, L = 10, a = 0.6, h = 100, q = 0) (m_0 * V) +(a*V^(1+q)*L)/(1+a*h*(V^(1+q)) ) 
+C <- function(V, m_0 = 0.05, L = 5, a = 0.6, h = 100, q = 0) (m_0 * V) +(a*V^(1+q)*L)/(1+a*h*(V^(1+q)) ) 
 
 defplot(rho, C(rho), ylab = "plant mortality")
 abline(a = 0, b = 0.05, lty = 2)
@@ -213,7 +213,6 @@ lines(rho, C(rho, L = 25, a = 0.01, h = 0.00001))
 lines(rho, C(rho, L = 50, a = 0.01, h = 0.00001))
 abline( h = 0.1 )
 abline( h = 0.25 )
-abline( h = 0.5 )
 ```
 
 
@@ -222,9 +221,9 @@ When assuming a type II functional response, the system gains true bistability.
 ```{r, echo=FALSE}
 
 defplot(rho, G(rho), ylab = "growth", col = "green3")
+lines(rho, C(rho, L = 5))
 lines(rho, C(rho, L = 10))
 lines(rho, C(rho, L = 25))
-lines(rho, C(rho, L = 50))
 
 ```
 
@@ -234,9 +233,9 @@ The type 3 functional response finally predicts the existance of a stable degrad
 ```{r, echo=FALSE}
 
 defplot(rho, G(rho), ylab = "growth", col = "green3")
+lines(rho, C(rho, L = 5, q = 1))
 lines(rho, C(rho, L = 10, q = 1))
 lines(rho, C(rho, L = 25, q = 1))
-lines(rho, C(rho, L = 50, q = 1))
 
 ```
 
@@ -256,7 +255,7 @@ parms <- list(
     K = 0.9, 
     a = 0.6,
     h = 100,
-    L = 10
+    L = 5
   )
 
  as.data.frame(parms)
@@ -379,9 +378,13 @@ parms <- list(
     K = 0.9, 
     a = 0.6,
     h = 100,
-    L = 10, 
+    L = 5, 
     alpha = 0,
-    q = 0
+    q = 0,
+    c = 0,
+    f = 0,
+    v = 0,
+    p = 0
   )
 
 par(mar = c(4,4,2,4))
@@ -439,7 +442,12 @@ parms <- list(
     h = 100,
     L = 16, 
     alpha = 0.1,
-    q = 1
+    q = 1,
+    c = 0,
+    f = 0,
+    v = 0,
+    p = 0
+    
   )
 
 set.seed(5535732) # setting seed for random number generation
@@ -478,18 +486,52 @@ We implement accelerating and decelerating features on growth and mortality on t
 
 This is assuming that the local environmental suitability is enhanced by a local facilitation term similar to the implementation in Kéfi et al 2007. Thus, the reduction in growth rate, $r$, by aridity, i.e. the inverse of environmental quality $b$, is compensated by a function of $q_{0|1}$, the local density of cells in state 1 (i.e. vegetation) given that the focal cell is in state 0 (i.e. empty), and maximizes to one if the cell has four neighbors:
 
-$$ b = b^* + (f - b^*) q_{0|1} \,,$$
+$$ b = b^* + (1 - b^*)  f q_{0|1} \,,$$
 
 with the effect of aridity, $a_0$ in absence of local vegetation being increased to the value of $f$ if additive facilitation due to the presence of neighboring plants occurs. This term gradually determines the enhancement of the growth with an increasing local vegetation cover (maximizing at $q_{0|1} = 1$ if the cell has 4 neighbors). 
+
+
+```{r, echo=FALSE}
+
+G <- function(V, q_01 = "auto", r_0 = 1, b = 0.1, f = 0, alpha = 0,  K = 0.9, c = 0) {
+  if(q_01 == "auto") q_01 <- 1
+  r_0*(b + (1-b)*f*q_01)*V^(1+alpha)*(1-V/(K * (1-c * q_01) ) )
+
+} 
+
+defplot(rho, G(rho, 1, f = 0.8), ylab = "growth", col = "green3")
+lines(rho,G(rho, 0.75, f = 0.8), col = "green3")
+lines(rho,G(rho, 0.5, f = 0.8), col = "green3")
+lines(rho,G(rho, 0.25, f = 0.8), col = "green3")
+lines(rho,G(rho, 0, f = 0.8), col = "green3")
+
+lines(rho, C(rho, L = 10))
+
+
+```
 
 #### decelerating growth
 
 For instance, if plant cover would have a dominantly negative effect on it's surroundings, by depleting nutrients or light, the local neighborhood of a plant cannot be occupied as easy as more remote places. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
 This is assuming that growth is diminished locally by competition, $c$. This affects carrying capacity rather than growth rate itself.
 
-$$ K = K^* (1 - c q_{0|1})$$
+$$ K = K^* (1 - c  q_{0|1})$$
 
 That is, if a cell has a fully vegetated local neighborhood, it's carrying capacity will be reduced by $c$. Thus, $c \geq K$ otherwise carrying capacity will fall below $0$ at high cover.
+
+```{r, echo=FALSE}
+
+defplot(rho, G(rho, 1, c = 0.3, b = 0.9), ylab = "growth", col = "green3")
+lines(rho,G(rho, 0.75, c = 0.3, b = 0.9), col = "green3")
+lines(rho,G(rho, 0.5, c = 0.3, b = 0.9), col = "green3")
+lines(rho,G(rho, 0.25, c = 0.3, b = 0.9), col = "green3")
+lines(rho,G(rho, 0, c = 0.3, b = 0.9), col = "green3")
+
+lines(rho, C(rho, L = 10))
+
+```
+
+
 
 ### spatially-explicit mortality
 
@@ -503,6 +545,22 @@ $$ a = a^*  + v q_{1|1} $$
 
 Thus, at low local cover feeding will be high on plants with neighbors, whereas at high cover the term has no effect since handling time is limiting consumption. An enhanced search efficiency will raise the critical thresholds for a collapse. 
 
+```{r, echo=FALSE}
+
+C <- function(V, q_01 = 1, m_0 = 0.05, L = 5, a = 0.1, h = 100, q = 0, p = 0, v = 0) (m_0 * V) +( (a+v*q_01  ) *V^(1+q)*L*(1-p*q_01))/(1+(a+v*q_01)*h*(V^(1+q)) ) 
+
+
+defplot(rho, C(rho, 1, v = 0.5), ylab = "mortality")
+lines(rho,C(rho, 0.75, v = 0.5))
+lines(rho,C(rho, 0.5, v = 0.5))
+lines(rho,C(rho, 0.25, v = 0.5))
+lines(rho,C(rho, 0, v = 0.5))
+
+lines(rho, G(rho, b = 0.6), col = "green3")
+
+```
+
+
 #### decelerating mortality
 
 Plants in grazed habitats develop protective traits, such as thorns or cushion growth. They thereby provide protected habitat to their direct neighborhood, or share the investments in those traits with their neighbors. Overall grazing mortality thus is reduced through an increase in handling time by associational resistance, $p$,
@@ -510,6 +568,43 @@ Plants in grazed habitats develop protective traits, such as thorns or cushion g
 $$ h = h^*  / (1 - p  q_{1|1}) $$
 
 An alternative formulation should be found. The term is highly non-linear and provokes relevant changes only at values above 0.9. It is defined within $(0,1($ 
+Instead, we could define associational protection as a reduced impact due to a reduced local density of grazers. 
+
+$$ L = L^* (1 - p  q_{1|1}) $$
+
+
+```{r, echo=FALSE}
+
+defplot(rho, C(rho, 1, p = 0.8, L = 10), ylab = "mortality")
+lines(rho,C(rho, 0.75, p = 0.8, L = 10))
+lines(rho,C(rho, 0.5, p = 0.8, L = 10))
+lines(rho,C(rho, 0.25, p = 0.8, L = 10))
+lines(rho,C(rho, 0, p = 0.8, L = 10))
+
+lines(rho, G(rho, b = 0.6), col = "green3")
+
+```
+
+#### multiple effects 
+
+If those effects coincide, potentially even with the global feedbacks, the intersections are difficult to estimate. 
+
+```{r, echo=FALSE}
+
+defplot(rho, C(rho, 1, p = 0.8, v = 0.6, L = 10, q = .5), ylab = "mortality")
+lines(rho,C(rho, 0.75, p = 0.8, v = 0.6, L = 10, q = .5))
+lines(rho,C(rho, 0.5, p = 0.8,v = 0.6,  L = 10, q = .5))
+lines(rho,C(rho, 0.25, p = 0.8,v = 0.6,  L = 10, q = .5))
+lines(rho,C(rho, 0, p = 0.8,v = 0.6,  L = 10, q = .5))
+
+lines(rho, G(rho, 1, c = 0.3, f = 0.9, b = 0.3, alpha = 0.5), col = "green3")
+lines(rho,G(rho, 0.75, c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5), col = "green3")
+lines(rho,G(rho, 0.5, c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5), col = "green3")
+lines(rho,G(rho, 0.25, c = 0.3, f = 0.9, b = 0.3, alpha = 0.5), col = "green3")
+lines(rho,G(rho, 0, c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5), col = "green3")
+
+
+```
 
 ### implementation in CA
 
@@ -517,12 +612,57 @@ It is quite straightforward to implement the mechanisms described above in the s
 
 the transition probabilities therefore become 
 
-$$ w_{1,0} = m + ( a^*  + v q_{1|1})L\rho_1^{q}{1+( a^*  + v q_{1|1})(h^*/ (1 - p  q_{1|1}))\rho_1^{1+q}} $$
+$$ w_{1,0} = m + ( a^* + v q_{1|1})L^* (1 - p  q_{1|1})\rho_1^{q}{1+( a^*  + v q_{1|1})h\rho_1^{1+q}} $$
 
-$$ w_{0,1} = \frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} $$
+$$ w_{0,1} = \frac{r \rho_1^{1+\alpha} (b^* + (1 - b^*) f q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} $$
 
 
 see implementation in NetLogo: `documentation/livestockmodel.nlogo` 
+
+
+Thus, we can run the CA for a given set of parameters
+
+```{r}
+
+parms <- list(
+    m = 0.05,  # intrinsic mortality of plants 
+    r = 1,   # growth rate
+    f = 0.8, #  local facilitation
+    b = 0.4,  # environmental quality inverse of aridity
+    K = 0.9,  # carrying capacity
+    alpha = 0.1, # water runoff
+    c = 0.2, # local competition
+    a = 0.6, # search efficiency
+    v = 0.1, # attraction effect
+    h = 50, # handling time (one individual on landscape unit)
+    p = 0.8, # protection effect
+    L = 6, # livestock units per landscape unit 
+    q = 1 # search ineffiency at low cover
+  )
+
+```
+
+```{r, echo = FALSE, warning = FALSE}
+
+set.seed(565432) # setting seed for random number generation
+
+spexmodel <- runCA(0.9, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval = 50, isstable = 0.0001, saveeach = 1)
+
+plot(spexmodel$rho_one ~ spexmodel$time, 
+     ylim = c(0,1), ylab = expression( rho["+"]), 
+     xlab = "time [yr]", type = "l")
+     
+
+```
+
+And the animated lattice would look like this:
+```{r, eval = FALSE, echo = FALSE, warning = FALSE}
+animateCA(nullmodel, "ca_nullmodel.gif")
+
+![](ca_nullmodel.gif)
+
+```
+
 
 
 ### implementation in a pair-approximation model
@@ -555,16 +695,16 @@ Due to the conservation equations, two of these are sufficient to fully describe
 
 We chose to go with the first two and substitute
 
-$$  \frac{\mathrm{d}\rho_11}{\mathrm{d}t} = 2 \rho_{10} \frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v q_{1|1})L\rho_1^{q}}{1+(a^*  + v q_{1|1})(h^*  / (1 - p  q_{1|1}))\rho_1^{1+q}}  $$
+$$  \frac{\mathrm{d}\rho_{11}}{\mathrm{d}t} = 2 \rho_{10} \frac{r \rho_1^{1+\alpha} (b^* + (1 - b) f q_{0|1})) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v q_{1|1})L^* (1 - p  q_{1|1})\rho_1^{q}}{1+(a^*  + v q_{1|1})h\rho_1^{1+q}}  $$
 
-$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}\frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - \rho_{1}m - \frac{(a^*  + v q_{1|1})L\rho_1^{1+q}}{1+(a^*  + v q_{1|1})(h^*  / (1 - p  q_{1|1}))\rho_1^{1+q}}   $$
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}\frac{r \rho_1^{1+\alpha} (b^* + (1 - b)  f q_{0|1})) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - \rho_{1}m - \frac{(a^*  + v q_{1|1})L^* (1 - p  q_{1|1})\rho_1^{1+q}}{1+(a^*  + v q_{1|1})h\rho_1^{1+q}}   $$
 
 they can be simplified to 
 
 
-$$  \frac{\mathrm{d}\rho_11}{\mathrm{d}t} = 2 \rho_{10} \frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v q_{1|1})L\rho_1^{q}}{1+(a^*  + v q_{1|1})(h^*  / (1 - p  q_{1|1}))\rho_1^{1+q}}  $$
+$$  \frac{\mathrm{d}\rho_{11}}{\mathrm{d}t} = 2 \rho_{10} \frac{r \rho_1^{1+\alpha} (b^* + (1 - b)  f q_{0|1})) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v q_{1|1})L^* (1 - p  q_{1|1}) \rho_1^{q}}{1+(a^*  + v q_{1|1})h)\rho_1^{1+q}}  $$
 
-$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (f - b^*) q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})}) - \rho_{1}m - \frac{(a^*  + v q_{1|1})L\rho_1^{1+q}}{1+(a^*  + v q_{1|1})(h^*  / (1 - p  q_{1|1}))\rho_1^{1+q}}   $$
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (1 - b)  f q_{0|1})) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})}) - \rho_{1}m - \frac{(a^*  + v q_{1|1})L^* (1 - p  q_{1|1})\rho_1^{1+q}}{1+(a^*  + v q_{1|1})h\rho_1^{1+q}}   $$
 
 
 as a matter of fact the equation for $\frac{\mathrm{d}\rho_{1}}{\mathrm{d}t}$ will re-convert into the regular population equation. 
@@ -582,35 +722,11 @@ $$ q_{1|1} = \frac{\rho_{11}}{\rho_1} $$
 and substituting yields
 
 
-$$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 2 (\rho_1 - \rho_{11}) \frac{r \rho_1^{1+\alpha} (b^* + (f - b^*) \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L\rho_1^{q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})(h^*  / (1 - p  \frac{\rho_{11}}{\rho_1}))\rho_1^{1+q}}  $$
+$$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 2 (\rho_1 - \rho_{11}) \frac{r \rho_1^{1+\alpha} (b^* + (1 - b)  f \frac{\rho_{1} - \rho_{11}}{1 - \rho_1} )) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L^* (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}  $$
 
-$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (f - b^*) \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) - \rho_{1}m -  \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L\rho_1^{1+q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})(h^*  / (1 - p  \frac{\rho_{11}}{\rho_1}))\rho_1^{1+q}}   $$
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (1 - b) f  \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) - \rho_{1}m -  \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L^* (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{1+q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}   $$
 
-Thus, we can solve the ODE for a given set of parameters
-
-
-
-```{r}
-
-parms <- list(
-    m = 0.05,  # intrinsic mortality of plants 
-    r = 1,   # growth rate
-    f = 0.8, #  local facilitation
-    b = 0.4,  # environmental quality inverse of aridity
-    K = 0.9,  # carrying capacity
-    alpha = 0.1, # water runoff
-    c = 0.2, # local competition
-    a = 0.6, # search efficiency
-    v = 0.1, # attraction effect
-    h = 50, # handling time (one individual on landscape unit)
-    p = 0.8, # protection effect
-    L = 6, # livestock units per landscape unit 
-    q = 1 # search ineffiency at low cover
-  )
-
-```
-
-we get the following dynamics
+for the set of parameters given above, we get the following dynamics
 
 ```{r, echo=FALSE}
 
@@ -618,14 +734,14 @@ rho <- c(rho_1 = 0.9, rho_11 = 0.8, rho_10 = 0.1, rho_00 = 0, rho_0 = 0.1)
 
 d_rho_1 <- function(rho, parms) { 
   with(parms,
-       r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
+       r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
        )  
   }
   
 
 d_rho_11 <- function(rho,  parms) { 
   with(parms,
-       2* (rho[1] - rho[2]) * r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
+       2* (rho[1] - rho[2]) * r * ( b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
        )  
   }
   
@@ -647,6 +763,9 @@ ODE_spex <- as.data.frame(ODE_spex )
 
 plot(rho_1 ~ time , data = ODE_spex , type = "l", ylim = c(0,1))
 axis(4, at = round(tail(ODE_spex,1)$rho_1,2),cex.axis = 0.7, las = 1 )
+
+lines(spexmodel$rho_one ~ spexmodel$time, col = "grey50")
+     
 
 ```
 
@@ -747,6 +866,10 @@ stopCluster(cl)
 
 
 ```
+
+
+
+## analytical solutions
 
 
 
