@@ -63,8 +63,8 @@ end
 to update-patch
    let neighb_ij count neighbors4 with [state = 1] / 4
    let r random-float 1
-   let growth growth_max * (aridity + (facilitation - aridity) * neighb_ij ) * cover ^ ( 1 + runoff)  * (1 - (cover / (capacity * (1 - competition * neighb_ij) )) ) / (1 - cover)
-   let death mortality + ( (search + attraction * neighb_ij ) * livestock * cover ^ ( q ) ) / ( 1 + (search +  attraction * neighb_ij ) * (handling / (1 - protection * neighb_ij ) ) * cover ^ ( 1 + q ) ) 
+   let growth growth_max * (aridity + (1 - aridity) * facilitation * neighb_ij ) * cover ^ ( 1 + runoff)  * (1 - (cover / (capacity * (1 - competition * neighb_ij) )) ) / (1 - cover)
+   let death mortality + ( (search + attraction * neighb_ij ) * livestock * (1 - protection * neighb_ij ) * cover ^ ( q ) ) / ( 1 + (search +  attraction * neighb_ij ) * (handling ) * cover ^ ( 1 + q ) ) 
    set change TRUE
 
    if (state = 1 and change) and (r <= death * delta_t) [ set state 0 set change FALSE ] 
@@ -116,7 +116,7 @@ capacity
 capacity
 0
 1
-0.8
+0.6
 0.01
 1
 NIL
@@ -145,9 +145,9 @@ SLIDER
 livestock
 livestock
 0
-100
-4
-1
+50
+6
+0.5
 1
 NIL
 HORIZONTAL
@@ -161,7 +161,7 @@ initial_cover
 initial_cover
 0
 1
-0.27
+0.03
 0.005
 1
 NIL
@@ -264,7 +264,7 @@ search
 search
 0
 2
-0.3
+0.2
 0.01
 1
 NIL
@@ -279,7 +279,7 @@ handling
 handling
 0
 100
-50
+100
 1
 1
 NIL
@@ -313,7 +313,7 @@ q
 q
 0
 1
-1
+0
 0.1
 1
 NIL
@@ -328,7 +328,7 @@ aridity
 aridity
 0
 1
-0.05
+0.76
 0.01
 1
 NIL
@@ -383,7 +383,7 @@ protection
 protection
 0
 1
-0.9
+0.91
 0.01
 1
 NIL
@@ -398,7 +398,7 @@ competition
 competition
 0
 1
-0.05
+0
 0.01
 1
 NIL
@@ -413,7 +413,7 @@ attraction
 attraction
 0
 1
-0.05
+0
 0.01
 1
 NIL
