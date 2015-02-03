@@ -1,0 +1,144 @@
+---
+title: "Untitled"
+author: "Florian Schneider"
+date: "Tuesday, February 03, 2015"
+output: html_document
+---
+
+Consider the equation system:
+
+$$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 2 (\rho_1 - \rho_{11}) \frac{r \rho_1^{1+\alpha} (b + (1 - b)  f \frac{\rho_{1} - \rho_{11}}{1 - \rho_1} )) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a  + v \frac{\rho_{11}}{\rho_1})L (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{q}}{1+(a  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b + (1 - b) f  \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) - \rho_{1}m -  \frac{(a  + v \frac{\rho_{11}}{\rho_1})L (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{1+q}}{1+(a  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}   $$
+
+
+### 1.  
+
+assume: 
+
+$$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 0 $$
+
+then, 
+
+$$  0 = 2 (\rho_1 - \rho_{11}) \frac{r \rho_1^{1+\alpha} (b + (1 - b)  f \frac{\rho_{1} - \rho_{11}}{1 - \rho_1} )) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a  + v \frac{\rho_{11}}{\rho_1})L (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{q}}{1+(a  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}  $$
+
+$$  \rho_{11} m +  \rho_{11} \frac{(a  + v \rho_{11}\rho_1^{-1})L (1 - p \rho_{11}\rho_1^{-1})\rho_1^{q}}{1+(a  + v\rho_{11}\rho_1^{-1})h\rho_1^{1+q}} =  (\rho_1 - \rho_{11}) r \rho_1^{1+\alpha} (b + (1 - b)  f \frac{\rho_{1} - \rho_{11}}{1 - \rho_1} )) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) \frac{1}{1-\rho_1}   $$
+
+
+
+$$  \rho_{11} m +  \frac{(a\rho_1^{q} \rho_{11}  + v \rho_{11}^2\rho_1^{q-1}) (L - L p \rho_{11}\rho_1^{-1})}{1+(a  + v\rho_{11}\rho_1^{-1})h\rho_1^{1+q}} =  (\rho_1 - \rho_{11}) r \rho_1^{1+\alpha} (b + (f - bf) (\rho_{1} - \rho_{11}) \frac{1}{1 - \rho_1} )) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) \frac{1}{1-\rho_1}   $$
+
+
+$$  \rho_{11} m +  \frac{aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2}  }{1+(a  + v\rho_{11}\rho_1^{-1})h\rho_1^{1+q}} =  (\rho_1 - \rho_{11}) r \rho_1^{1+\alpha} (b + (f - bf) (\rho_{1} - \rho_{11}) \frac{1}{1 - \rho_1} )) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) \frac{1}{1-\rho_1}   $$
+
+$$  \rho_{11} m +  \frac{aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2}  }{1+ah\rho_1^{1+q}  + vh\rho_1^{q}\rho_{11}} =  (\rho_1 - \rho_{11}) r \rho_1^{1+\alpha} (b + (f - bf) (\rho_{1} - \rho_{11}) \frac{1}{1 - \rho_1} )) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) \frac{1}{1-\rho_1}   $$
+
+
+$$  \rho_{11} m +  \frac{aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2}  }{1+ah\rho_1^{1+q}  + vh\rho_1^{q}\rho_{11}} =  (\rho_1 r \rho_1^{1+\alpha}  - \rho_{11} r \rho_1^{1+\alpha} )(b + (f\rho_{1} - f\rho_{11} - bf\rho_{1} + bf \rho_{11}) \frac{1}{1 - \rho_1} )) (1-\rho_1K^{-1} (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})^{-1}) \frac{1}{1-\rho_1}   $$
+
+
+
+$$  \rho_{11} m +  \frac{aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2}  }{1+ah\rho_1^{1+q}  + vh\rho_1^{q}\rho_{11}} =  (\rho_1 r \rho_1^{1+\alpha}  - \rho_{11} r \rho_1^{1+\alpha} )(b + f\rho_{1}(1 - \rho_1)^{-1} - f\rho_{11}(1 - \rho_1)^{-1} - bf\rho_{1}(1 - \rho_1)^{-1} + bf \rho_{11}(1 - \rho_1)^{-1}  ) (1-\rho_1K^{-1} (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})^{-1}) (1 - \rho_1)^{-1}    $$
+
+
+
+
+$$  \rho_{11} m +  \frac{aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2}  }{1+ah\rho_1^{1+q}  + vh\rho_1^{q}\rho_{11}} =  (\rho_1 r \rho_1^{1+\alpha}  - \rho_{11} r \rho_1^{1+\alpha} )(b  (1 - \rho_1)^{-1}  + f\rho_{1}(1 - \rho_1)^{-2} - f\rho_{11}(1 - \rho_1)^{-2} - bf\rho_{1}(1 - \rho_1)^{-2} + bf \rho_{11}(1 - \rho_1)^{-2}  ) (1-\rho_1K^{-1} (1 - c (\rho_{1} - \rho_{11})\frac{1}{1 - \rho_1})^{-1})  $$
+
+
+
+
+
+$$   m\rho_{11} + amh\rho_1^{1+q}\rho_{11} + vmh\rho_1^{q}\rho_{11}^2  + aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2}  =  (\rho_1 r \rho_1^{1+\alpha}  - \rho_{11} r \rho_1^{1+\alpha} )(b  (1 - \rho_1)^{-1}  + f\rho_{1}(1 - \rho_1)^{-2} - f\rho_{11}(1 - \rho_1)^{-2} - bf\rho_{1}(1 - \rho_1)^{-2} + bf \rho_{11}(1 - \rho_1)^{-2}  ) (1-\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) (1+ah\rho_1^{1+q}  + vh\rho_1^{q}\rho_{11}) $$
+
+
+
+
+$$ m\rho_{11} + amh\rho_1^{1+q}\rho_{11} + vmh\rho_1^{q}\rho_{11}^2  + aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2}  = (1 - \rho_1)^{-1}(b    + f\rho_{1}(1 - \rho_1)^{-1} - f\rho_{11}(1 - \rho_1)^{-1} - bf\rho_{1}(1 - \rho_1)^{-1} + bf \rho_{11}(1 - \rho_1)^{-1}  ) (1-\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) (r \rho_1^{2+\alpha}  - r \rho_1^{1+\alpha} \rho_{11} +  arh\rho_1^{3+q+\alpha} - rah\rho_1^{2+q+\alpha}\rho_{11}  + vrh\rho_1^{2+q+\alpha}\rho_{11} - vrh\rho_1^{1+q+\alpha}\rho_{11}^2   )  $$
+
+
+
+
+$$ m\rho_{11} + amh\rho_1^{1+q}\rho_{11} + vmh\rho_1^{q}\rho_{11}^2  + aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2}  = (1 - \rho_1)^{-2}(b (1 - \rho_1)^{1}   + f\rho_{1} - f\rho_{11} - bf\rho_{1} + bf \rho_{11} ) (1-\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) (r \rho_1^{2+\alpha}  - r \rho_1^{1+\alpha} \rho_{11} +  arh\rho_1^{3+q+\alpha} - rah\rho_1^{2+q+\alpha}\rho_{11}  + vrh\rho_1^{2+q+\alpha}\rho_{11} - vrh\rho_1^{1+q+\alpha}\rho_{11}^2   )  $$
+
+
+$$ ( m\rho_{11} + amh\rho_1^{1+q}\rho_{11} + vmh\rho_1^{q}\rho_{11}^2  + aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2} )(1 - \rho_1)^{2} = (b - b\rho_1 + f\rho_{1} - f\rho_{11} - bf\rho_{1} + bf \rho_{11} ) (1-\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) (r \rho_1^{2+\alpha}  - r \rho_1^{1+\alpha} \rho_{11} +  arh\rho_1^{3+q+\alpha} - rah\rho_1^{2+q+\alpha}\rho_{11}  + vrh\rho_1^{2+q+\alpha}\rho_{11} - vrh\rho_1^{1+q+\alpha}\rho_{11}^2   ) $$
+
+
+$$ ( m\rho_{11} + amh\rho_1^{1+q}\rho_{11} + vmh\rho_1^{q}\rho_{11}^2  + aL\rho_1^{q} \rho_{11} - aLp \rho_{11}^2\rho_1^{q-1} + v L  \rho_{11}^2\rho_1^{q-1} - v L p \rho_{11}^3\rho_1^{q-2} )(1 - \rho_1)^{2} = (b - (b+f-bf) \rho_1 - (f +bf)\rho_{11} ) (1 -\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) (r \rho_1^{2+\alpha}  - r \rho_1^{1+\alpha}\rho_{11} + arh\rho_1^{3+q+\alpha} - rah\rho_1^{2+q+\alpha}\rho_{11}  + vrh\rho_1^{2+q+\alpha}\rho_{11} - vrh\rho_1^{1+q+\alpha}\rho_{11}^2   ) $$
+
+to simplify, I assume $q = 0$ and $\alpha = 0$:
+
+
+$$ ( m\rho_{11} + amh\rho_1\rho_{11} + aL\rho_1\rho_{11} + vmh\rho_1\rho_{11}^2   - aLp \rho_1^{-1}\rho_{11}^2 + v L\rho_1^{-1}  \rho_{11}^2 - v L p \rho_1^{-2}\rho_{11}^3 )(1 - \rho_1)^{2} = (b - (b+f-bf) \rho_1 - (f +bf)\rho_{11} ) (1 -\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) (  r \rho_1^{2} + arh\rho_1^{3} - r \rho_1^{1}\rho_{11}  - rah\rho_1^{2}\rho_{11}  + vrh\rho_1^{2}\rho_{11} - vrh\rho_1\rho_{11}^2   ) $$
+
+
+$$ ( m\rho_{11} + amh\rho_1\rho_{11} + aL\rho_1\rho_{11} + vmh\rho_1\rho_{11}^2   - aLp \rho_1^{-1}\rho_{11}^2 + v L\rho_1^{-1}  \rho_{11}^2 - v L p \rho_1^{-2}\rho_{11}^3 )(1 - \rho_1)^{2} =  (1 -\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) ( br \rho_1^{2} - (br+fr-brf) \rho_1^{3} + barh\rho_1^{3}- (barh+farh-bfarh) \rho_1^{4} - (fr +brf) \rho_1^{2}\rho_{11} - (farh +bfarh)\rho_1^{3}\rho_{11}  - br \rho_1^{1}\rho_{11} + (br+fr-bfr) \rho_1^{2}\rho_{11} + (fr +brf) \rho_1^{1}\rho_{11}^2  - brah\rho_1^{2}\rho_{11} + (brah+frah-bfrah) \rho_1^{3}\rho_{11} + (rahf +bfrah)\rho_1^{2}\rho_{11}^2 + bvrh\rho_1^{2}\rho_{11} - (bvrh+fvrh-bfvrh) \rho_1^{3}\rho_{11} - (fvrh +bfvrh)\rho_1^{2}\rho_{11}^2  - bvrh\rho_1\rho_{11}^2 + (bvrh+fvrh-bvrhf) \rho_1^2\rho_{11}^2 + (fvrh +bvrhf)\rho_1\rho_{11}^3 ) $$
+
+
+
+
+$$ ( m\rho_{11} + amh\rho_1\rho_{11} + aL\rho_1\rho_{11} + vmh\rho_1\rho_{11}^2   - aLp \rho_1^{-1}\rho_{11}^2 + v L\rho_1^{-1}  \rho_{11}^2 - v L p \rho_1^{-2}\rho_{11}^3 )(1 - \rho_1)^{2} =  (1 -\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) ( br \rho_1^{2} - (br+fr-brf+ barh) \rho_1^{3} - (barh+farh-bfarh) \rho_1^{4} - br \rho_1\rho_{11}- (2fr+br-brah+ bvrh) \rho_1^{2}\rho_{11} - (2farh + brah-bvrh-fvrh+bfvrh)\rho_1^{3}\rho_{11}+ (fr +brf- bvrh) \rho_1\rho_{11}^2  + (rahf +bfrah+ bvrh)\rho_1^{2}\rho_{11}^2 + (fvrh +bvrhf)\rho_1\rho_{11}^3 ) $$
+
+
+$$  m\rho_{11} - (2-amh-aL)\rho_1\rho_{11} + (m- 2amh- 2aL)\rho_1^{2}\rho_{11}+ amh\rho_1^{3}\rho_{11} + aL\rho_1^{3}\rho_{11}+ (vL- aLp) \rho_1^{-1}\rho_{11}^2 + (vmh- aLp+ vL)\rho_1\rho_{11}^2- 2vmh\rho_1^2\rho_{11}^2 + vmh\rho_1^{3}\rho_{11}^2+ 2aLp\rho_{11}^2 - 2vL\rho_{11}^2 - vLp\rho_1^{-2}\rho_{11}^3 + 2vLp\rho_1^{-1}\rho_{11}^3 - vLp  \rho_{11}^3 =  (1 -\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) ( br \rho_1^{2} - (br+fr-brf+ barh) \rho_1^{3} - (barh+farh-bfarh) \rho_1^{4} - br \rho_1\rho_{11}- (2fr+br-brah+ bvrh) \rho_1^{2}\rho_{11} - (2farh + brah-bvrh-fvrh+bfvrh)\rho_1^{3}\rho_{11}+ (fr +brf- bvrh) \rho_1\rho_{11}^2  + (rahf +bfrah+ bvrh)\rho_1^{2}\rho_{11}^2 + (fvrh +bvrhf)\rho_1\rho_{11}^3 ) $$
+
+
+I substitute the left hand side 
+
+$$ x =  m\rho_{11} - (2-amh-aL)\rho_1\rho_{11} + (m- 2amh- 2aL)\rho_1^{2}\rho_{11}+ amh\rho_1^{3}\rho_{11} + aL\rho_1^{3}\rho_{11}+ (vL- aLp) \rho_1^{-1}\rho_{11}^2 + (vmh- aLp+ vL)\rho_1\rho_{11}^2- 2vmh\rho_1^2\rho_{11}^2 + vmh\rho_1^{3}\rho_{11}^2+ 2aLp\rho_{11}^2 - 2vL\rho_{11}^2 - vLp\rho_1^{-2}\rho_{11}^3 + 2vLp\rho_1^{-1}\rho_{11}^3 - vLp  \rho_{11}^3$$
+
+
+and the right hand part 
+
+$$ y =  ( br \rho_1^{2} - (br+fr-brf+ barh) \rho_1^{3} - (barh+farh-bfarh) \rho_1^{4} - br \rho_1\rho_{11}- (2fr+br-brah+ bvrh) \rho_1^{2}\rho_{11} - (2farh + brah-bvrh-fvrh+bfvrh)\rho_1^{3}\rho_{11}+ (fr +brf- bvrh) \rho_1\rho_{11}^2  + (rahf +bfrah+ bvrh)\rho_1^{2}\rho_{11}^2 + (fvrh +bvrhf)\rho_1\rho_{11}^3 )$$
+
+to get the simplified
+
+$$ x =  (1 -\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1}) y$$
+
+
+$$ x =  y - y\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1} $$
+
+
+$$ x - y = - y\rho_1K^{-1} (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  )^{-1} $$
+
+
+$$ x - y (1 - (c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1})  ) = - y\rho_1K^{-1} $$
+
+
+$$ (x - y) - (x - y)(c \rho_{1}(1 - \rho_1)^{-1} - c \rho_{11}(1 - \rho_1)^{-1}) = - y\rho_1K^{-1} $$
+
+
+$$ (x - y) - (x - y)(c \rho_{1} - c \rho_{11})(1 - \rho_1)^{-1} = - y\rho_1K^{-1} $$
+
+
+$$ x - y + y\rho_1K^{-1} =  (x - y)(c \rho_{1} - c \rho_{11})(1 - \rho_1)^{-1}$$
+
+
+$$( xK - yK + y\rho_1 )(1 - \rho_1) =  (xK - yK)(c \rho_{1} - c \rho_{11})$$
+
+$$xK - yK + y\rho_1 - xK\rho_1 + yK\rho_1 - y\rho_1^2 =  (xK - yK)(c \rho_{1} - c \rho_{11})$$
+
+
+$$xK - yK + y\rho_1 - xK\rho_1 + yK\rho_1 - y\rho_1^2 =  xKc\rho_{1} - yKc\rho_{1} -xK c \rho_{11} + yK c \rho_{11}$$
+
+
+Now I resubstitute $x$ and $y$:
+
+$$xK - yK + y\rho_1 - xK\rho_1 + yK\rho_1 - y\rho_1^2 =  xKc\rho_{1} - yKc\rho_{1} - xKc\rho_{11} + yKc \rho_{11}$$
+
+
+
+$$mK \rho_{11} - (2-amh-aL)K \rho_1\rho_{11} + (m- 2amh- 2aL)K \rho_1^{2}\rho_{11}+ amhK \rho_1^{3}\rho_{11} + aLK \rho_1^{3}\rho_{11}+ (vL- aLp)K  \rho_1^{-1}\rho_{11}^2 + (vmh- aLp+ vL)K \rho_1\rho_{11}^2- 2vmhK \rho_1^2\rho_{11}^2 + vmhK \rho_1^{3}\rho_{11}^2+ 2aLpK \rho_{11}^2 - 2vLK \rho_{11}^2 - vLpK \rho_1^{-2}\rho_{11}^3 + 2vLpK \rho_1^{-1}\rho_{11}^3 - vLpK \rho_{11}^3
+- yK
++ y\rho_1 
+- xK\rho_1 
++ yK\rho_1 
+- y\rho_1^2 
++ yKc\rho_{1}
++ xKc\rho_{11}
+- yKc\rho_{11}
+- xKc\rho_{1}
+= 0
+$$
