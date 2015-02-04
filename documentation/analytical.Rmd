@@ -12,8 +12,6 @@ $$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 2 (\rho_1 - \rho_{11}) \frac{r \r
 $$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b + (1 - b) f  \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) - \rho_{1}m -  \frac{(a  + v \frac{\rho_{11}}{\rho_1})L (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{1+q}}{1+(a  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}   $$
 
 
-### 1.  
-
 assume: 
 
 $$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 0 $$
@@ -129,16 +127,18 @@ Now I resubstitute $x$ and $y$:
 $$xK - yK + y\rho_1 - xK\rho_1 + yK\rho_1 - y\rho_1^2 =  xKc\rho_{1} - yKc\rho_{1} - xKc\rho_{11} + yKc \rho_{11}$$
 
 
+Which gives the messy:
 
-$$mK \rho_{11} - (2-amh-aL)K \rho_1\rho_{11} + (m- 2amh- 2aL)K \rho_1^{2}\rho_{11}+ amhK \rho_1^{3}\rho_{11} + aLK \rho_1^{3}\rho_{11}+ (vL- aLp)K  \rho_1^{-1}\rho_{11}^2 + (vmh- aLp+ vL)K \rho_1\rho_{11}^2- 2vmhK \rho_1^2\rho_{11}^2 + vmhK \rho_1^{3}\rho_{11}^2+ 2aLpK \rho_{11}^2 - 2vLK \rho_{11}^2 - vLpK \rho_1^{-2}\rho_{11}^3 + 2vLpK \rho_1^{-1}\rho_{11}^3 - vLpK \rho_{11}^3
-- yK
-+ y\rho_1 
-- xK\rho_1 
-+ yK\rho_1 
-- y\rho_1^2 
-+ yKc\rho_{1}
-+ xKc\rho_{11}
-- yKc\rho_{11}
-- xKc\rho_{1}
-= 0
-$$
+$$mK \rho_{11} - (2-amh-aL)K \rho_1\rho_{11} + (m- 2amh- 2aL)K \rho_1^{2}\rho_{11}+ amhK \rho_1^{3}\rho_{11} + aLK \rho_1^{3}\rho_{11}+ (vL- aLp)K  \rho_1^{-1}\rho_{11}^2 + (vmh- aLp+ vL)K \rho_1\rho_{11}^2- 2vmhK \rho_1^2\rho_{11}^2 + vmhK \rho_1^{3}\rho_{11}^2+ 2aLpK \rho_{11}^2 - 2vLK \rho_{11}^2 - vLpK \rho_1^{-2}\rho_{11}^3 + 2vLpK \rho_1^{-1}\rho_{11}^3 - vLpK \rho_{11}^3    - brK \rho_1^{2} + (br+fr-brf+ barh)K \rho_1^{3} + (barh+farh-bfarh)K \rho_1^{4} + brK \rho_1\rho_{11} + (2fr+br-brah+ bvrh)K \rho_1^{2}\rho_{11} + (2farh + brah-bvrh-fvrh+bfvrh)K\rho_1^{3}\rho_{11} - (fr +brf- bvrh)K \rho_1\rho_{11}^2 - (rahf +bfrah+ bvrh)K\rho_1^{2}\rho_{11}^2 - (fvrh +bvrhf)K\rho_1\rho_{11}^3     + br \rho_1^{3} - (br+fr-brf+ barh) \rho_1^{4} - (barh+farh-bfarh) \rho_1^{5} - br \rho_1^2\rho_{11}- (2fr+br-brah+ bvrh) \rho_1^{3}\rho_{11} - (2farh + brah-bvrh-fvrh+bfvrh)\rho_1^{4}\rho_{11}+ (fr +brf- bvrh) \rho_1^2\rho_{11}^2  + (rahf +bfrah+ bvrh)\rho_1^{3}\rho_{11}^2 + (fvrh +bvrhf)\rho_1^2\rho_{11}^3     - mK \rho_1\rho_{11} + (2-amh-aL)K \rho_1^2\rho_{11} - (m- 2amh- 2aL)K \rho_1^{3}\rho_{11}- amhK \rho_1^{4}\rho_{11} - aLK \rho_1^{4}\rho_{11}- (vL- aLp)K  \rho_{11}^2 - (vmh- aLp+ vL)K \rho_1^2\rho_{11}^2+ 2vmhK \rho_1^3\rho_{11}^2 - vmhK \rho_1^{4}\rho_{11}^2- 2aLpK \rho_1 \rho_{11}^2 + 2vLK \rho_1\rho_{11}^2 + vLpK \rho_1^{-1}\rho_{11}^3 - 2vLpK \rho_{11}^3 + vLpK \rho_1\rho_{11}^3    + brK \rho_1^{3} - (br+fr-brf+ barh)K \rho_1^{4} - (barh+farh-bfarh)K \rho_1^{5} - brK \rho_1^2\rho_{11}- (2fr+br-brah+ bvrh)K \rho_1^{3}\rho_{11} - (2farh + brah-bvrh-fvrh+bfvrh)K\rho_1^{4}\rho_{11}+ (fr +brf- bvrh)K \rho_1^2\rho_{11}^2  + (rahf +bfrah+ bvrh)K\rho_1^{3}\rho_{11}^2 + (fvrh +bvrhf)K\rho_1^2\rho_{11}^3     - br \rho_1^{4} + (br+fr-brf+ barh) \rho_1^{5} + (barh+farh-bfarh) \rho_1^{6} + br \rho_1^3\rho_{11}+ (2fr+br-brah+ bvrh) \rho_1^{4}\rho_{11} + (2farh + brah-bvrh-fvrh+bfvrh)\rho_1^{5}\rho_{11}- (fr +brf- bvrh) \rho_1^3\rho_{11}^2  - (rahf +bfrah+ bvrh)\rho_1^{4}\rho_{11}^2 - (fvrh +bvrhf)\rho_1^3\rho_{11}^3     + brKc \rho_1^{3} - (br+fr-brf+ barh)Kc \rho_1^{4} - (barh+farh-bfarh)Kc \rho_1^{5} - brKc \rho_1^2\rho_{11}- (2fr+br-brah+ bvrh)Kc \rho_1^{3}\rho_{11} - (2farh + brah-bvrh-fvrh+bfvrh)Kc\rho_1^{4}\rho_{11}+ (fr +brf- bvrh)Kc \rho_1^2\rho_{11}^2  + (rahf +bfrah+ bvrh)Kc\rho_1^{3}\rho_{11}^2 + (fvrh +bvrhf)Kc\rho_1^2\rho_{11}^3     - mKc \rho_1\rho_{11} + (2-amh-aL)Kc \rho_1^2\rho_{11} - (m- 2amh- 2aL)Kc \rho_1^{3}\rho_{11}- amhKc \rho_1^{4}\rho_{11} - aLKc \rho_1^{4}\rho_{11}- (vL- aLp)Kc \rho_{11}^2 - (vmh- aLp+ vL)Kc \rho_1^2\rho_{11}^2+ 2vmhKc \rho_1^3\rho_{11}^2 - vmhKc \rho_1^{4}\rho_{11}^2- 2aLpKc \rho_1 \rho_{11}^2 + 2vLKc \rho_1\rho_{11}^2 + vLpKc \rho_1^{-1}\rho_{11}^3 - 2vLpKc \rho_{11}^3 + vLpKc \rho_1\rho_{11}^3    + mKc \rho_{11}^2 - (2-amh-aL)Kc \rho_1\rho_{11}^2 + (m- 2amh- 2aL)Kc \rho_1^{2}\rho_{11}^2+ amhKc \rho_1^{3}\rho_{11}^2 + aLKc \rho_1^{3}\rho_{11}^2+ (vL- aLp)Kc  \rho_1^{-1}\rho_{11}^3 + (vmh- aLp+ vL)Kc \rho_1\rho_{11}^3- 2vmhKc \rho_1^2\rho_{11}^3 + vmhKc \rho_1^{3}\rho_{11}^3+ 2aLpKc \rho_{11}^3 - 2vLKc \rho_{11}^3 - vLpKc \rho_1^{-2}\rho_{11}^4 + 2vLpKc \rho_1^{-1}\rho_{11}^4 - vLpKc \rho_{11}^4    - brKc \rho_1^{2}\rho_{11} + (br+fr-brf+ barh)Kc \rho_1^{3}\rho_{11} + (barh+farh-bfarh)Kc \rho_1^{4}\rho_{11} + brKc \rho_1\rho_{11}^2 + (2fr+br-brah+ bvrh)Kc \rho_1^{2}\rho_{11}^2 + (2farh + brah-bvrh-fvrh+bfvrh)Kc\rho_1^{3}\rho_{11}^2 - (fr +brf- bvrh)Kc \rho_1\rho_{11}^3 - (rahf +bfrah+ bvrh)Kc\rho_1^{2}\rho_{11}^3 - (fvrh +bvrhf)Kc\rho_1\rho_{11}^4 = 0 $$
+
+
+I think I stop here, since there are fourth order polinomials that will not resolve. 
+
+
+
+
+<!--
+
+m*K*x-(2-a*m*h-a*L)*K*y*x + (m-2*a*m*h-2*a*L)*K*y^2*x+ a*m*h*K*y^3*x + a*L*K*y^3*x+ (v*L-a*L*p)*K*y^-1*x^2 + (v*m*h-a*L*p+v*L)*K*y*x^2- 2*v*m*h*K*y^2*x^2 + v*m*h*K*y^3*x^2+ 2*a*L*p*K*x^2 - 2*v*L*K*x^2 - v*L*p*K*y^(-2)*x^3 + 2*v*L*p*K*y^(-1)*x^3 - v*L*p*K*x^3    - b*r*K*y^2  + (b*r+f*r-b*r*f+b*a*r*h)*K*y^3  + (b*a*r*h+f*a*r*h-b*f*a*r*h)*K y^4  + b*r*K*y*x + (2*f*r+b*r-b*r*a*h+ b*v*r*h)*K*y^2*x + (2*f*a*r*h + b*r*a*h-b*v*r*h-f*v*r*h+b*f*v*r*h)*K*y^3*x - (f*r +b*r*f- b*v*r*h)*K*y*x^2 - (r*a*h*f +b*f*r*a*h+ b*v*r*h)*K*y^2*x^2 - (f*v*r*h +b*v*r*h*f)*K*y*x^3     + b*r*y^3  - (b*r+f*r-b*r*f+ b*a*r*h)*y^4  - (b*a*r*h+f*a*r*h-b*f*a*r*h)*y^5  - b*r*y^2*x- (2*f*r+b*r-b*r*a*h+ b*v*r*h)*y^3*x - (2*f*a*r*h + b*r*a*h-b*v*r*h-f*v*r*h+b*f*v*r*h)*y^4*x+ (f*r +b*r*f- b*v*r*h)*y^2*x^2 + (r*a*h*f +b*f*r*a*h+ b*v*r*h)*y^3*x^2 + (f*v*r*h +b*v*r*h*f)*y^2*x^3     - m*K*y*x + (2-a*m*h-a*L)*K*y^2*x - (m- 2*a*m*h- 2*a*L)*K *y^3*x- a*m*h*K*y^4*x - a*L*K*y^4*x- (v*L- a*L*p)*K*x^2 - (v*m*h- a*L*p+ v*L)*K*y^2*x^2+ 2*v*m*h*K*y^3*x^2 - v*m*h*K*y^4*x^2- 2*a*L*p*K*y*x^2 + 2*v*L*K*y*x^2 + v*L*p*K*y^(-1)*x^3 - 2*v*L*p*K*x^3 + v*L*p*K*y*x^3   + b*r*K*y^3  - (b*r+f*r-b*r*f+ b*a*r*h)*K*y^4  - (b*a*r*h+f*a*r*h-b*f*a*r*h)*K*y^5  - b*r*K*y^2*x- (2*f*r+b*r-b*r*a*h+ b*v*r*h)*K*y^3*x - (2*f*a*r*h + b*r*a*h-b*v*r*h-f*v*r*h+b*f*v*r*h)*K*y^4*x+ (f*r +b*r*f- b*v*r*h)*K*y^2*x^2  + (r*a*h*f +b*f*r*a*h+ b*v*r*h)*K*y^3*x^2 + (f*v*r*h +b*v*r*h*f)*K*y^2*x^3     - b*r*y^4  + (b*r+f*r-b*r*f+ b*a*r*h)*y^5  + (b*a*r*h+f*a*r*h-b*f*a*r*h)*y^6  + b*r*y^3*x+ (2*f*r+b*r-b*r*a*h+ b*v*r*h)*y^4*x + (2*f*a*r*h+b*r*a*h-b*v*r*h-f*v*r*h+b*f*v*r*h)*y^5*x- (f*r +b*r*f- b*v*r*h)*y^3*x^2  - (r*a*h*f+b*f*r*a*h+b*v*r*h)*y^4*x^2 - (f*v*r*h +b*v*r*h*f)*y^3*x^3     + b*r*K*c*y^3  - (b*r+f*r-b*r*f+ b*a*r*h)*K*c*y^4  - (b*a*r*h+f*a*r*h-b*f*a*r*h)*K*c*y^5  - b*r*K*c* y^2*x- (2*f*r+b*r-b*r*a*h+ b*v*r*h)*K*c*y^3*x - (2*f*a*r*h + b*r*a*h-b*v*r*h-f*v*r*h+b*f*v*r*h)*K*c*y^4*x+ (f*r +b*r*f- b*v*r*h)*K*c*y^2*x^2  + (r*a*h*f +b*f*r*a*h+ b*v*r*h)*K*c*y^3*x^2 + (f*v*r*h+b*v*r*h*f)*K*c*y^2*x^3     - m*K*c*y*x + (2-a*m*h-a*L)*K*c*y^2*x - (m- 2*a*m*h- 2*a*L)*K*c*y^3*x - a*m*h*K*c*y^4*x - a*L*K*c*y^4*x- (v*L- a*L*p)*K*c*x^2 - (v*m*h-a*L*p+v*L)*K*c*y^2*x^2+ 2*v*m*h*K*c* y^3*x^2 - v*m*h*K*c*y^4*x^2- 2*a*L*p*K*c*y*x^2 + 2*v*L*K*c*y*x^2 + v*L*p*K*c*y^(-1)*x^3 - 2*v*L*p*K*c*x^3 + v*L*p*K*c*y*x^3    + m*K*c*x^2 - (2-a*m*h-a*L)*K*c*y*x^2 + (m- 2*a*m*h-2*a*L)*K*c*y^2*x^2+ a*m*h*K*c*y^3*x^2 + a*L*K*c*y^3*x^2+ (v*L- a*L*p)*K*c*y^(-1)*x^3 + (v*m*h-a*L*p+v*L)*K*c*y*x^3 - 2*v*m*h*K*c*y^2*x^3 + v*m*h*K*c*y^3*x^3 + 2*a*L*p*K*c*x^3 - 2*v*L*K*c*x^3 - v*L*p*K*c*y^(-2)*x^4 + 2*v*L*p*K*c*y^(-1)*x^4 - v*L*p*K*c*x^4    - b*r*K*c*y^2*x + (b*r+f*r-b*r*f+b*a*r*h)*K*c*y^3*x + (b*a*r*h+f*a*r*h-b*f*a*r*h)*K*c*y^4*x + b*r*K*c*y*x^2 + (2*f*r+b*r-b*r*a*h+ b*v*r*h)*K*c*y^2*x^2 + (2*f*a*r*h+b*r*a*h-b*v*r*h-f*v*r*h+b*f*v*r*h)*K*c*y^3*x^2 - (f*r+b*r*f-b*v*r*h)*K*c*y*x^3 - (r*a*h*f+b*f+r*a*h+b*v*r*h)*K*c*y^2*x^3 - (f*v*r*h+b*v*r*h*f)*K*c*y*x^4 = 0
+
+-->
