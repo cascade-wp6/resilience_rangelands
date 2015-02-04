@@ -12,6 +12,7 @@
 **/*.ps
 **/*.mp4
 
+!documentation/model_formulation.pdf
 !figures/figures.pdf
 !manuscript/figures/*
 
