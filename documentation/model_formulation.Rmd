@@ -1,7 +1,7 @@
 ---
 title: "Basic Model formulation"
 author: "Florian D. Schneider"
-date: "Tuesday, November 18, 2014"
+date: "Tuesday, February 4th, 2014"
 output:
   pdf_document:
     fig_height: 4
@@ -655,9 +655,8 @@ plot(spexmodel$rho_one ~ spexmodel$time,
 
 ```
 
-And the animated lattice would look like this:
 ```{r, eval = FALSE, echo = FALSE, warning = FALSE}
-animateCA(nullmodel, "ca_nullmodel.gif")
+animateCA(spexmodel, "ca_spexmodel.gif")
 
 ![](ca_nullmodel.gif)
 
@@ -726,7 +725,7 @@ $$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 2 (\rho_1 - \rho_{11}) \frac{r \r
 
 $$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (1 - b) f  \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) - \rho_{1}m -  \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L^* (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{1+q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}   $$
 
-for the set of parameters given above, we get the following dynamics
+for the set of parameters given above, we can project the following dynamics from solving the ODE (CA model simulation as grey line).
 
 ```{r, echo=FALSE}
 
@@ -780,6 +779,7 @@ plot(I(rho_11/rho_1^2) ~ time , data = ODE_spex , type = "l", ylim = c(0,2))
 
 ### Bifurcation diagrams
 
+The following shows bifurcation diagrams over an environmental gradient. 
 
 ```{r, echo=FALSE}
 
@@ -827,7 +827,7 @@ plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = 
 ```
 
 
-
+The following shows bifurcation diagrams over a livestock density gradient. 
 
 
 ```{r, echo=FALSE}
@@ -867,10 +867,28 @@ stopCluster(cl)
 
 ```
 
+A dynamic Shiny implementation of that can be found under 'documentation/interactive_spexmodel_bifurcations.Rmd' ( run in RStudio, specify parallel backend.).
 
+The simulation backend is now all set up. As a final step, we want to check out if the model can be solved analytically. 
 
 ## analytical solutions
 
+I tried to solve the equilibria of the equation system by assuming 
+
+$$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 0 $$
+
+thus, 
+
+$$  0 = 2 (\rho_1 - \rho_{11}) \frac{r \rho_1^{1+\alpha} (b + (1 - b)  f \frac{\rho_{1} - \rho_{11}}{1 - \rho_1} )) (1-\frac{\rho_1}{K (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a  + v \frac{\rho_{11}}{\rho_1})L (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{q}}{1+(a  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}  $$
+
+and then solving towards $\rho_{11}$. The simplification process can be found in the file 'analytical.Rmd'. It  leads to 4th order polynomials, which makes it impossible to solve. 
+However, solutions might be possible for certain cases, e.g. with only facilitation, or only associational protection, and all other effects set to zero. 
+
+
+For instance, assuming competition $c = 0$ and attraction $v = 0$ yields a much simpler equation of second order
+
+
+$$0 = - brK \rho_1^{2}  + (br+2brK+rfK-brfK+barhK) \rho_1^{3}- (-2br-brK-frK+brfK+farhK-bfarhK-fr+brf-barh) \rho_1^{4} + (br+fr-brf-barhK-farhK+bfarhK-farh+bfarh) \rho_1^{5}+ (barh+farh-bfarh) \rho_1^{6}        + (mK + (brK-mK-2K+amhK+aLK) \rho_1 + (mK- br- 2amKh- 2aLK+2frK+brK-brahK+2K-amhK-aLK- brK) \rho_1^{2}   + (-mK+aLK-br+3amhK+2farhK+2brahK-2fr+brah-2frK+2aLK) \rho_1^{3}-  (2farh-amhK-aLK-2farhK-brahK+2fr+br)\rho_1^{4} + (2farh + brah)\rho_1^{5}  )     \rho_{11}  + (aLpK\rho_1^{-1}+ 2aLpK  + aLpK + (-frK-brfK-3aLpK+2vLK) \rho_1  + (frbrf+frK+brfK-rahfK-bfrahK+aLpK) \rho_1^{2} + (rahf +bfrah+rahfK +bfrahK-fr -brf)\rho_1^{3} + (-rahf-bfrah) \rho_1^{4}    )   \rho_{11}^2   $$
 
 
 
