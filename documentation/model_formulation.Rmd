@@ -777,6 +777,145 @@ plot(I(rho_11/rho_1^2) ~ time , data = ODE_spex , type = "l", ylim = c(0,2))
 
 ```
 
+### Attractor 
+
+Visualising the attractor of the system is not as straightforward as for the models that are determined by global cover only, where the intersections of growth and mortality defined the equilibria. In the spatially-explict context the attractor can be visualised if we assume that clustering in the initial state is random, i.e. $q_{11} = \rho_{1}$.
+
+
+
+```{r, echo=FALSE}
+
+
+
+parms$rho_ini <- seq(0, 1, 0.1)
+parms$m_ini <- seq(0, 0.2, length = 11)
+
+iterations <- expand.grid(parms)
+iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
+
+
+
+rho_one_one_ini <- function(prms) {
+  out <- sapply(1:nrow(prms), function(x) {
+  i <- with(prms[x,], v * L * p * rho_ini^(q-1) )
+  ii <- with(prms[x,], ( v*m*h*rho_ini - v*h*m_ini + p*a*L - v*L )*rho_ini^q )
+  iii <- with(prms[x,], -m_ini + m*rho_ini + a*h*m*rho_ini^(2+q) - a*h*m_ini*rho_ini^(1+q) - a*L*rho_ini^(1+q) )
+  
+  solutions <- data.frame( 
+    s1 = (- ii + sqrt( ii^2 - 4*i*iii ) ) / 2 * i,
+    s2 = (- ii - sqrt( ii^2 - 4*i*iii ) ) / 2 * i)
+  return(solutions)
+  })
+  return(as.data.frame(t(out)))
+}
+
+iterations$rho_11_ini <- unlist(rho_one_one_ini(iterations)$s1)
+
+ini_rho <- function(rho_1, rho_11 = NULL) {
+    if(is.null(rho_11)) out <- {
+      c(
+    rho_1 = rho_1,
+    rho_11 = rho_1*rho_1,
+    rho_10 = rho_1*(1-rho_1)*2,
+    rho_00 = (1-rho_1)*(1-rho_1),
+    rho_0 = 1-rho_1
+    ) 
+    } else {
+      out <- c(
+    rho_1 = rho_1,
+    rho_11 = rho_11,
+    rho_10 = rho_1-rho_11,
+    rho_00 = 1-2*rho_1+rho_11,
+    rho_0 = 1-rho_1
+    )
+    if(any(out < 0)) out <- c(
+    rho_1 = NA,
+    rho_11 = NA,
+    rho_10 = NA,
+    rho_00 = NA,
+    rho_0 = NA
+    )
+    }
+    
+  return(out)
+}
+  
+starting <- sapply(1:nrow(iterations), function(x)  ini_rho(iterations[x, "rho_ini"], iterations[x, "rho_11_ini"])  )
+
+iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
+
+
+defplot(rho, C(rho, 1), ylab = "mortality")
+lines(rho,C(rho, 0.75))
+lines(rho,C(rho, 0.5))
+lines(rho,C(rho, 0.25))
+lines(rho,C(rho, 0))
+
+lines(rho, G(rho, 1), col = "green3")
+lines(rho,G(rho, 0.75), col = "green3")
+lines(rho,G(rho, 0.5), col = "green3")
+lines(rho,G(rho, 0.25), col = "green3")
+lines(rho,G(rho, 0), col = "green3")
+
+points(iterations$rho_ini, iterations$m_ini, pch = 20, col = is.na(starting[1,])+1)
+
+
+
+# provides parallel backend
+library(foreach)
+library(doSNOW)
+
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+                     rscript = "/usr/lib/R/bin/Rscript",
+                     snowlib = "/usr/lib/R/library")
+
+workerlist <- c(rep("localhost", times = 10)) 
+
+cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+
+registerDoSNOW(cl)
+
+
+foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+  
+  model_parms <- as.list(iterations[iteration,])
+  rho_starting <- ini_rho(iterations[iteration, "rho_ini"], iterations[iteration, "rho_11_ini"])
+  if(!any(is.na(rho_starting)) ) {
+    
+  # running the ode-solver
+  runmodel <- ode(y = rho_starting, func = odesys_spex, times = c(1,2), parms = model_parms)
+  
+  out <-as.data.frame(runmodel)[dim(runmodel)[1],]
+  }  else { 
+    out <- c(time = 100,rho_starting)  
+  }
+  # transfer into ouput and calculate missing rho values
+  return(out)
+  } -> output 
+
+output <- cbind(output, iterations)
+
+
+output$rho_11_ini <- iterations$rho_11_ini 
+
+G <- function(rho_1, q_01 = "auto", prms = parms) {
+  if(q_01 == "auto") q_01 <- 1
+  with(prms, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
+
+} 
+
+C <- function(rho_1, q_01 = 1, prms = parms) with(prms, (m * rho_1) +( (a+v*q_01  ) *rho_1^(1+q)*L*(1-p*q_01))/(1+(a+v*q_01)*h*(rho_1^(1+q)) ) )
+
+rho <- seq(0,1,length = 100)
+
+arrows(output$rho_ini, C(output$rho_ini, output$rho_11_ini),output$rho_1, C(output$rho_1, output$rho_11), length = 0.05)
+
+stopCluster(cl)
+
+```
+
+
 ### Bifurcation diagrams
 
 The following shows bifurcation diagrams over an environmental gradient. 
