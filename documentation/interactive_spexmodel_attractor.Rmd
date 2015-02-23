@@ -1,0 +1,305 @@
+---
+title: "global-model (ODE)"
+author: "Florian Schneider"
+date: "Thursday, January 30, 2015"
+output:
+  html_document:
+    fig_height: 6.5
+runtime: shiny
+---
+
+   
+## developping the null model
+
+Non-spatial global model solved as ordinary differential equations. It includes global accelerating and decelerating feedbacks on mortality and grazing.
+
+```{r, echo=FALSE}
+
+# provides parallel backend
+library(foreach)
+library(doSNOW)
+
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+                     rscript = "/usr/lib/R/bin/Rscript",
+                     snowlib = "/usr/lib/R/library")
+
+workerlist <- c(rep("localhost", times = 10)) 
+
+cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+
+registerDoSNOW(cl)
+
+
+library("deSolve")
+
+  ini_rho <- function(rho_1) {
+    c(
+    rho_1 = rho_1,
+    rho_11 = rho_1*rho_1,
+    rho_10 = rho_1*(1-rho_1)*2,
+    rho_00 = (1-rho_1)*(1-rho_1),
+    rho_0 = 1-rho_1
+    )
+    
+  }
+  
+d_rho_1 <- function(rho, parms) { 
+  with(parms,
+       r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
+  )  
+}
+
+
+d_rho_11 <- function(rho,  parms) { 
+  with(parms,
+       2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
+  )  
+}
+  
+
+odesys_spex <- function(t, rho, parms = model_parms) {
+  rho_1 <- d_rho_1(rho, parms)
+  rho_11 <- d_rho_11(rho, parms)
+  list(c(rho_1, rho_11, rho_1-rho_11, 1-rho_1-(rho_1-rho_11),1-rho_1  
+               ) )
+}
+
+
+defplot <- function(...) plot(..., 
+            type = "l", 
+            bty = "l", cex = 0.7, las = 1,
+            xlim = c(0,1), ylim = c(0,0.25), 
+            xaxs = "i", yaxs = "i", 
+            xaxp = c(0,1,5), yaxp = c(0,0.25,5), 
+            xlab = "vegetation cover") 
+
+rho <- seq(0,1,length = 100)
+
+defaultparms <- list(
+    m = 0.05,  # intrinsic mortality of plants 
+    r = 1,   # growth rate
+    f = 0.8, #  local facilitation
+    b = 0.25,  # environmental quality inverse of aridity
+    K = 0.9,  # carrying capacity
+    alpha = 0.1, # water runoff
+    c = 0.2, # local competition
+    a = 0.6, # search efficiency
+    v = 0.1, # attraction effect
+    h = 50, # handling time (one individual on landscape unit)
+    p = 0.8, # protection effect
+    L = 6, # livestock units per landscape unit 
+    q = 1 # search ineffiency at low cover
+  )
+
+
+ini_rho <- function(rho_1, rho_11 = NULL) {
+    if(is.null(rho_11)) out <- {
+      c(
+    rho_1 = rho_1,
+    rho_11 = rho_1*rho_1,
+    rho_10 = rho_1*(1-rho_1)*2,
+    rho_00 = (1-rho_1)*(1-rho_1),
+    rho_0 = 1-rho_1
+    ) 
+    } else {
+      out <- c(
+    rho_1 = rho_1,
+    rho_11 = rho_11,
+    rho_10 = rho_1-rho_11,
+    rho_00 = 1-2*rho_1+rho_11,
+    rho_0 = 1-rho_1
+    )
+    if(any(out < 0)) out <- c(
+    rho_1 = NA,
+    rho_11 = NA,
+    rho_10 = NA,
+    rho_00 = NA,
+    rho_0 = NA
+    )
+    }
+    
+  return(out)
+}
+  
+
+G <- function(rho_1, q_01 = "auto", prms ) {
+  if(q_01 == "auto") q_01 <- 1
+  with(prms, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
+
+} 
+
+C <- function(rho_1, q_11 = 1, prms ) with(prms, (m * rho_1) +( (a+v*q_11  ) *rho_1^(1+q)*L*(1-p*q_11))/(1+(a+v*q_11)*h*(rho_1^(1+q)) ) )
+
+
+
+
+attractor <- function(parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini = seq(0,1, length = 11)) {
+  
+ini <- list(
+  rho_1 = rho_1_ini,
+  rho_11 = rho_11_ini,
+  rho_10 = NA,
+  rho_00 = NA,
+  rho_0 = NA
+  )
+
+ini <- expand.grid(ini)
+
+for(x in 1:nrow(ini)) {
+      temp <- ini_rho(ini[x,]$rho_1, ini[x,]$rho_11)
+      ini[x,]$rho_1 <- temp[1]
+      ini[x,]$rho_11 <- temp[2]
+      ini[x,]$rho_10 <- temp[3]
+      ini[x,]$rho_00 <- temp[4]
+      ini[x,]$rho_0 <- temp[5]
+      } 
+
+
+ini$m_ini <- C(ini$rho_1, ini$rho_11/ini$rho_1, parms)
+ini$g_ini <- G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1), parms)
+
+ini <- subset(ini, !is.na(rho_1))
+ini <- cbind(ID = 1:nrow(ini),ini)
+
+
+foreach(iteration = ini$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+  
+   rho_starting <- ini[iteration, 2:6]
+ 
+  # running the ode-solver
+  runmodel <- ode(y = as.numeric(rho_starting), func = odesys_spex, times = seq(1,2), parms = parms)
+  
+  out <-as.data.frame(runmodel)[dim(runmodel)[1],]
+
+  # transfer into ouput and calculate missing rho values
+  return(out)
+  } -> output 
+
+names(output) <- c("time", "rho_1", "rho_11", "rho_10", "rho_00", "rho_0")
+
+rho <- seq(0,1,length = 100)
+
+defplot(rho, C(rho, 1, parms), ylab = "mortality", col= "#00000020")
+lines(rho,C(rho, 0.75, parms), col= "#00000040")
+lines(rho,C(rho, 0.5, parms), col= "#00000080")
+lines(rho,C(rho, 0.25, parms), col= "#00000040")
+lines(rho,C(rho, 0, parms), col= "#00000020")
+
+lines(rho, G(rho, 1, parms), col = "#00993320")
+lines(rho,G(rho, 0.75, parms), col = "#00993340")
+lines(rho,G(rho, 0.5, parms), col = "#00993380")
+lines(rho,G(rho, 0.25, parms), col = "#00993340")
+lines(rho,G(rho, 0, parms), col = "#00993320")
+
+arrows(ini$rho_1, C(ini$rho_1, ini$rho_11/ini$rho_1, parms),output$rho_1, C(output$rho_1, output$rho_11/output$rho_1, parms), length = 0.04)
+
+arrows(ini$rho_1, G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1), parms),output$rho_1, G(output$rho_1, (output$rho_1-output$rho_11)/(1-output$rho_1), parms ), length = 0.02, col = "#009933" )
+
+high_equ <- as.data.frame(ode(y = ini_rho(0.9), func = odesys_spex, times = c(1,1000), parms = parms) )[2,]
+
+points(high_equ$rho_1, C(high_equ$rho_1, high_equ$rho_11/high_equ$rho_1, parms), cex = 2, pch = 20, col = 2)
+
+low_equ <- as.data.frame(ode(y = ini_rho(0.0001), func = odesys_spex, times = c(1,1000), parms = parms) )[2,]
+
+points(low_equ$rho_1, C(low_equ$rho_1,low_equ$rho_11/low_equ$rho_1, parms), pch = 20, cex = 2, col = 2)
+
+
+}
+
+```
+
+### growth parameters
+
+The basic assumption is logistic plant growth, i.e. growth goes to zero as the carrying capacity is approached (decelerating effect). 
+
+As an accelerating feedback we add water runoff, which reduces growth at low cover. 
+
+```{r, echo=FALSE}
+
+inputPanel(
+  sliderInput("r", label = "max. growth rate:",
+              min = 0.0, max = 3, value = 1, step = 0.01),
+  sliderInput("b", label = "environmental quality:",
+              min = 0.0, max = 1, value = 0.1, step = 0.01),
+  sliderInput("K", label = "carrying capacity:",
+              min = 0.0, max = 1, value = 0.9, step = 0.01),
+  sliderInput("alpha", label = "water runoff:",
+              min = 0.0, max = 1, value = 0, step = 0.01),
+  sliderInput("f", label = "local facilitation:",
+              min = 0.0, max = 1, value = 0.9, step = 0.01),
+  sliderInput("c", label = "local competition:",
+              min = 0.0, max = 1, value = 0.1, step = 0.01)
+)
+
+  
+```
+
+### mortality parameters
+
+The basic assumption is a constant intrinsic mortality of plants and a type II functional response, i.e. grazing mortality saturates with cover (decelerating effect). 
+
+As an additional accelerating effect we assume the search efficiency to be lowest at low cover and increase with cover, turning the function into a type III functional response.
+
+```{r, echo=FALSE}
+
+inputPanel(
+  sliderInput("m", label = "intrinsic mortality:",
+              min = 0.0, max = 1, value = 0.05, step = 0.01),
+  sliderInput("a", label = "search efficiency:",
+              min = 0.0, max = 1, value = 0.6, step = 0.01), 
+  sliderInput("h", label = "handling time:",
+              min = 0.0, max = 200, value = 50, step = 1), 
+  sliderInput("L", label = "livestock units:",
+              min = 0.0, max = 100, value = 6, step = 1),
+  sliderInput("q", label = "hill coefficient:",
+              min = 0.0, max = 1, value = 0, step = 0.01),
+  sliderInput("v", label = "local attractivity:",
+              min = 0.0, max = 1, value = 0.0, step = 0.01),
+  sliderInput("p", label = "local protection:",
+              min = 0.0, max = 1, value = 0.8, step = 0.01)
+)
+
+  
+```
+
+### initial conditions
+```{r, echo=FALSE, fig.height=7.5}
+
+
+renderPlot({
+
+  
+ parms <- list(
+  m = as.numeric(input$m),
+  r = as.numeric(input$r),
+  b = as.numeric(input$b),
+  K = as.numeric(input$K),
+  a = as.numeric(input$a), 
+  h = as.numeric(input$h),
+  L = as.numeric(input$L),
+  alpha = as.numeric(input$alpha), 
+  q = as.numeric(input$q),
+  f = as.numeric(input$f),
+  c = as.numeric(input$c),
+  v = as.numeric(input$v),
+  p = as.numeric(input$p) 
+  )
+ 
+ 
+# if(input$gradient == "b") parms$b <- seq(0,1,.005) 
+# if(input$gradient == "L") parms$L <- seq(0,20,.1)    
+ 
+#iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
+
+attractor(parms)
+
+# if(input$gradient == "b") plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
+# if(input$gradient == "L") plot(rho_1 ~ L, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
+ 
+
+
+ 
+ 
+} )
+```
