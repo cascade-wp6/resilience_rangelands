@@ -30,9 +30,9 @@ It might become important in the pair-approximation model, where intrinsic plant
 defplot <- function(...) plot(..., 
             type = "l", 
             bty = "l", cex = 0.7, las = 1,
-            xlim = c(0,1), ylim = c(0,0.4), 
+            xlim = c(0,1), ylim = c(0,0.25), 
             xaxs = "i", yaxs = "i", 
-            xaxp = c(0,1,2), yaxp = c(0,1,2), 
+            xaxp = c(0,1,2), yaxp = c(0,0.25,2), 
             xlab = "vegetation cover") 
 
 rho <- seq(0,1,length = 100)
@@ -745,7 +745,7 @@ d_rho_11 <- function(rho,  parms) {
   }
   
 
-odesys_spex <- function(t, rho, parms = model_parms) {
+odesys_spex <- function(t, rho, parms) {
   rho_1 <- d_rho_1(rho, parms)
   rho_11 <- d_rho_11(rho, parms)
   list(c(rho_1, rho_11, rho_1-rho_11, 1-rho_1-(rho_1-rho_11),1-rho_1  
@@ -779,37 +779,22 @@ plot(I(rho_11/rho_1^2) ~ time , data = ODE_spex , type = "l", ylim = c(0,2))
 
 ### Attractor 
 
-Visualising the attractor of the system is not as straightforward as for the models that are determined by global cover only, where the intersections of growth and mortality defined the equilibria. In the spatially-explict context the attractor can be visualised if we assume that clustering in the initial state is random, i.e. $q_{11} = \rho_{1}$.
+Visualising the attractor of the system is not as straightforward as for the models that are determined by global cover only, where the intersections of growth and mortality defined the equilibria. In the spatially-explict pair-approximation model the attractor can be visualised if we assume that clustering in the initial state is non-random, and we assign starting values for $\rho_1$ and global mortality of the population $m_1$. To do this, we need to solve the mortality function towards $\rho{1\,,1}$ to obtain initial covers of all the different pairs and singletons.
 
+Thus, 
+
+$$ m_1 = \rho_1 m_0 + \frac{(a+v\frac{\rho_{11}}{\rho_1})L(1-p\frac{\rho_{11}}{\rho_1}\rho_1^{1+q})}{1+(a+v\frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}} $$
+
+rearranging yields: 
+
+$$ 0 = m_1 - m_0\rho_1+m_qah\rho_1^{1+q}-aL\rho_1^{1+q}-m_0ah\rho_1^{1+q} + (m_1v\rho_1^{q}+aLp\rho_1^{q}-vL\rho_1^{q}-m_0v\rho_1^{1+q})\rho_{11} + vLp\rho_1^{q-1}\rho_{11}^2$$
+Polynomials of second order of the form $0 =  c+ bx +ax^2$ can be solved by the quadratic formula
+
+$$x = \frac{-b\pm \sqrt{b^2-4ac} }{2a}$$
 
 
 ```{r, echo=FALSE}
 
-
-
-parms$rho_ini <- seq(0, 1, 0.1)
-parms$m_ini <- seq(0, 0.2, length = 11)
-
-iterations <- expand.grid(parms)
-iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
-
-
-
-rho_one_one_ini <- function(prms) {
-  out <- sapply(1:nrow(prms), function(x) {
-  i <- with(prms[x,], v * L * p * rho_ini^(q-1) )
-  ii <- with(prms[x,], ( v*m*h*rho_ini - v*h*m_ini + p*a*L - v*L )*rho_ini^q )
-  iii <- with(prms[x,], -m_ini + m*rho_ini + a*h*m*rho_ini^(2+q) - a*h*m_ini*rho_ini^(1+q) - a*L*rho_ini^(1+q) )
-  
-  solutions <- data.frame( 
-    s1 = (- ii + sqrt( ii^2 - 4*i*iii ) ) / 2 * i,
-    s2 = (- ii - sqrt( ii^2 - 4*i*iii ) ) / 2 * i)
-  return(solutions)
-  })
-  return(as.data.frame(t(out)))
-}
-
-iterations$rho_11_ini <- unlist(rho_one_one_ini(iterations)$s1)
 
 ini_rho <- function(rho_1, rho_11 = NULL) {
     if(is.null(rho_11)) out <- {
@@ -840,26 +825,90 @@ ini_rho <- function(rho_1, rho_11 = NULL) {
   return(out)
 }
   
-starting <- sapply(1:nrow(iterations), function(x)  ini_rho(iterations[x, "rho_ini"], iterations[x, "rho_11_ini"])  )
 
-iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
+G <- function(rho_1, q_01 = "auto", prms = parms) {
+  if(q_01 == "auto") q_01 <- 1
+  with(prms, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
 
+} 
 
-defplot(rho, C(rho, 1), ylab = "mortality")
-lines(rho,C(rho, 0.75))
-lines(rho,C(rho, 0.5))
-lines(rho,C(rho, 0.25))
-lines(rho,C(rho, 0))
-
-lines(rho, G(rho, 1), col = "green3")
-lines(rho,G(rho, 0.75), col = "green3")
-lines(rho,G(rho, 0.5), col = "green3")
-lines(rho,G(rho, 0.25), col = "green3")
-lines(rho,G(rho, 0), col = "green3")
-
-points(iterations$rho_ini, iterations$m_ini, pch = 20, col = is.na(starting[1,])+1)
+C <- function(rho_1, q_11 = 1, prms = parms) with(prms, (m * rho_1) +( (a+v*q_11  ) *rho_1^(1+q)*L*(1-p*q_11))/(1+(a+v*q_11)*h*(rho_1^(1+q)) ) )
 
 
+
+attractor <- function(parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini = seq(0,1, length = 11)) {
+  
+ini <- list(
+  rho_1 = rho_1_ini,
+  rho_11 = rho_11_ini,
+  rho_10 = NA,
+  rho_00 = NA,
+  rho_0 = NA
+  )
+
+ini <- expand.grid(ini)
+
+for(x in 1:nrow(ini)) {
+      temp <- ini_rho(ini[x,]$rho_1, ini[x,]$rho_11)
+      ini[x,]$rho_1 <- temp[1]
+      ini[x,]$rho_11 <- temp[2]
+      ini[x,]$rho_10 <- temp[3]
+      ini[x,]$rho_00 <- temp[4]
+      ini[x,]$rho_0 <- temp[5]
+      } 
+
+
+ini$m_ini <- C(ini$rho_1, ini$rho_11/ini$rho_1)
+ini$g_ini <- G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1))
+
+ini <- subset(ini, !is.na(m_ini))
+ini <- cbind(ID = 1:nrow(ini),ini)
+
+
+foreach(iteration = ini$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+  
+   rho_starting <- ini[iteration, 2:6]
+ 
+  # running the ode-solver
+  runmodel <- ode(y = as.numeric(rho_starting), func = odesys_spex, times = seq(1,2), parms = parms)
+  
+  out <-as.data.frame(runmodel)[dim(runmodel)[1],]
+
+  # transfer into ouput and calculate missing rho values
+  return(out)
+  } -> output 
+
+names(output) <- c("time", "rho_1", "rho_11", "rho_10", "rho_00", "rho_0")
+
+rho <- seq(0,1,length = 100)
+
+defplot(rho, C(rho, 1), ylab = "mortality", col= "#00000020")
+lines(rho,C(rho, 0.75), col= "#00000040")
+lines(rho,C(rho, 0.5), col= "#00000080")
+lines(rho,C(rho, 0.25), col= "#00000040")
+lines(rho,C(rho, 0), col= "#00000020")
+
+lines(rho, G(rho, 1), col = "#00993320")
+lines(rho,G(rho, 0.75), col = "#00993340")
+lines(rho,G(rho, 0.5), col = "#00993380")
+lines(rho,G(rho, 0.25), col = "#00993340")
+lines(rho,G(rho, 0), col = "#00993320")
+
+arrows(ini$rho_1, C(ini$rho_1, ini$rho_11/ini$rho_1),output$rho_1, C(output$rho_1, output$rho_11/output$rho_1), length = 0.02)
+
+arrows(ini$rho_1, G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1)),output$rho_1, G(output$rho_1, (output$rho_1-output$rho_11)/(1-output$rho_1) ), length = 0.02, col = "#009933" )
+
+high_equ <- as.data.frame(ode(y = ini_rho(0.8), func = odesys_spex, times = c(1,1000), parms = parms) )[2,]
+
+points(high_equ$rho_1, C(high_equ$rho_1, high_equ$rho_11/high_equ$rho_1), pch = 20)
+
+low_equ <- as.data.frame(ode(y = ini_rho(0.0001), func = odesys_spex, times = c(1,1000), parms = parms) )[2,]
+
+points(low_equ$rho_1, C(low_equ$rho_1,low_equ$rho_11/low_equ$rho_1), pch = 20)
+
+
+}
 
 # provides parallel backend
 library(foreach)
@@ -876,45 +925,34 @@ cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.
 registerDoSNOW(cl)
 
 
-foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
-  
-  model_parms <- as.list(iterations[iteration,])
-  rho_starting <- ini_rho(iterations[iteration, "rho_ini"], iterations[iteration, "rho_11_ini"])
-  if(!any(is.na(rho_starting)) ) {
-    
-  # running the ode-solver
-  runmodel <- ode(y = rho_starting, func = odesys_spex, times = c(1,2), parms = model_parms)
-  
-  out <-as.data.frame(runmodel)[dim(runmodel)[1],]
-  }  else { 
-    out <- c(time = 100,rho_starting)  
-  }
-  # transfer into ouput and calculate missing rho values
-  return(out)
-  } -> output 
+attractor(parms)
 
-output <- cbind(output, iterations)
+```
 
 
-output$rho_11_ini <- iterations$rho_11_ini 
+```{r, echo=FALSE}
 
-G <- function(rho_1, q_01 = "auto", prms = parms) {
-  if(q_01 == "auto") q_01 <- 1
-  with(prms, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
+parms <- list(
+    m = 0.05,  # intrinsic mortality of plants 
+    r = 1,   # growth rate
+    f = 0.8, #  local facilitation
+    b = 0.25,  # environmental quality inverse of aridity
+    K = 0.9,  # carrying capacity
+    alpha = 0.1, # water runoff
+    c = 0.2, # local competition
+    a = 0.6, # search efficiency
+    v = 0.1, # attraction effect
+    h = 50, # handling time (one individual on landscape unit)
+    p = 0.8, # protection effect
+    L = 6, # livestock units per landscape unit 
+    q = 1 # search ineffiency at low cover
+  )
 
-} 
-
-C <- function(rho_1, q_01 = 1, prms = parms) with(prms, (m * rho_1) +( (a+v*q_01  ) *rho_1^(1+q)*L*(1-p*q_01))/(1+(a+v*q_01)*h*(rho_1^(1+q)) ) )
-
-rho <- seq(0,1,length = 100)
-
-arrows(output$rho_ini, C(output$rho_ini, output$rho_11_ini),output$rho_1, C(output$rho_1, output$rho_11), length = 0.05)
+attractor(parms)
 
 stopCluster(cl)
 
 ```
-
 
 ### Bifurcation diagrams
 
