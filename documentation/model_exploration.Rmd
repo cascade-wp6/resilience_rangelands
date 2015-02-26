@@ -1,0 +1,187 @@
+---
+title: "Model exploration"
+author: "Florian D. Schneider"
+date: "Tuesday, February 25th, 2014"
+output:
+  pdf_document:
+    fig_height: 3
+    fig_width: 7
+  html_document:
+    keep_md: yess
+fontsize: 12pt
+geometry: margin=1.4in
+csl: ../manuscript/amnat.csl
+bibliography: ../manuscript/cas02.bib
+---
+
+```{r, echo=FALSE}
+# ODE solving
+library("deSolve")
+
+source("../code/simfunctions.r")
+
+parallel = TRUE
+if(parallel) {
+# provides parallel backend
+library(foreach)
+library(doSNOW)
+
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+                     rscript = "/usr/lib/R/bin/Rscript",
+                     snowlib = "/usr/lib/R/library")
+
+workerlist <- c(rep("localhost", times = 10)) 
+
+cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+
+registerDoSNOW(cl)
+
+}
+
+# default parameters, global model without spatially-explicit effects
+
+parms <- list(
+    m = 0.05,
+    r = 1,
+    b = 0.9, 
+    K = 0.9, 
+    a = 0.6,
+    h = 50,
+    L = 4, 
+    alpha = 0,
+    q = 0,
+    c = 0,
+    f = 0,
+    v = 0,
+    p = 0
+  )
+
+
+```
+
+
+
+# Introduction
+
+The paper departs from a general perception of grazing systems as non-equilibrium systems that are subject to 'dynamic regimes' or 'alternative stable states'.
+This means, they can shift their attractor between a vegetated state and a degraded state, if they experience a sufficient perturbation.
+The question is how resilience thinking in managed rangelands can be improved [@folke06; @walker04; @walker12; @folke10]. How can the ecosystem be put in a state that is far from the tipping point or the critical thresholds [@may75; @westoby89; @walker81]?
+
+It aims at an integration of spatial grazing mortality into a graphical population-dynamics framework as developed by @noy-meir75 and extended by @vandekoppel97 and @rietkerk97.
+The model is of conceptual character and identifies how certain management practices or characteristics of vegetation affect the thresholds of catastrophic shifts. This kind of model can be used to inform state-and-transition models that are of high relevance in decisionmaking in the management of rangelands [@westoby89; @briske05; @bestelmeyer03; @briske08].
+
+# alternative stable states due to feedbacks
+
+Ecological systems with non-linear stability are common in nature [@carpenter03; @scheffer01; @gunderson02; @berkes03] and this has enormous impacts on how we analyse and manage those systems. 
+As early as 40 years ago, rangelands were identified as a system with non-linear stability, i.e. with alternative stable states [@noy-meir75], from graphical analysis as a simple consumer-resource system.
+
+```{r, echo=FALSE, fig.height = 6}
+colpal <- list(mort = c("#000000","#00000060","#00000040","#00000020"), grow = c("#009933","#00993360","#00993340","#00993320") )
+rho <- seq(0,1,length = 100)
+
+par(mfrow = c(2,2), bty ="n", las = 1 ) 
+defplot(rho, G(rho), ylab = "plant mortality/growth", col = colpal$grow[1])
+lines(rho, C(rho, set = list(L = 2)), col = colpal$mort[1] )
+lines(rho, C(rho, set = list(L = 5)), col = colpal$mort[1] )
+lines(rho, C(rho, set = list(L = 8)), col = colpal$mort[1] )
+
+bifurcation(parms, "L", c(0,12))
+ 
+defplot(rho, C(rho), ylab = "plant mortality/growth", col = colpal$mort[1])
+lines(rho, G(rho, set = list(b = 0.2) ), col = colpal$grow[1] )
+lines(rho, G(rho, set = list(b = 0.5)), col = colpal$grow[1] )
+lines(rho, G(rho, set = list(b = 0.8)), col = colpal$grow[1] )
+
+bifurcation(parms, "b", c(0,1))
+
+```
+
+
+
+## spatially-explicit mechanisms
+
+We now add a spatially explicit feedback to the model.
+
+### facilitation. 
+
+```{r, echo = FALSE}
+
+
+par(mfrow = c(1,2), bty ="n", las = 1 ) 
+
+parms$f = 0.9
+parms$b = 0.4
+
+attractor(parms)
+
+bifurcation(parms, "b", c(0,1))
+ 
+
+```
+
+
+
+### local competition
+
+```{r, echo = FALSE}
+
+
+par(mfrow = c(1,2), bty ="n", las = 1 ) 
+
+parms$f = 0
+parms$c = 0.3
+parms$b = 0.7
+
+attractor(parms)
+
+bifurcation(parms, "b", c(0,1))
+ 
+
+```
+
+### associational resistance
+
+```{r, echo = FALSE}
+
+
+par(mfrow = c(1,2), bty ="n", las = 1 ) 
+parms$c = 0
+parms$v = 0
+parms$L = 8
+parms$p = 0.8
+parms$b = 0.7
+
+attractor(parms)
+
+bifurcation(parms, "L", c(0,12))
+ 
+
+```
+
+
+### attractant-decoy
+
+```{r, echo = FALSE}
+
+
+par(mfrow = c(1,2), bty ="n", las = 1 ) 
+
+parms$p = 0
+parms$L = 4
+parms$q = 0.4
+parms$v = 0.9
+
+attractor(parms)
+
+
+bifurcation(parms, "L", c(0,12))
+ 
+```
+
+```{r, echo=FALSE}
+if(parallel) {
+stopCluster(cl)
+}
+```
+
+# References
