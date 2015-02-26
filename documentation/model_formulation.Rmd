@@ -63,7 +63,8 @@ defplot(rho, G(rho), ylab = "growth")
 
 In the first place the logistic growth model is phenomenological and does not provide a particular ecological explanation, why growth is decelerating to zero with increasing cover. It assumes just some form of global competition leading to a balance of gains and losses at the carrying capacity of the ecosystem. 
 
-Mechanistic explanations can be the limitations by a globally diffuse resource, like water, or the occupation of space and the subsequent limitation of photosynthetic active surface. 
+Mechanistic explanations can be the limitations by a globally diffuse resource, like water. 
+(We do not discuss the occupation of space as a global resource and the subsequent limitation of photosynthetic active surface, since this is implemented by adding explicit space to the model.) 
 
 A multitude of such global feedback processes can define the precise shape of the growth function leading to asymetrical or truncated shapes, which could importantly affect the bistability properties of the system [@noy-meir75]. He defines
 
@@ -770,7 +771,7 @@ lines(spexmodel$rho_one ~ spexmodel$time, col = "grey50")
 
 Now, we can also plot the clustering coefficient of this landscape, being 
 
-$$ c_11 = q_{1|1}/\rho_1 = \frac{\rho_11}{\rho_1^2}$$
+$$ c_{11} = q_{1|1}/\rho_1 = \frac{\rho_{11}}{\rho_1^2}$$
 
 ```{r, echo=FALSE}
 plot(I(rho_11/rho_1^2) ~ time , data = ODE_spex , type = "l", ylim = c(0,2))
@@ -791,6 +792,10 @@ $$ 0 = m_1 - m_0\rho_1+m_qah\rho_1^{1+q}-aL\rho_1^{1+q}-m_0ah\rho_1^{1+q} + (m_1
 Polynomials of second order of the form $0 =  c+ bx +ax^2$ can be solved by the quadratic formula
 
 $$x = \frac{-b\pm \sqrt{b^2-4ac} }{2a}$$
+
+**apparently this solution is wrong!! Instead, I draw  initial $rho_11$ values systematically and elimitate those that produce invalid $m_ini$** 
+
+This works quite well, but produces unequal distributions of arrows along the y-axis. 
 
 
 ```{r, echo=FALSE}
@@ -956,9 +961,9 @@ stopCluster(cl)
 
 ### Bifurcation diagrams
 
-The following shows bifurcation diagrams over an environmental gradient. 
+The following shows bifurcation diagrams over an environmental gradient, $b$, as well as over a gradient of livestock density, $L$. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height = 3}
 
 parms$b <- seq(0,1,.005) #seq(0,1,.002)+0.001
 parms$rho_ini <- c(0.9, 0.01)
@@ -983,6 +988,7 @@ cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.
 
 registerDoSNOW(cl)
 
+par(mfrow= c(1,2), bty = "n", mar = c(4,4,1,0))
 
 foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
   source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
@@ -998,16 +1004,7 @@ foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %
 
 output <- cbind(output, iterations)
 
-plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
-
-
-```
-
-
-The following shows bifurcation diagrams over a livestock density gradient. 
-
-
-```{r, echo=FALSE}
+plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1), cex = 0.5)
 
 
 parms$L <- seq(0,20,0.2) #seq(0,1,.002)+0.001
@@ -1034,9 +1031,7 @@ foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %
 
 output <- cbind(output, iterations)
 
-plot(rho_1 ~ L, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
-
-
+plot(rho_1 ~ L, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1), cex = 0.5)
 
 
 stopCluster(cl)
