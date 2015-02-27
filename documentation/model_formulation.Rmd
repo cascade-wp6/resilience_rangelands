@@ -372,7 +372,7 @@ From an individual cell perspective, the probabilities would change along with c
 
 ```{r, echo=FALSE}
 
-parms <- list(
+defparms <- list(
     m = 0.05,
     r = 1,
     b = 0.9, 
@@ -387,7 +387,7 @@ parms <- list(
     v = 0,
     p = 0
   )
-
+parms <- defparms
 par(mar = c(4,4,2,4))
 plot(rho,  with(parms,  r * b * rho * ( 1 - (rho / K)) / (1 - rho) ) , ylab = "individual growth on empty cells", type = "l", ylim = c(0,2.5), las = 1, yaxs = "i")
 
@@ -434,7 +434,7 @@ $$ w_{0,1} = \frac{r \rho_1^{1+\alpha} b (1-\frac{\rho_1}{K})}{1-\rho_1} $$
 
 ```{r, echo=FALSE}
 
-parms <- list(
+defparms <- list(
     m = 0.05,
     r = 1,
     b = 0.9, 
@@ -450,6 +450,7 @@ parms <- list(
     p = 0
     
   )
+parms <- defparms
 
 set.seed(5535732) # setting seed for random number generation
 
@@ -494,19 +495,14 @@ with the effect of aridity, $a_0$ in absence of local vegetation being increased
 
 ```{r, echo=FALSE}
 
-G <- function(V, q_01 = "auto", r_0 = 1, b = 0.1, f = 0, alpha = 0,  K = 0.9, c = 0) {
-  if(q_01 == "auto") q_01 <- 1
-  r_0*(b + (1-b)*f*q_01)*V^(1+alpha)*(1-V/(K * (1-c * q_01) ) )
 
-} 
+defplot(rho, G(rho, 1, set = list( f = 0.8)), ylab = "growth", col = "green3")
+lines(rho,G(rho, 0.75, set = list( f = 0.8)), col = "green3")
+lines(rho,G(rho, 0.5, set = list( f = 0.8)), col = "green3")
+lines(rho,G(rho, 0.25, set = list( f = 0.8)), col = "green3")
+lines(rho,G(rho, 0, set = list( f = 0.8)), col = "green3")
 
-defplot(rho, G(rho, 1, f = 0.8), ylab = "growth", col = "green3")
-lines(rho,G(rho, 0.75, f = 0.8), col = "green3")
-lines(rho,G(rho, 0.5, f = 0.8), col = "green3")
-lines(rho,G(rho, 0.25, f = 0.8), col = "green3")
-lines(rho,G(rho, 0, f = 0.8), col = "green3")
-
-lines(rho, C(rho, L = 10))
+lines(rho, C(rho, set = list( L = 10)))
 
 
 ```
@@ -522,13 +518,13 @@ That is, if a cell has a fully vegetated local neighborhood, it's carrying capac
 
 ```{r, echo=FALSE}
 
-defplot(rho, G(rho, 1, c = 0.3, b = 0.9), ylab = "growth", col = "green3")
-lines(rho,G(rho, 0.75, c = 0.3, b = 0.9), col = "green3")
-lines(rho,G(rho, 0.5, c = 0.3, b = 0.9), col = "green3")
-lines(rho,G(rho, 0.25, c = 0.3, b = 0.9), col = "green3")
-lines(rho,G(rho, 0, c = 0.3, b = 0.9), col = "green3")
+defplot(rho, G(rho, 1, set= list(c = 0.3, b = 0.9)), ylab = "growth", col = "green3")
+lines(rho,G(rho, 0.75, set= list( c = 0.3, b = 0.9)), col = "green3")
+lines(rho,G(rho, 0.5, set= list( c = 0.3, b = 0.9)), col = "green3")
+lines(rho,G(rho, 0.25, set= list(c = 0.3, b = 0.9)), col = "green3")
+lines(rho,G(rho, 0, set= list( c = 0.3, b = 0.9)), col = "green3")
 
-lines(rho, C(rho, L = 10))
+lines(rho, C(rho, set= list( L = 10)))
 
 ```
 
@@ -548,16 +544,14 @@ Thus, at low local cover feeding will be high on plants with neighbors, whereas 
 
 ```{r, echo=FALSE}
 
-C <- function(V, q_01 = 1, m_0 = 0.05, L = 5, a = 0.1, h = 100, q = 0, p = 0, v = 0) (m_0 * V) +( (a+v*q_01  ) *V^(1+q)*L*(1-p*q_01))/(1+(a+v*q_01)*h*(V^(1+q)) ) 
 
+defplot(rho, C(rho, 1, set = list( v = 0.5)), ylab = "mortality")
+lines(rho,C(rho, 0.75, set = list( v = 0.5)))
+lines(rho,C(rho, 0.5, set = list( v = 0.5)))
+lines(rho,C(rho, 0.25, set = list( v = 0.5)))
+lines(rho,C(rho, 0, set = list( v = 0.5)))
 
-defplot(rho, C(rho, 1, v = 0.5), ylab = "mortality")
-lines(rho,C(rho, 0.75, v = 0.5))
-lines(rho,C(rho, 0.5, v = 0.5))
-lines(rho,C(rho, 0.25, v = 0.5))
-lines(rho,C(rho, 0, v = 0.5))
-
-lines(rho, G(rho, b = 0.6), col = "green3")
+lines(rho, G(rho, set = list( b = 0.6)), col = "green3")
 
 ```
 
@@ -576,13 +570,13 @@ $$ L = L^* (1 - p  q_{1|1}) $$
 
 ```{r, echo=FALSE}
 
-defplot(rho, C(rho, 1, p = 0.8, L = 10), ylab = "mortality")
-lines(rho,C(rho, 0.75, p = 0.8, L = 10))
-lines(rho,C(rho, 0.5, p = 0.8, L = 10))
-lines(rho,C(rho, 0.25, p = 0.8, L = 10))
-lines(rho,C(rho, 0, p = 0.8, L = 10))
+defplot(rho, C(rho, 1, set= list(p = 0.8, L = 10)), ylab = "mortality")
+lines(rho,C(rho, 0.75, set= list(p = 0.8, L = 10)))
+lines(rho,C(rho, 0.5, set= list(p = 0.8, L = 10)))
+lines(rho,C(rho, 0.25, set= list(p = 0.8, L = 10)))
+lines(rho,C(rho, 0, set= list(p = 0.8, L = 10)))
 
-lines(rho, G(rho, b = 0.6), col = "green3")
+lines(rho, G(rho, set= list(b = 0.6)), col = "green3")
 
 ```
 
@@ -592,17 +586,17 @@ If those effects coincide, potentially even with the global feedbacks, the inter
 
 ```{r, echo=FALSE}
 
-defplot(rho, C(rho, 1, p = 0.8, v = 0.6, L = 10, q = .5), ylab = "mortality")
-lines(rho,C(rho, 0.75, p = 0.8, v = 0.6, L = 10, q = .5))
-lines(rho,C(rho, 0.5, p = 0.8,v = 0.6,  L = 10, q = .5))
-lines(rho,C(rho, 0.25, p = 0.8,v = 0.6,  L = 10, q = .5))
-lines(rho,C(rho, 0, p = 0.8,v = 0.6,  L = 10, q = .5))
+defplot(rho, C(rho, 1, set = list( p = 0.8, v = 0.6, L = 10, q = .5)), ylab = "mortality")
+lines(rho,C(rho, 0.75, set = list( p = 0.8, v = 0.6, L = 10, q = .5)))
+lines(rho,C(rho, 0.5, set = list( p = 0.8,v = 0.6,  L = 10, q = .5)))
+lines(rho,C(rho, 0.25, set = list( p = 0.8,v = 0.6,  L = 10, q = .5)))
+lines(rho,C(rho, 0, set = list( p = 0.8,v = 0.6,  L = 10, q = .5)))
 
-lines(rho, G(rho, 1, c = 0.3, f = 0.9, b = 0.3, alpha = 0.5), col = "green3")
-lines(rho,G(rho, 0.75, c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5), col = "green3")
-lines(rho,G(rho, 0.5, c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5), col = "green3")
-lines(rho,G(rho, 0.25, c = 0.3, f = 0.9, b = 0.3, alpha = 0.5), col = "green3")
-lines(rho,G(rho, 0, c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5), col = "green3")
+lines(rho, G(rho, 1, set = list(c = 0.3, f = 0.9, b = 0.3, alpha = 0.5)), col = "green3")
+lines(rho,G(rho, 0.75, set = list( c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5)), col = "green3")
+lines(rho,G(rho, 0.5, set = list(c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5)), col = "green3")
+lines(rho,G(rho, 0.25, set = list( c = 0.3, f = 0.9, b = 0.3, alpha = 0.5)), col = "green3")
+lines(rho,G(rho, 0, set = list(c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5)), col = "green3")
 
 
 ```
@@ -662,6 +656,44 @@ animateCA(spexmodel, "ca_spexmodel.gif")
 ![](ca_nullmodel.gif)
 
 ```
+
+### mean field model
+
+As a simple approximation of the model serves a mean field model, assuming that the conditional local vegetation cover of empty cells $q_{0|1}$ and of vegetated cells $q_{1|1}$ both are well represented by the global vegetation cover $\rho_q$. Of course $\rho_0 = 1-\rho_1$.
+The change in cover derives from the growth and mortality terms
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}w_{0,1} - \rho_{1}w_{1,0}   $$
+
+Thus, we can substitute $w_{1,0}$ and $w_{0,1}$ and obtain
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
+
+Plotting the meanfield growth and mortality over vegetation cover is straigthforward now. 
+
+$$ G = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) $$
+
+$$ C = \rho_{1}m + \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}$$
+
+The steady states can be simulated by solving the ODE. 
+
+```{r, echo=FALSE}
+
+parms <- defparms
+parms$f = 0.9
+parms$b = 0.4
+parms$L = 5
+
+attractor(parms, pairapprox = FALSE, localvals = TRUE)
+
+```
+
+But the steady state also can be solved analytically.
+
+Therefore, we solve for the equilibrium case
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = 0 $$
+
+$$  0 = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
 
 
 
@@ -799,121 +831,6 @@ This works quite well, but produces unequal distributions of arrows along the y-
 
 
 ```{r, echo=FALSE}
-
-
-ini_rho <- function(rho_1, rho_11 = NULL) {
-    if(is.null(rho_11)) out <- {
-      c(
-    rho_1 = rho_1,
-    rho_11 = rho_1*rho_1,
-    rho_10 = rho_1*(1-rho_1)*2,
-    rho_00 = (1-rho_1)*(1-rho_1),
-    rho_0 = 1-rho_1
-    ) 
-    } else {
-      out <- c(
-    rho_1 = rho_1,
-    rho_11 = rho_11,
-    rho_10 = rho_1-rho_11,
-    rho_00 = 1-2*rho_1+rho_11,
-    rho_0 = 1-rho_1
-    )
-    if(any(out < 0)) out <- c(
-    rho_1 = NA,
-    rho_11 = NA,
-    rho_10 = NA,
-    rho_00 = NA,
-    rho_0 = NA
-    )
-    }
-    
-  return(out)
-}
-  
-
-G <- function(rho_1, q_01 = "auto", prms = parms) {
-  if(q_01 == "auto") q_01 <- 1
-  with(prms, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
-
-} 
-
-C <- function(rho_1, q_11 = 1, prms = parms) with(prms, (m * rho_1) +( (a+v*q_11  ) *rho_1^(1+q)*L*(1-p*q_11))/(1+(a+v*q_11)*h*(rho_1^(1+q)) ) )
-
-
-
-attractor <- function(parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini = seq(0,1, length = 11)) {
-  
-ini <- list(
-  rho_1 = rho_1_ini,
-  rho_11 = rho_11_ini,
-  rho_10 = NA,
-  rho_00 = NA,
-  rho_0 = NA
-  )
-
-ini <- expand.grid(ini)
-
-for(x in 1:nrow(ini)) {
-      temp <- ini_rho(ini[x,]$rho_1, ini[x,]$rho_11)
-      ini[x,]$rho_1 <- temp[1]
-      ini[x,]$rho_11 <- temp[2]
-      ini[x,]$rho_10 <- temp[3]
-      ini[x,]$rho_00 <- temp[4]
-      ini[x,]$rho_0 <- temp[5]
-      } 
-
-
-ini$m_ini <- C(ini$rho_1, ini$rho_11/ini$rho_1)
-ini$g_ini <- G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1))
-
-ini <- subset(ini, !is.na(m_ini))
-ini <- cbind(ID = 1:nrow(ini),ini)
-
-
-foreach(iteration = ini$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
-  
-   rho_starting <- ini[iteration, 2:6]
- 
-  # running the ode-solver
-  runmodel <- ode(y = as.numeric(rho_starting), func = odesys_spex, times = seq(1,2), parms = parms)
-  
-  out <-as.data.frame(runmodel)[dim(runmodel)[1],]
-
-  # transfer into ouput and calculate missing rho values
-  return(out)
-  } -> output 
-
-names(output) <- c("time", "rho_1", "rho_11", "rho_10", "rho_00", "rho_0")
-
-rho <- seq(0,1,length = 100)
-
-defplot(rho, C(rho, 1), ylab = "mortality", col= "#00000020")
-lines(rho,C(rho, 0.75), col= "#00000040")
-lines(rho,C(rho, 0.5), col= "#00000080")
-lines(rho,C(rho, 0.25), col= "#00000040")
-lines(rho,C(rho, 0), col= "#00000020")
-
-lines(rho, G(rho, 1), col = "#00993320")
-lines(rho,G(rho, 0.75), col = "#00993340")
-lines(rho,G(rho, 0.5), col = "#00993380")
-lines(rho,G(rho, 0.25), col = "#00993340")
-lines(rho,G(rho, 0), col = "#00993320")
-
-arrows(ini$rho_1, C(ini$rho_1, ini$rho_11/ini$rho_1),output$rho_1, C(output$rho_1, output$rho_11/output$rho_1), length = 0.02)
-
-arrows(ini$rho_1, G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1)),output$rho_1, G(output$rho_1, (output$rho_1-output$rho_11)/(1-output$rho_1) ), length = 0.02, col = "#009933" )
-
-high_equ <- as.data.frame(ode(y = ini_rho(0.8), func = odesys_spex, times = c(1,1000), parms = parms) )[2,]
-
-points(high_equ$rho_1, C(high_equ$rho_1, high_equ$rho_11/high_equ$rho_1), pch = 20)
-
-low_equ <- as.data.frame(ode(y = ini_rho(0.0001), func = odesys_spex, times = c(1,1000), parms = parms) )[2,]
-
-points(low_equ$rho_1, C(low_equ$rho_1,low_equ$rho_11/low_equ$rho_1), pch = 20)
-
-
-}
 
 # provides parallel backend
 library(foreach)
