@@ -355,6 +355,35 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
 
 
 
+### Ordinary differential equations
+
+## global model
+
+d_rho <- function(rho, parms, z = 4) { 
+  with(parms, r* b* rho * (1 - rho/K) - m * rho - (a * rho * L)/(1 + a * h * rho) )  
+}
+
+
+odesys <- function (t, rho, parms = model_parms) {
+  list( d_rho(rho, parms)  )
+}
+
+## mean-field
+
+
+d_rho_mean <- function(rho, parms) { 
+  with(parms, r *  rho^( 1 + alpha) * (b + (1-b) * f * rho)  * (1 - rho/(K * (1-c*rho) ) )  -  m * rho - ((a+v*rho) * rho^( 1 + q) * L * (1-p*rho))/(1 + (a+v*rho) * h * rho^( 1 + q)) )  
+}
+
+
+odesys_mean <- function (t, rho, parms) {
+  list( d_rho_mean(rho, parms )  )
+}
+
+
+## pair-approximation
+
+
 d_rho_1 <- function(rho, parms) { 
   with(parms,
        r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
@@ -410,21 +439,21 @@ ini_rho <- function(rho_1, rho_11 = NULL) {
 # function for local growth
 # takes global cover, rho_1 and local cover, q_01, as parameters, plus a list object with model parameters. 
 
-G <- function(rho_1, q_01 = "auto", prms = parms, set = list(NA)) {
+G <- function(rho_1, q_01 = "auto", parms = defparms, set = list(NA)) {
   
   if(q_01[1] == "auto") q_01 <- 1
   
   
-  prms.names <- names(prms)
+  parms.names <- names(parms)
   set.names <- names(set)
-  m.names <- sort(unique(c(prms.names, set.names)))
+  m.names <- sort(unique(c(parms.names, set.names)))
   
-  prms_temp <- sapply(m.names, function(i) {
+  parms_temp <- sapply(m.names, function(i) {
     if (i %in% set.names) set[[i]]
-    else prms[[i]]
+    else parms[[i]]
   }, simplify = FALSE)
   
-  with(prms_temp, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
+  with(parms_temp, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
   
 } 
 
@@ -432,20 +461,24 @@ G <- function(rho_1, q_01 = "auto", prms = parms, set = list(NA)) {
 # function for local grazing mortality
 # takes global cover, rho_1 and local cover, q_11, as parameters, plus a list object with model parameters. 
 
-C <- function(rho_1, q_11 = 1, prms = parms, set = list(NA)) {
+C <- function(rho_1, q_11 = 1, parms = defparms, set = list(NA)) {
   
-  prms.names <- names(prms)
+  parms.names <- names(parms)
   set.names <- names(set)
-  m.names <- sort(unique(c(prms.names, set.names)))
+  m.names <- sort(unique(c(parms.names, set.names)))
   
-  prms_temp <- sapply(m.names, function(i) {
+  parms_temp <- sapply(m.names, function(i) {
     if (i %in% set.names) set[[i]]
-    else prms[[i]]
+    else parms[[i]]
   }, simplify = FALSE)
   
-  with(prms_temp, (m * rho_1) +( (a+v*q_11  ) *rho_1^(1+q)*L*(1-p*q_11))/(1+(a+v*q_11)*h*(rho_1^(1+q)) ) )
+  with(parms_temp, (m * rho_1) +( (a+v*q_11  ) *rho_1^(1+q)*L*(1-p*q_11))/(1+(a+v*q_11)*h*(rho_1^(1+q)) ) )
 
 }
+
+
+colpal <- list(mort = c("#000000","#00000040","#00000030","#00000020"), grow = c("#009933","#00993340","#00993330","#00993320") )
+
 
 # default plot for graphs over G or C
 
@@ -461,78 +494,114 @@ defplot <- function(...) plot(...,
 
 # graphical visualisation of attractor
 # simulates trajectories for many differently clustered starting conditions. 
-# requires parallel backend
+# running pairapprox = TRUE requires parallel backend
 
-attractor <- function(parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini = seq(0,1, length = 11)) {
+attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini = seq(0,1, length = 11), meanfield = TRUE, pairapprox = TRUE, localvals = FALSE) {
   
-  ini <- list(
-    rho_1 = rho_1_ini,
-    rho_11 = rho_11_ini,
-    rho_10 = NA,
-    rho_00 = NA,
-    rho_0 = NA
-  )
-  
-  ini <- expand.grid(ini)
-  
-  for(x in 1:nrow(ini)) {
-    temp <- ini_rho(ini[x,]$rho_1, ini[x,]$rho_11)
-    ini[x,]$rho_1 <- temp[1]
-    ini[x,]$rho_11 <- temp[2]
-    ini[x,]$rho_10 <- temp[3]
-    ini[x,]$rho_00 <- temp[4]
-    ini[x,]$rho_0 <- temp[5]
-  } 
-  
-  
-  ini$m_ini <- C(ini$rho_1, ini$rho_11/ini$rho_1)
-  ini$g_ini <- G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1))
-  
-  ini <- subset(ini, !is.na(m_ini))
-  ini <- cbind(ID = 1:nrow(ini),ini)
-  
-  
-  foreach(iteration = ini$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-    source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
-    
-    rho_starting <- ini[iteration, 2:6]
-    
-    # running the ode-solver
-    runmodel <- ode(y = as.numeric(rho_starting), func = odesys_spex, times = seq(1,2), parms = parms)
-    
-    out <-as.data.frame(runmodel)[dim(runmodel)[1],]
-    
-    # transfer into ouput and calculate missing rho values
-    return(out)
-  } -> output 
-  
-  names(output) <- c("time", "rho_1", "rho_11", "rho_10", "rho_00", "rho_0")
-  
+  defplot(NA,NA, ylab = "plant mortality/growth")
   rho <- seq(0,1,length = 100)
   
-  defplot(rho, C(rho, 1), ylab = "mortality", col= "#00000020")
-  lines(rho,C(rho, 0.75), col= "#00000040")
-  lines(rho,C(rho, 0.5), col= "#00000080")
-  lines(rho,C(rho, 0.25), col= "#00000040")
-  lines(rho,C(rho, 0), col= "#00000020")
+  if(meanfield) {
+    
+    lines(rho,C(rho, rho, model_parms), col = colpal$mort[1], lwd = 2)
+    lines(rho,G(rho, rho, model_parms), col = colpal$grow[1], lwd = 2)
+    
+    
+    # running the ode-solver to get steady states  
+    ODEmeanfield_hi <-as.data.frame(ode(y = 0.9, func = odesys_mean, times = c(1,10000), parms = model_parms))
+    
+    points(ODEmeanfield_hi[2,2], C(ODEmeanfield_hi[2,2],ODEmeanfield_hi[2,2], model_parms),  pch = 20)
+    
+    ODEmeanfield_lo <-as.data.frame(ode(y = 0.0001, func = odesys_mean, times = c(1,10000), parms = model_parms))
+    
+    points(ODEmeanfield_lo[2,2], C(ODEmeanfield_lo[2,2],ODEmeanfield_lo[2,2], model_parms),  pch = 20, xpd = TRUE)
+    
+    
+    
+    
+  }
   
-  lines(rho, G(rho, 1), col = "#00993320")
-  lines(rho,G(rho, 0.75), col = "#00993340")
-  lines(rho,G(rho, 0.5), col = "#00993380")
-  lines(rho,G(rho, 0.25), col = "#00993340")
-  lines(rho,G(rho, 0), col = "#00993320")
+  if(pairapprox) {
+    
+    ini <- list(
+      rho_1 = rho_1_ini,
+      rho_11 = rho_11_ini,
+      rho_10 = NA,
+      rho_00 = NA,
+      rho_0 = NA
+    )
+    
+    ini <- expand.grid(ini)
+    
+    for(x in 1:nrow(ini)) {
+      temp <- ini_rho(ini[x,]$rho_1, ini[x,]$rho_11)
+      ini[x,]$rho_1 <- temp[1]
+      ini[x,]$rho_11 <- temp[2]
+      ini[x,]$rho_10 <- temp[3]
+      ini[x,]$rho_00 <- temp[4]
+      ini[x,]$rho_0 <- temp[5]
+    } 
+    
+    
+    ini$m_ini <- C(ini$rho_1, ini$rho_11/ini$rho_1, model_parms)
+    ini$g_ini <- G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1), model_parms)
+    
+    ini <- subset(ini, !is.na(m_ini))
+    ini <- cbind(ID = 1:nrow(ini),ini)
+    
+    
+    foreach(iteration = ini$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+      source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      
+      rho_starting <- ini[iteration, 2:6]
+      
+      # running the ode-solver
+      runmodel <- ode(y = as.numeric(rho_starting), func = odesys_spex, times = seq(1,2), parms = model_parms)
+      
+      out <-as.data.frame(runmodel)[dim(runmodel)[1],]
+      
+      # transfer into ouput and calculate missing rho values
+      return(out)
+    } -> output 
+    
+    names(output) <- c("time", "rho_1", "rho_11", "rho_10", "rho_00", "rho_0")
+    
+    steady <- ini$rho_1 == output$rho_1
+    ini <- ini[!steady,]
+    output <- output[!steady,]
+    
+    arrows(ini$rho_1, C(ini$rho_1, ini$rho_11/ini$rho_1, model_parms),output$rho_1, C(output$rho_1, output$rho_11/output$rho_1, model_parms), length = 0.02)
+    
+    arrows(ini$rho_1, G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1), model_parms),output$rho_1, G(output$rho_1, (output$rho_1-output$rho_11)/(1-output$rho_1) , model_parms), length = 0.02, col = "#009933" )
+    
+    ## plot steady states
+    
+    high_equ <- as.data.frame(ode(y = ini_rho(0.8), func = odesys_spex, times = c(1,1000), parms = model_parms) )[2,]
+    
+    points(high_equ$rho_1, C(high_equ$rho_1, high_equ$rho_11/high_equ$rho_1, model_parms), pch = 20, xpd = TRUE)
+    
+    low_equ <- as.data.frame(ode(y = ini_rho(0.0001), func = odesys_spex, times = c(1,1000), parms = model_parms) )[2,]
+    
+    points(low_equ$rho_1, C(low_equ$rho_1,low_equ$rho_11/low_equ$rho_1, model_parms), pch = 20, xpd = TRUE)
+    
+  }
   
-  arrows(ini$rho_1, C(ini$rho_1, ini$rho_11/ini$rho_1),output$rho_1, C(output$rho_1, output$rho_11/output$rho_1), length = 0.02)
-  
-  arrows(ini$rho_1, G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1)),output$rho_1, G(output$rho_1, (output$rho_1-output$rho_11)/(1-output$rho_1) ), length = 0.02, col = "#009933" )
-  
-  high_equ <- as.data.frame(ode(y = ini_rho(0.8), func = odesys_spex, times = c(1,1000), parms = parms) )[2,]
-  
-  points(high_equ$rho_1, C(high_equ$rho_1, high_equ$rho_11/high_equ$rho_1), pch = 20)
-  
-  low_equ <- as.data.frame(ode(y = ini_rho(0.0001), func = odesys_spex, times = c(1,1000), parms = parms) )[2,]
-  
-  points(low_equ$rho_1, C(low_equ$rho_1,low_equ$rho_11/low_equ$rho_1), pch = 20)
+  if(localvals) {
+    
+ 
+    lines(rho,C(rho, 1, model_parms), col= colpal$mort[3])
+    lines(rho,C(rho, 0.75, model_parms), col= colpal$mort[3])
+    lines(rho,C(rho, 0.5, model_parms), col= colpal$mort[2])
+    lines(rho,C(rho, 0.25, model_parms), col= colpal$mort[3])
+    lines(rho,C(rho, 0, model_parms), col= colpal$mort[4])
+    
+    lines(rho, G(rho, 1, model_parms), col = colpal$grow[4])
+    lines(rho,G(rho, 0.75, model_parms), col = colpal$grow[3])
+    lines(rho,G(rho, 0.5, model_parms), col = colpal$grow[2])
+    lines(rho,G(rho, 0.25, model_parms), col = colpal$grow[3])
+    lines(rho,G(rho, 0, model_parms), col = colpal$grow[4])
+    
+  }
   
   
 }
