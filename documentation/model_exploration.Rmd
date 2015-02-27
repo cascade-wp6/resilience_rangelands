@@ -6,8 +6,6 @@ output:
   pdf_document:
     fig_height: 3
     fig_width: 7
-  html_document:
-    keep_md: yess
 fontsize: 12pt
 geometry: margin=1.4in
 csl: ../manuscript/amnat.csl
@@ -40,10 +38,10 @@ registerDoSNOW(cl)
 
 # default parameters, global model without spatially-explicit effects
 
-parms <- list(
+defparms <- list(
     m = 0.05,
     r = 1,
-    b = 0.9, 
+    b = 0.7, 
     K = 0.9, 
     a = 0.6,
     h = 50,
@@ -76,8 +74,9 @@ Ecological systems with non-linear stability are common in nature [@carpenter03;
 As early as 40 years ago, rangelands were identified as a system with non-linear stability, i.e. with alternative stable states [@noy-meir75], from graphical analysis as a simple consumer-resource system.
 
 ```{r, echo=FALSE, fig.height = 6}
-colpal <- list(mort = c("#000000","#00000060","#00000040","#00000020"), grow = c("#009933","#00993360","#00993340","#00993320") )
+colpal <- list(mort = c("#000000","#00000040","#00000030","#00000020"), grow = c("#009933","#00993340","#00993330","#00993320") )
 rho <- seq(0,1,length = 100)
+parms <- defparms
 
 par(mfrow = c(2,2), bty ="n", las = 1 ) 
 defplot(rho, G(rho), ylab = "plant mortality/growth", col = colpal$grow[1])
@@ -96,19 +95,43 @@ bifurcation(parms, "b", c(0,1))
 
 ```
 
-
+The model is neutral in terms of species and assumes only one relevant type of vegetation and one population of grazer. Noy-meir notes that the model can apply also if there is one plant species that dominates the ecological dynamics of the entire system. [@noy-meir75]
+We stick to this approach of neglecting species-specific differences. 
 
 ## spatially-explicit mechanisms
 
-We now add a spatially explicit feedback to the model.
+The spatial extend at which ecological feedback mechanisms act often differ between small local scales and the entire landscape. Previous models have shown that feedbacks acting simultaneously but on different spatial scales emerge and alter the stability properties of the ecosystem [@kefi07a]. Therefore, we are going to implement different kinds of local feedback, complementary to the global feedbacks described above, into the model framework. 
 
-### facilitation. 
+The graphical approach pursued by @noy-meir75 and @vandekoppel97 is limited by it's dimensionality. The functions of vegetation growth and mortality are well defined by only one parameter, vegetation cover. Especially in arid and semi-arid ecosystems vegetation cover turned out to be insufficient to describe the state of the ecosystem. 
+
+
+
+```{r, echo=FALSE}
+
+par(mfrow = c(1,2), bty ="n", las = 1 ) 
+
+p1 <- defparms
+p1$f = 0.9
+p1$b = 0.4
+
+attractor(p1, pairapprox = FALSE, localvals = TRUE)
+
+attractor(p1)
+
+```
+
+
+
+### facilitation
+
+The mechanism of facilitation, i.e. the positive effect of one individual or species onto another, is well described in terms of species interaction networks [@bruno09; @kefi12]. Such mechanisms can be species-pair specific but they also play a general abiotic role as the cause of local amelioration of the environmental conditions of the neighborhood of a 'nurse' plant. 
+
 
 ```{r, echo = FALSE}
 
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
-
+parms <- defparms
 parms$f = 0.9
 parms$b = 0.4
 
@@ -127,10 +150,9 @@ bifurcation(parms, "b", c(0,1))
 
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
+parms <- defparms
 
-parms$f = 0
 parms$c = 0.3
-parms$b = 0.7
 
 attractor(parms)
 
@@ -145,11 +167,10 @@ bifurcation(parms, "b", c(0,1))
 
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
-parms$c = 0
-parms$v = 0
+parms <- defparms
+
 parms$L = 8
 parms$p = 0.8
-parms$b = 0.7
 
 attractor(parms)
 
@@ -166,17 +187,21 @@ bifurcation(parms, "L", c(0,12))
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
 
-parms$p = 0
-parms$L = 4
-parms$q = 0.4
+parms <- defparms
+
+parms$L = 6
+parms$q = 0
 parms$v = 0.9
 
 attractor(parms)
 
-
 bifurcation(parms, "L", c(0,12))
  
 ```
+
+
+## 
+
 
 ```{r, echo=FALSE}
 if(parallel) {
