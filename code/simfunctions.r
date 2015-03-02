@@ -310,7 +310,7 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
     # 3 - setting transition probabilities
     growth <- with(parms_temp, (r * (b + (1-b)*f*q_one_one) * rho_one^(1 + alpha) * ( 1 - (rho_one / (K * (1-c*q_one_one) ))) / (1 - rho_one))  *delta)  # recolonisation rates of all cells 
     
-    death <- with(parms_temp, (m + ( (a + v*q_one_one) * L * (1-p*q_one_one) * rho_one^(q) )/( 1 + (a + v*q_one_one) * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
+    death <- with(parms_temp, (m + ( (a + v*q_one_one) * L  * rho_one^(q + p*q_one_one) )/( 1 + (a + v*q_one_one) * h * rho_one^(1+q + p*q_one_one) )) *delta)   # set probability of death for each cell
     
     # check for sum of probabilities to be inferior 1 and superior 0
     if(any(c(growth, death) > 1 )) warning(paste("a set probability is exceeding 1 in time step", i, "! decrease delta!!!")) 
@@ -372,7 +372,7 @@ odesys <- function (t, rho, parms = model_parms) {
 
 
 d_rho_mean <- function(rho, parms) { 
-  with(parms, r *  rho^( 1 + alpha) * (b + (1-b) * f * rho)  * (1 - rho/(K * (1-c*rho) ) )  -  m * rho - ((a+v*rho) * rho^( 1 + q) * L * (1-p*rho))/(1 + (a+v*rho) * h * rho^( 1 + q)) )  
+  with(parms, r *  rho^( 1 + alpha) * (b + (1-b) * f * rho)  * (1 - rho/(K * (1-c*rho) ) )  -  m * rho - ((a+v*rho) * rho^( 1 + q + p*rho) * L )/(1 + (a+v*rho) * h * rho^( 1 + q + p*rho)) )  
 }
 
 
@@ -386,13 +386,13 @@ odesys_mean <- function (t, rho, parms) {
 
 d_rho_1 <- function(rho, parms) { 
   with(parms,
-       r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
+       r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q  + p * rho[2]/rho[1]) * L)/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q  + p * rho[2]/rho[1])) 
   )  
 }
 
 d_rho_11 <- function(rho,  parms) { 
   with(parms,
-       2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
+       2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q + p * rho[2]/rho[1]) * L )/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q + p * rho[2]/rho[1])) 
   )  
 }
 
@@ -472,7 +472,7 @@ C <- function(rho_1, q_11 = 1, parms = defparms, set = list(NA)) {
     else parms[[i]]
   }, simplify = FALSE)
   
-  with(parms_temp, (m * rho_1) +( (a+v*q_11  ) *rho_1^(1+q)*L*(1-p*q_11))/(1+(a+v*q_11)*h*(rho_1^(1+q)) ) )
+  with(parms_temp, (m * rho_1) +( (a+v*q_11  ) *rho_1^(1+q+ p*q_11)*L)/(1+(a+v*q_11)*h*(rho_1^(1+q+ p*q_11)) ) )
 
 }
 
