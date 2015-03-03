@@ -507,17 +507,29 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
     lines(rho,G(rho, rho, model_parms), col = colpal$grow[1], lwd = 2)
     
     
-    # running the ode-solver to get steady states  
-    ODEmeanfield_hi <-as.data.frame(ode(y = 0.9, func = odesys_mean, times = c(1,10000), parms = model_parms))
+    runmodel_high <- as.data.frame(ode(y = 0.99, func = odesys_mean, times = c(1,1000), parms = model_parms))
     
-    points(ODEmeanfield_hi[2,2], C(ODEmeanfield_hi[2,2],ODEmeanfield_hi[2,2], model_parms),  pch = 20)
+    points(runmodel_high[2,2],G(runmodel_high[2,2], runmodel_high[2,2], model_parms), xpd = TRUE, pch = 20, cex = 2)
     
-    ODEmeanfield_lo <-as.data.frame(ode(y = 0.0001, func = odesys_mean, times = c(1,10000), parms = model_parms))
+    runmodel_low <- as.data.frame(ode(y = 0.0001, func = odesys_mean, times = c(1,1000), parms = model_parms))
     
-    points(ODEmeanfield_lo[2,2], C(ODEmeanfield_lo[2,2],ODEmeanfield_lo[2,2], model_parms),  pch = 20, xpd = TRUE)
+    points(runmodel_low[2,2],G(runmodel_low[2,2],runmodel_low[2,2],model_parms), xpd = TRUE, pch = 20, cex = 2)
+    
+    lo <- runmodel_low[2,2]
+    hi <- runmodel_high[2,2]
+    
+    for(i in 1:10) {
+      
+      mid <- (lo+hi)/2 
+      runmodel_mid <- as.data.frame(ode(mid, func = odesys_mean, times = c(1,1.01), parms = model_parms))
+      
+      if(runmodel_mid[2,2] > mid) { hi <- mid } else { lo <- mid}
+      
+    }
     
     
-    
+    points(mid,G(mid,mid,model_parms), xpd = TRUE, pch = 21, cex = 1.5, bg = "white")
+        
     
   }
   
@@ -607,7 +619,7 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
 }
 
 
-bifurcation <- function(parms, over, xrange, res = 201, times = c(1,1000), ini = c(0.99, 0.0001)  ) {
+bifurcation <- function(parms, over, xrange, res = 201, times = c(1,1000), ini = c(0.99, 0.0001) , meanfield = TRUE, pairapprox = FALSE, numerical = FALSE ) {
   
   require(foreach)
   
