@@ -14,30 +14,47 @@ csl: ../manuscript/amnat.csl
 bibliography: ../manuscript/cas02.bib
 ---
 
+```{r, echo=FALSE}
+
+# provides parallel backend
+library(foreach)
+library(doSNOW)
+
+workstation <-  list(host = "162.38.184.118", user = "schneider",
+                     rscript = "/usr/lib/R/bin/Rscript",
+                     snowlib = "/usr/lib/R/library")
+
+workerlist <- c(rep("localhost", times = 10)) 
+
+cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+
+registerDoSNOW(cl)
+
+
+
+# default plot for graphs over G or C
+
+defplot <- function(...) plot(..., 
+                              type = "l", 
+                              bty = "l", cex = 0.7, las = 1,
+                              xlim = c(0,1), ylim = c(0,0.25), 
+                              xaxs = "i", yaxs = "i", 
+                              xaxp = c(0,1,2), yaxp = c(0,0.25,2), 
+                              xlab = "vegetation cover") 
+
+
+```
+
+
 This document is supposed to develop a model representation of the global mean field as well as pair-approximations of local feed back mechanisms. 
 
-The default form of the differential equation describing vegetation cover is 
+As our starting point for model development, the default form of the differential equation describing the change of vegetation cover, $\rho$, is 
 
-$$ \frac{dV}{dt} = G(V) - C(V)L $$
+$$ \frac{d\rho}{dt} = G(\rho) - C(\rho)L $$
 
 with growth function $G$ and a function $C$ which represents consumption by a herbivore multiplied by the density of herbivores, the livestock rate, $L$. Formally, intrinsic mortality could be included in both terms. In the formulations of @noy-meir75 and @vandekoppel97 it is assumed to be covered by the logistic growth function.
 
 It might become important in the pair-approximation model, where intrinsic plant mortality is included as a proportional loss of mature plants.
-
-```{r, echo=FALSE}
-# Default plotting function
-
-defplot <- function(...) plot(..., 
-            type = "l", 
-            bty = "l", cex = 0.7, las = 1,
-            xlim = c(0,1), ylim = c(0,0.25), 
-            xaxs = "i", yaxs = "i", 
-            xaxp = c(0,1,2), yaxp = c(0,0.25,2), 
-            xlab = "vegetation cover") 
-
-rho <- seq(0,1,length = 100)
-
-```
 
 ## non-spatial models
 
@@ -45,13 +62,15 @@ rho <- seq(0,1,length = 100)
 
 If assuming phenomenological logistic growth, the gain in vegetation as a function of present vegetation cover is 
 
-$$ G(V) = rV(1-\frac{V}{K}) \,,$$
+$$ G(\rho) = r\rho(1-\frac{\rho}{K}) \,,$$
 
-with the growth rate, $r$, and the carrying capacity, $K$, decelerating the exponential growth as vegetation cover increases and reducing it to zero if $V \geq K$. Thus, it is a decelerating effect (a negative feed-back) at high vegetation cover. 
+with the growth rate, $r$, and the carrying capacity, $K$, decelerating the exponential growth as vegetation cover increases and reducing it to zero if $\rho \geq K$. Thus, it is a decelerating effect (a negative feed-back) at high vegetation cover. 
 
 ```{r, echo=FALSE}
 
-G <- function(P, r = 1, K = 1) r*P*(1-P/K)
+G <- function(rho, r = 1, K = 1) r*rho*(1-rho/K)
+rho <- seq(0,1,length = 100)
+
 
 defplot(rho, G(rho), ylab = "growth")
 
@@ -68,7 +87,7 @@ Mechanistic explanations can be the limitations by a globally diffuse resource, 
 
 A multitude of such global feedback processes can define the precise shape of the growth function leading to asymetrical or truncated shapes, which could importantly affect the bistability properties of the system [@noy-meir75]. He defines
 
-> The general shape of the growth function relating net growth to plant biomass, $G(V)$, is convex with a single maximum (Fig. 1). The increase in the low-biomass range expresses the increase in photosynthetic capacity with increasing leaf area. The levelling off to a plateau and the decrease in the higher range expresses self-interference effects (shading, competition); at the point $V = V_\mathrm{max}$ 'maintenance' losses equal photosynthesis and $G = 0$. Vmax is the maximum (stable) biomass in ungrazed vegetation. [...] Of the explicit forms the best known is the logistic [...] but other functions are possible.
+> The general shape of the growth function relating net growth to plant biomass, $G(V)$, is convex with a single maximum (Fig. 1). The increase in the low-biomass range expresses the increase in photosynthetic capacity with increasing leaf area. The levelling off to a plateau and the decrease in the higher range expresses self-interference effects (shading, competition); at the point $V = V_\mathrm{max}$ 'maintenance' losses equal photosynthesis and $G = 0$. $V_\mathrm{max}$ is the maximum (stable) biomass in ungrazed vegetation. [...] Of the explicit forms the best known is the logistic [...] but other functions are possible.
 
 We consider these multiple competitive effects being of minor relevance for now and start with a single limitation by the factor space. As the landscape becomes more and more filled with vegetation, the empty space become scarce. Thus, growth declines until each potentially habitable spot is occupied. We implement a generally valid carrying capacity, $K$. 
 
@@ -79,25 +98,29 @@ $$ r = r_0 b $$
 to have a gradient of environmental harshness, $b$, reaching from 0 to 1. 
 The model thus starts out with the assumption of decelerating growth due to competition for space. 
 
-#### accelerating growth   
+#### accelerating growth 
 
 In arid ecosystems, growth rates would be lowest at very low cover and accelerate as cover increases, because retention of water and organic matter in the site is fundamentally reduced and water runoff is high. This postive feed-back (low cover reduces growth, leading to even lower cover) was discussed by @vandekoppel97 and @rietkerk97 to explain bistability in arid ecosystems.
 
 Starting out from the logistic growth term, we now additionally assume that $r$ is accelerated with cover,
 
-$$ r = r_0 b V^a $$
+$$ r = r_0 b \rho^a $$
 
-$$ G(V) = r_0 b V^{a+1} (1-\frac{V}{K}) \,,$$
+$$ G(\rho) = r_0 b \rho^{a+1} (1-\frac{\rho}{K}) \,,$$
 
 
 ```{r, echo=FALSE}
 
 
-r <- function(P, r_0 =  1, a = 1) r_0 *P^a
+r <- function(rho, r_0 =  1, b = 1, a = 1) r_0*b *rho^a
+
+
+G <- function(rho, r = 1, b =1, K = 1) r*b*rho*(1-rho/K)
+
 
 #defplot(rho, r(rho), ylab = "growth")
 
-G_sig <- function(P, r_0 = 1, a = 1,  K = 0.9) r(P, r_0, a)*P*(1-P/K)
+G_sig <- function(rho, r_0 = 1, b = 1, a = 1,  K = 0.9) r(rho, r_0, b, a)*rho*(1-rho/K)
 
 defplot(rho, G_sig(rho), ylab = "growth")
 lines(rho, G_sig(rho, a = 0))
@@ -111,13 +134,13 @@ lines(rho, G_sig(rho, a = 0.2))
 
 In the cellular automata model and mean-field approximations of @kefi07, individual plant mortality is a constant rate, which means it is increasing linearly with vegetation cover. Total plant mortality due to grazing therefore would be described as
 
-$$ C(V) = gVL \,, $$
+$$ C( \rho ) = g \rho L \,, $$
 
 with the grazing mortality, $g$, per grazer individual multiplied by livestock density, $L$. That is to say, per individual, a constant percentage of cover is eaten. That is, ecologically speaking, not realistic. 
 
 
 ```{r, echo=FALSE}
-C <- function(V, L = 5, g = 0.01) (g*V*L)
+C <- function(rho, L = 5, g = 0.01) (g*rho*L)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -129,13 +152,13 @@ In fact, when assuming a constant density of herbivores, grazing mortality will 
 
 Mortality due to grazing,
 
-$$ C(V) = gL \,, $$
+$$ C( \rho ) = gL \,, $$
 
 thus could be defined as constant, $g$, per grazer individual regardless of the vegetation cover.
 
 
 ```{r, echo=FALSE}
-C <- function(V, L = 5, g = 0.01) g * L + V*0
+C <- function(rho, L = 5, g = 0.01) g * L + rho*0
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -147,12 +170,12 @@ Note that grazing mortality can exceed 1, meaning that grazers would exploit mor
 
 In natural systems, however, consumption is defined by saturating functional responses, i.e. at low cover, density dependent mortality defined by search efficiency dominates, but at high cover handling times of the consumer will limit its intake rates. Therefore, plant mortality due to grazing should be 
 
-$$ C(V) = \frac{aVL}{1+ahV} \,,$$
+$$ C( \rho ) = \frac{a \rho L}{1+ah \rho } \,,$$
 
 with the handling time, $h$ [time per landscape unit], and the search efficiency, $a$ [percent of landscape foraged in per time]. 
 
 ```{r, echo=FALSE}
-C <- function(V, L = 5, a = 0.6, h = 100) (a*V*L)/(1+a*h*V)
+C <- function(rho, L = 5, a = 0.6, h = 100) (a*rho*L)/(1+a*h*rho)
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -169,13 +192,13 @@ $$ b = b_0 N^q $$
 
 Which turns the consumption term into 
 
-$$ C(V) = \frac{bV^{1+q}}{1+bhV^{1+q}} $$
+$$ C( \rho ) = \frac{b \rho^{1+q}}{1+bh \rho^{1+q}} $$
 
 Thus, plant mortality is accelerating with increasing cover, protecting plants at low cover, due to inefficient search behaviour, and then saturates at the inverse of handling time, $h$. 
 
 
 ```{r, echo=FALSE}
-C <- function(V, L = 5, a = 0.6, h = 100, q = 1) (a*V^(1+q)*L)/(1+a*h*(V^(1+q)) ) 
+C <- function(rho, L = 5, a = 0.6, h = 100, q = 1) (a*rho^(1+q)*L)/(1+a*h*(rho^(1+q)) ) 
 
 defplot(rho, C(rho), ylab = "plant mortality")
 
@@ -185,12 +208,12 @@ defplot(rho, C(rho), ylab = "plant mortality")
 
 We assume the classic type II functional response plus an intrinsic mortality rate, 
 
-$$ C(V) = mV + \frac{aVL}{1+ahV} \,,$$
+$$ C(\rho) = m \rho + \frac{a \rho L}{1+a h \rho} \,,$$
 
 
 ```{r, echo=FALSE}
 
-C <- function(V, m_0 = 0.05, L = 5, a = 0.6, h = 100, q = 0) (m_0 * V) +(a*V^(1+q)*L)/(1+a*h*(V^(1+q)) ) 
+C <- function(rho, m_0 = 0.05, L = 5, a = 0.6, h = 100, q = 0) (m_0 * rho) +(a*rho^(1+q)*L)/(1+a*h*(rho^(1+q)) ) 
 
 defplot(rho, C(rho), ylab = "plant mortality")
 abline(a = 0, b = 0.05, lty = 2)
@@ -242,9 +265,9 @@ lines(rho, C(rho, L = 25, q = 1))
 
 ### population dynamics
 
-The differential equation describing population cover above with $V$ and $C$ substituted would then become  
+The differential equation describing population cover above with $G$ and $C$ substituted would then become  
 
-$$ \frac{\mathrm{d}V}{\mathrm{d}t} = r b V (1-\frac{V}{K}) - m V - \frac{aVL}{1+ahV} $$
+$$ \frac{\mathrm{d}\rho}{\mathrm{d}t} = r b \rho (1-\frac{\rho}{K}) - m \rho - \frac{a\rho L}{1+ah\rho} $$
 
 Given a parameter set  
 ```{r, echo=FALSE}
@@ -264,8 +287,9 @@ parms <- list(
 we receive a projection of the intersection of growth and mortality.
 
 ```{r, echo=FALSE}
-plot(rho,  with(parms,  m * rho + (a * rho * L)/(1 + a * h * rho)), ylab = "growth", type = "l", ylim = c(0,0.5))
-lines(rho, with(parms, r* b* rho * (1 - rho/K) ), col = "green3" )
+defplot(rho,  C(rho, m = parms$m, L = parms$L, h = parms$h, a = parms$a ) )
+
+lines(rho, G(rho, r=parms$r, K = parms$K, b=parms$b), col = "green3" )
 
 ```
 
@@ -277,7 +301,7 @@ d_rho <- function(rho, parms, z = 4) {
 }
 
 
-odesys <- function (t, rho, parms = model_parms) {
+odesys <- function (t, rho, parms = parms) {
   list( d_rho(rho, parms)  )
 }
 
@@ -294,11 +318,46 @@ axis(4, at = round(tail(ODEnullmodel,1)[["1"]],2),cex.axis = 0.8, las = 1 )
 
 ```
 
+If we run this for low and high starting conditions, we can get the stable equilibria. Further, running an iterative series of intermediate starting conditions gives us the unstable equilibrium. 
+
+```{r, echo=FALSE}
+
+defplot(rho,  C(rho, m = parms$m, L = parms$L, h = parms$h, a = parms$a ) )
+
+lines(rho, G(rho, r=parms$r, K = parms$K, b=parms$b), col = "green3" )
+
+runmodel_high <- as.data.frame(ode(y = 0.99, func = odesys, times = c(1,1000), parms = parms))
+
+points(runmodel_high[2,2],G(runmodel_high[2,2], r=parms$r, K = parms$K, b=parms$b), xpd = TRUE, pch = 20, cex = 2)
+
+runmodel_low <- as.data.frame(ode(y = 0.0001, func = odesys, times = c(1,1000), parms = parms))
+
+points(runmodel_low[2,2],G(runmodel_low[2,2], r=parms$r, K = parms$K, b=parms$b), xpd = TRUE, pch = 20, cex = 2)
+
+lo <- runmodel_low[2,2]
+hi <- runmodel_high[2,2]
+
+for(i in 1:10) {
+  
+  mid <- (lo+hi)/2 
+  runmodel_mid <- as.data.frame(ode(mid, func = odesys, times = c(1,1.01), parms = parms))
+  
+  if(runmodel_mid[2,2] > mid) { hi <- mid } else { lo <- mid}
+  
+}
+
+
+points(mid,G(mid, r=parms$r, K = parms$K, b=parms$b), xpd = TRUE, pch = 21, cex = 1.5, bg = "white")
+
+```
+
+
+
 #### global model
 
 The ODE that includes the additional global feed backs of water runoff and  reduced search efficience at low cover would read: 
 
-$$ \frac{\mathrm{d}V}{\mathrm{d}t} = r b V^{1 + \alpha} (1-\frac{V}{K}) - m V - \frac{aV^{1+q}L}{1+ahV^{1+q}} $$
+$$ \frac{\mathrm{d}\rho}{\mathrm{d}t} = r b \rho^{1 + \alpha} (1-\frac{\rho}{K}) - m \rho - \frac{a\rho^{1+q}L}{1+ah\rho^{1+q}} $$
 
 We extend the parameter set by 
 
@@ -322,6 +381,7 @@ parms <- list(
 which gives us the prediction of complex bistability.
 
 ```{r, echo=FALSE}
+par(mar = c(5,4,2,3)+0.1)
 plot(rho,  with(parms,  m * rho + (a * rho^( 1 + q) * L)/(1 + a * h * rho^( 1 + q))), ylab = "growth", type = "l", ylim = c(0,0.5))
   lines(rho, with(parms, r* b* rho^( 1 + alpha) * (1 - rho/K) ), col = "green3" )
 
@@ -387,6 +447,7 @@ defparms <- list(
     v = 0,
     p = 0
   )
+
 parms <- defparms
 par(mar = c(4,4,2,4))
 plot(rho,  with(parms,  r * b * rho * ( 1 - (rho / K)) / (1 - rho) ) , ylab = "individual growth on empty cells", type = "l", ylim = c(0,2.5), las = 1, yaxs = "i")
@@ -408,7 +469,7 @@ nullmodel <- runCA(0.9, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval = 5
 
 
 plot(nullmodel$rho_one ~ nullmodel$time, 
-     ylim = c(0,1), ylab = expression( rho["+"]), 
+     ylim = c(0,1), ylab = expression( rho["1"]), 
      xlab = "time [yr]", type = "l")
      
 
@@ -416,6 +477,7 @@ lines(ODEnullmodel, lty = 3)
 ```
 
 And the animated lattice would look like this:
+
 ```{r, eval = FALSE, echo = FALSE, warning = FALSE}
 animateCA(nullmodel, "ca_nullmodel.gif")
 
@@ -440,10 +502,10 @@ defparms <- list(
     b = 0.9, 
     K = 0.9, 
     a = 0.6,
-    h = 100,
-    L = 16, 
-    alpha = 0.1,
-    q = 1,
+    h = 50,
+    L = 6, 
+    alpha = 0,
+    q = 0,
     c = 0,
     f = 0,
     v = 0,
@@ -458,7 +520,7 @@ globalmodel <- runCA(0.9, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval =
 
 
 plot(globalmodel$rho_one ~ globalmodel$time, 
-     ylim = c(0,1), ylab = expression( rho["+"]), 
+     ylim = c(0,1), ylab = expression( rho["1"]), 
      xlab = "time [yr]", type = "l")
      
 
@@ -471,14 +533,12 @@ lines(ODEglobal_high, lty = 3)
 
 \newpage
 
-## spatially-explicit models
+## local feedbacks
 
 The models described above were discussed by @noy-meir75 for grazing systems where vegetation is assumed to be of homogeneous distribution, and no spatially-explicit effects are of relevance. 
 Refugia or fencing of areas, however, could be considered as spatial effects. 
 
 In arid and semi-arid rangelands, spatial vegetation structure was considered to be of major importance for plant growth and mortality [@rietkerk97; @kefi07]. It generates patterns that act as positive feed-backs on the local scale by providing refugia to grazing and overcome growth limitations at low vegetation cover.
-
-These mechanisms can be implemented in the model by using a pair-approximation approach and numerical simulations, where $G$ and $C$ can be implemented as the transition rates in a two-state spatial model depending on global and local vegetation cover. 
 
 ### spatially-explicit growth
   
@@ -495,14 +555,11 @@ with the effect of aridity, $a_0$ in absence of local vegetation being increased
 
 ```{r, echo=FALSE}
 
+parms <- defparms
+parms$f = 0.8
+parms$b = 0.3
 
-defplot(rho, G(rho, 1, set = list( f = 0.8)), ylab = "growth", col = "green3")
-lines(rho,G(rho, 0.75, set = list( f = 0.8)), col = "green3")
-lines(rho,G(rho, 0.5, set = list( f = 0.8)), col = "green3")
-lines(rho,G(rho, 0.25, set = list( f = 0.8)), col = "green3")
-lines(rho,G(rho, 0, set = list( f = 0.8)), col = "green3")
-
-lines(rho, C(rho, set = list( L = 10)))
+attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
 
 ```
@@ -518,13 +575,11 @@ That is, if a cell has a fully vegetated local neighborhood, it's carrying capac
 
 ```{r, echo=FALSE}
 
-defplot(rho, G(rho, 1, set= list(c = 0.3, b = 0.9)), ylab = "growth", col = "green3")
-lines(rho,G(rho, 0.75, set= list( c = 0.3, b = 0.9)), col = "green3")
-lines(rho,G(rho, 0.5, set= list( c = 0.3, b = 0.9)), col = "green3")
-lines(rho,G(rho, 0.25, set= list(c = 0.3, b = 0.9)), col = "green3")
-lines(rho,G(rho, 0, set= list( c = 0.3, b = 0.9)), col = "green3")
+parms <- defparms
+parms$c = 0.3
+parms$b = 0.9
 
-lines(rho, C(rho, set= list( L = 10)))
+attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
 ```
 
@@ -545,13 +600,10 @@ Thus, at low local cover feeding will be high on plants with neighbors, whereas 
 ```{r, echo=FALSE}
 
 
-defplot(rho, C(rho, 1, set = list( v = 0.5)), ylab = "mortality")
-lines(rho,C(rho, 0.75, set = list( v = 0.5)))
-lines(rho,C(rho, 0.5, set = list( v = 0.5)))
-lines(rho,C(rho, 0.25, set = list( v = 0.5)))
-lines(rho,C(rho, 0, set = list( v = 0.5)))
+parms <- defparms
+parms$v = 0.9
+attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
-lines(rho, G(rho, set = list( b = 0.6)), col = "green3")
 
 ```
 
@@ -570,13 +622,10 @@ $$ L = L^* (1 - p  q_{1|1}) $$
 
 ```{r, echo=FALSE}
 
-defplot(rho, C(rho, 1, set= list(p = 0.8, L = 10)), ylab = "mortality")
-lines(rho,C(rho, 0.75, set= list(p = 0.8, L = 10)))
-lines(rho,C(rho, 0.5, set= list(p = 0.8, L = 10)))
-lines(rho,C(rho, 0.25, set= list(p = 0.8, L = 10)))
-lines(rho,C(rho, 0, set= list(p = 0.8, L = 10)))
+parms <- defparms
+parms$p = 0.8
+attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
-lines(rho, G(rho, set= list(b = 0.6)), col = "green3")
 
 ```
 
@@ -586,20 +635,64 @@ If those effects coincide, potentially even with the global feedbacks, the inter
 
 ```{r, echo=FALSE}
 
-defplot(rho, C(rho, 1, set = list( p = 0.8, v = 0.6, L = 10, q = .5)), ylab = "mortality")
-lines(rho,C(rho, 0.75, set = list( p = 0.8, v = 0.6, L = 10, q = .5)))
-lines(rho,C(rho, 0.5, set = list( p = 0.8,v = 0.6,  L = 10, q = .5)))
-lines(rho,C(rho, 0.25, set = list( p = 0.8,v = 0.6,  L = 10, q = .5)))
-lines(rho,C(rho, 0, set = list( p = 0.8,v = 0.6,  L = 10, q = .5)))
-
-lines(rho, G(rho, 1, set = list(c = 0.3, f = 0.9, b = 0.3, alpha = 0.5)), col = "green3")
-lines(rho,G(rho, 0.75, set = list( c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5)), col = "green3")
-lines(rho,G(rho, 0.5, set = list(c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5)), col = "green3")
-lines(rho,G(rho, 0.25, set = list( c = 0.3, f = 0.9, b = 0.3, alpha = 0.5)), col = "green3")
-lines(rho,G(rho, 0, set = list(c = 0.3,f = 0.9,  b = 0.3, alpha = 0.5)), col = "green3")
+parms <- defparms
+parms$p = 0.8
+parms$v = 0.6
+parms$q = 0.5
+parms$L = 6
+parms$c = 0.3
+parms$f = 0.9
+parms$b = 0.2
+attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
 
 ```
+
+## models
+
+
+These mechanisms can be modelled in different ways: The simplest is to approximate them by a mean field model, assuming that spatial structure is negligible. Second, we can use a pair-approximation model that includes the cover of pairs of cells, thereby keeping track of the local vegetation cover. Finally, numerical simulations provide the highest realism, where $G$ and $C$ can be implemented as the transition rates in a two-state spatial model depending on global and local vegetation cover. 
+
+We are developing all three approaches and compare their predictive possibilities. 
+
+### mean field model
+
+As a simple approximation of the model serves a mean field model, assuming that the conditional local vegetation cover of empty cells $q_{0|1}$ and of vegetated cells $q_{1|1}$ both are well represented by the global vegetation cover $\rho_q$. Of course $\rho_0 = 1-\rho_1$.
+The change in cover derives from the growth and mortality terms
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}w_{0,1} - \rho_{1}w_{1,0}   $$
+
+Thus, we can substitute $C(\rho) = w_{1,0}$ and $G(\rho) = w_{0,1}$ and obtain
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
+
+Plotting the meanfield growth and mortality over vegetation cover is straigthforward now. 
+
+$$ G = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) $$
+
+$$ C = \rho_{1}m + \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}$$
+
+The alternative steady states and unstable equilibria can be simulated by solving the ODE. 
+
+```{r, echo=FALSE}
+
+parms <- defparms
+parms$f = 0.9
+parms$b = 0.4
+parms$L = 5
+parms$p = 0.8
+parms$m = 0.01
+attractor(parms, pairapprox = FALSE, localvals = TRUE)
+
+```
+
+But the steady state also can be solved analytically.
+
+Therefore, we solve for the equilibrium case
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = 0 $$
+
+$$  0 = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
 
 ### implementation in CA
 
@@ -644,7 +737,7 @@ set.seed(565432) # setting seed for random number generation
 spexmodel <- runCA(0.9, parms, delta = 0.2, t_max = 150, t_min = 100, t_eval = 50, isstable = 0.0001, saveeach = 1)
 
 plot(spexmodel$rho_one ~ spexmodel$time, 
-     ylim = c(0,1), ylab = expression( rho["+"]), 
+     ylim = c(0,1), ylab = expression( rho["1"]), 
      xlab = "time [yr]", type = "l")
      
 
@@ -656,44 +749,6 @@ animateCA(spexmodel, "ca_spexmodel.gif")
 ![](ca_nullmodel.gif)
 
 ```
-
-### mean field model
-
-As a simple approximation of the model serves a mean field model, assuming that the conditional local vegetation cover of empty cells $q_{0|1}$ and of vegetated cells $q_{1|1}$ both are well represented by the global vegetation cover $\rho_q$. Of course $\rho_0 = 1-\rho_1$.
-The change in cover derives from the growth and mortality terms
-
-$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}w_{0,1} - \rho_{1}w_{1,0}   $$
-
-Thus, we can substitute $w_{1,0}$ and $w_{0,1}$ and obtain
-
-$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
-
-Plotting the meanfield growth and mortality over vegetation cover is straigthforward now. 
-
-$$ G = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) $$
-
-$$ C = \rho_{1}m + \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}$$
-
-The steady states can be simulated by solving the ODE. 
-
-```{r, echo=FALSE}
-
-parms <- defparms
-parms$f = 0.9
-parms$b = 0.4
-parms$L = 5
-
-attractor(parms, pairapprox = FALSE, localvals = TRUE)
-
-```
-
-But the steady state also can be solved analytically.
-
-Therefore, we solve for the equilibrium case
-
-$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = 0 $$
-
-$$  0 = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
 
 
 
@@ -812,7 +867,7 @@ plot(I(rho_11/rho_1^2) ~ time , data = ODE_spex , type = "l", ylim = c(0,2))
 
 ### Attractor 
 
-Visualising the attractor of the system is not as straightforward as for the models that are determined by global cover only, where the intersections of growth and mortality defined the equilibria. In the spatially-explict pair-approximation model the attractor can be visualised if we assume that clustering in the initial state is non-random, and we assign starting values for $\rho_1$ and global mortality of the population $m_1$. To do this, we need to solve the mortality function towards $\rho{1\,,1}$ to obtain initial covers of all the different pairs and singletons.
+Visualising the attractor of the system is not as straightforward as for the mean-field models that are determined by global cover only, where the intersections of growth and mortality defined the equilibria. In the spatially-explict pair-approximation model the attractor can be visualised if we assume that clustering in the initial state is non-random, and we assign starting values for $\rho_1$ and global mortality of the population $m_1$. To do this, we need to solve the mortality function towards $\rho{1\,,1}$ to obtain initial covers of all the different pairs and singletons.
 
 Thus, 
 
@@ -832,19 +887,6 @@ This works quite well, but produces unequal distributions of arrows along the y-
 
 ```{r, echo=FALSE}
 
-# provides parallel backend
-library(foreach)
-library(doSNOW)
-
-workstation <-  list(host = "162.38.184.118", user = "schneider",
-                     rscript = "/usr/lib/R/bin/Rscript",
-                     snowlib = "/usr/lib/R/library")
-
-workerlist <- c(rep("localhost", times = 10)) 
-
-cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
-
-registerDoSNOW(cl)
 
 
 attractor(parms)
@@ -872,8 +914,6 @@ parms <- list(
 
 attractor(parms)
 
-stopCluster(cl)
-
 ```
 
 ### Bifurcation diagrams
@@ -890,20 +930,6 @@ iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
 
 iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
 
-
-# provides parallel backend
-library(foreach)
-library(doSNOW)
-
-workstation <-  list(host = "162.38.184.118", user = "schneider",
-                     rscript = "/usr/lib/R/bin/Rscript",
-                     snowlib = "/usr/lib/R/library")
-
-workerlist <- c(rep("localhost", times = 10)) 
-
-cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
-
-registerDoSNOW(cl)
 
 par(mfrow= c(1,2), bty = "n", mar = c(4,4,1,0))
 
