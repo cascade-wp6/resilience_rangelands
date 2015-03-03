@@ -423,13 +423,7 @@ ini_rho <- function(rho_1, rho_11 = NULL) {
       rho_00 = 1-2*rho_1+rho_11,
       rho_0 = 1-rho_1
     )
-    if(any(out < 0)) out <- c(
-      rho_1 = NA,
-      rho_11 = NA,
-      rho_10 = NA,
-      rho_00 = NA,
-      rho_0 = NA
-    )
+    
   }
   
   return(out)
@@ -606,13 +600,12 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
   
 }
 
-
 bifurcation <- function(parms, over, xrange, res = 201, times = c(1,1000), ini = c(0.99, 0.0001)  ) {
-  
+    
   require(foreach)
   
   parms[[over]] <- seq(xrange[1],xrange[2],length = res)
-  
+ 
   parms$rho_ini <- ini
   
   iterations <- expand.grid(parms)
@@ -639,6 +632,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(1,1000), ini =
   foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
     
     source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+    
+    
     
     model_parms <- upper[upper[, over] == i,]
     
