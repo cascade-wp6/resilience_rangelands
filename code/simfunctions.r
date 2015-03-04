@@ -477,8 +477,10 @@ G <- function(rho_1, q_01 = "auto", parms = defparms, set = list(NA)) {
     else parms[[i]]
   }, simplify = FALSE)
   
-  with(parms_temp, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
+  out <- with(parms_temp, r*(b + (1-b)*f*q_01)*rho_1^(1+alpha)*(1-rho_1/(K * (1-c * q_01) ) ))
   
+  out[out < 0] <- 0
+  return(out)
 } 
 
 
