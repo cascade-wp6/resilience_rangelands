@@ -422,11 +422,22 @@ d_rho_11 <- function(rho,  parms) {
 }
 
 
-odesys_spex <- function(t, rho, parms = model_parms) {
-  rho_1 <- d_rho_1(rho, parms)
-  rho_11 <- d_rho_11(rho, parms)
-  list(c(rho_1, rho_11, rho_1-rho_11, 1-rho_1-(rho_1-rho_11),1-rho_1  
-  ) )
+odesys_spex <- function(t, rho, parms = model_parms) { 
+  if(rho[1] < 1e-7 ) {
+    rho <- ini_rho(0,0)
+  } 
+  
+    rho_1 <- d_rho_1(rho, parms)
+    rho_11 <- d_rho_11(rho, parms)
+ 
+  list(c(
+    rho_1 = rho_1,
+    rho_11 = rho_11,
+    #changes of other pairs and singletons are not calculated
+    rho_10 = 0, 
+    rho_00 = 0,
+    rho_0 = 0
+  )  )
 }
 
 # function to get initial rho values for pair-approximation
