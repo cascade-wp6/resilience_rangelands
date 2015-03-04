@@ -287,7 +287,7 @@ parms <- list(
 we receive a projection of the intersection of growth and mortality.
 
 ```{r, echo=FALSE}
-defplot(rho,  C(rho, m = parms$m, L = parms$L, h = parms$h, a = parms$a ) )
+defplot(rho,  C(rho, m = parms$m, L = parms$L, h = parms$h, a = parms$a ), ylab = "growth/mortality" )
 
 lines(rho, G(rho, r=parms$r, K = parms$K, b=parms$b), col = "green3" )
 
@@ -322,7 +322,7 @@ If we run this for low and high starting conditions, we can get the stable equil
 
 ```{r, echo=FALSE}
 
-defplot(rho,  C(rho, m = parms$m, L = parms$L, h = parms$h, a = parms$a ) )
+defplot(rho,  C(rho, m = parms$m, L = parms$L, h = parms$h, a = parms$a), ylab = "growth/mortality" )
 
 lines(rho, G(rho, r=parms$r, K = parms$K, b=parms$b), col = "green3" )
 
@@ -504,8 +504,8 @@ defparms <- list(
     a = 0.6,
     h = 50,
     L = 6, 
-    alpha = 0,
-    q = 0,
+    alpha = 0.3,
+    q = 0.5,
     c = 0,
     f = 0,
     v = 0,
@@ -817,32 +817,8 @@ for the set of parameters given above, we can project the following dynamics fro
 
 ```{r, echo=FALSE}
 
-rho <- c(rho_1 = 0.9, rho_11 = 0.8, rho_10 = 0.1, rho_00 = 0, rho_0 = 0.1)
-
-d_rho_1 <- function(rho, parms) { 
-  with(parms,
-       r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
-       )  
-  }
-  
-
-d_rho_11 <- function(rho,  parms) { 
-  with(parms,
-       2* (rho[1] - rho[2]) * r * ( b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
-       )  
-  }
-  
-
-odesys_spex <- function(t, rho, parms) {
-  rho_1 <- d_rho_1(rho, parms)
-  rho_11 <- d_rho_11(rho, parms)
-  list(c(rho_1, rho_11, rho_1-rho_11, 1-rho_1-(rho_1-rho_11),1-rho_1  
-               ) )
-}
-
-
 # running the ode-solver
-ODE_spex <- ode(y = rho, func = odesys_spex, times = 1.1^(1:50), parms = parms)
+ODE_spex <- ode(ini_rho(0.9,0.8), func = odesys_spex, times = 1.1^(1:50), parms = parms)
 
 
 # transfer into ouput and calculate missing rho values
@@ -851,8 +827,11 @@ ODE_spex <- as.data.frame(ODE_spex )
 plot(rho_1 ~ time , data = ODE_spex , type = "l", ylim = c(0,1))
 axis(4, at = round(tail(ODE_spex,1)$rho_1,2),cex.axis = 0.7, las = 1 )
 
+
 lines(spexmodel$rho_one ~ spexmodel$time, col = "grey50")
-     
+
+meanfield <- as.data.frame( ode(ini_rho(0.9,0.8)[1], func = odesys_mean, times = 1.1^(1:50), parms = parms))
+lines(rho_1 ~ time , data = meanfield, col = "red3")
 
 ```
 
@@ -886,11 +865,7 @@ This works quite well, but produces unequal distributions of arrows along the y-
 
 
 ```{r, echo=FALSE}
-
-
-
 attractor(parms)
-
 ```
 
 
@@ -900,9 +875,9 @@ parms <- list(
     m = 0.05,  # intrinsic mortality of plants 
     r = 1,   # growth rate
     f = 0.8, #  local facilitation
-    b = 0.25,  # environmental quality inverse of aridity
+    b = 0.3,  # environmental quality inverse of aridity
     K = 0.9,  # carrying capacity
-    alpha = 0.1, # water runoff
+    alpha = 0, # water runoff
     c = 0.2, # local competition
     a = 0.6, # search efficiency
     v = 0.1, # attraction effect
@@ -921,60 +896,10 @@ attractor(parms)
 The following shows bifurcation diagrams over an environmental gradient, $b$, as well as over a gradient of livestock density, $L$. 
 
 ```{r, echo=FALSE, fig.height = 3}
-
-parms$b <- seq(0,1,.005) #seq(0,1,.002)+0.001
-parms$rho_ini <- c(0.9, 0.01)
-
-iterations <- expand.grid(parms)
-iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
-
-iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
-
-
-par(mfrow= c(1,2), bty = "n", mar = c(4,4,1,0))
-
-foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
-  
-  model_parms <- as.list(iterations[iteration,])
-  
-  # running the ode-solver
-  runmodel <- ode(y = ini_rho(model_parms$rho_ini), func = odesys_spex, times = c(1,1000), parms = model_parms)
+par(mfrow = c(1,2))
+bifurcation(parms, "L", c(0,12))
  
-  # transfer into ouput and calculate missing rho values
-  return(as.data.frame(runmodel)[dim(runmodel)[1],])
-  } -> output
-
-output <- cbind(output, iterations)
-
-plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1), cex = 0.5)
-
-
-parms$L <- seq(0,20,0.2) #seq(0,1,.002)+0.001
-parms$b <- 0.4
-parms$rho_ini <- c(0.9, 0.01)
-
-iterations <- expand.grid(parms)
-iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
-
-iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
-
-
-foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
-  
-  model_parms <- as.list(iterations[iteration,])
-  
-  # running the ode-solver
-  runmodel <- ode(y = ini_rho(model_parms$rho_ini), func = odesys_spex, times = c(1,1000), parms = model_parms)
- 
-  # transfer into ouput and calculate missing rho values
-  return(as.data.frame(runmodel)[dim(runmodel)[1],])
-  } -> output
-
-output <- cbind(output, iterations)
-
-plot(rho_1 ~ L, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1), cex = 0.5)
+bifurcation(parms,"b", c(0,1))
 
 
 stopCluster(cl)
