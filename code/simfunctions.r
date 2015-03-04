@@ -572,7 +572,7 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
     for(i in 1:10) {
       
       mid <- (lo+hi)/2 
-      runmodel_mid <- as.data.frame(ode(mid, func = odesys_mean, times = c(1,1.01), parms = model_parms))
+      runmodel_mid <- as.data.frame(ode(mid, func = odesys_mean, times = c(1,1.2), parms = model_parms))
       
       if(runmodel_mid[2,2] > mid) { hi <- mid } else { lo <- mid}
       
@@ -609,7 +609,7 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
     ini$m_ini <- C(ini$rho_1, ini$rho_11/ini$rho_1, model_parms)
     ini$g_ini <- G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1), model_parms)
     
-    ini <- subset(ini, !is.na(m_ini))
+    ini <- subset(ini, !is.na(m_ini) & !is.na(ini$g_ini) &  ini$g_ini >= 0)
     ini <- cbind(ID = 1:nrow(ini),ini)
     
     
@@ -665,7 +665,7 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
 }
 
 
-bifurcation <- function(parms, over, xrange, res = 201, times = c(1,1000), ini = c(0.99, 0.0001) , meanfield = TRUE, pairapprox = FALSE, numerical = FALSE ) {
+bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini = c(0.9, 0.0001) , meanfield = TRUE, pairapprox = FALSE, numerical = FALSE ) {
   
   require(foreach)
   
