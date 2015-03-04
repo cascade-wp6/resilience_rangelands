@@ -28,42 +28,6 @@ cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.
 registerDoSNOW(cl)
 
 
-library("deSolve")
-
-  ini_rho <- function(rho_1) {
-    c(
-    rho_1 = rho_1,
-    rho_11 = rho_1*rho_1,
-    rho_10 = rho_1*(1-rho_1)*2,
-    rho_00 = (1-rho_1)*(1-rho_1),
-    rho_0 = 1-rho_1
-    )
-    
-  }
-  
-d_rho_1 <- function(rho, parms) { 
-  with(parms,
-       r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
-  )  
-}
-
-
-d_rho_11 <- function(rho,  parms) { 
-  with(parms,
-       2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
-  )  
-}
-  
-
-odesys_spex <- function(t, rho, parms = model_parms) {
-  rho_1 <- d_rho_1(rho, parms)
-  rho_11 <- d_rho_11(rho, parms)
-  list(c(rho_1, rho_11, rho_1-rho_11, 1-rho_1-(rho_1-rho_11),1-rho_1  
-               ) )
-}
-
-
-
 ```
 
 ### growth parameters
@@ -132,6 +96,8 @@ inputPanel(
 renderPlot({
 
   
+  source("../code/simfunctions.r")
+  
  parms <- list(
   m = as.numeric(input$m),
   r = as.numeric(input$r),
@@ -149,37 +115,11 @@ renderPlot({
   )
  
  
- if(input$gradient == "b") parms$b <- seq(0,1,.005) 
- if(input$gradient == "L") parms$L <- seq(0,20,.1)    
- 
-parms$rho_ini <- c(0.9, 0.01)
-
-iterations <- expand.grid(parms)
-iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
-
-iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
-
-
-
-foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-  source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+ if(input$gradient == "b") bifurcation(parms,"b", c(0,1))
+ if(input$gradient == "L") bifurcation(parms, "L", c(0,12))
   
-  model_parms <- as.list(iterations[iteration,])
-  
-  # running the ode-solver
-  runmodel <- ode(y = ini_rho(model_parms$rho_ini), func = odesys_spex, times = c(1,1000), parms = model_parms)
  
-  # transfer into ouput and calculate missing rho values
-  return(as.data.frame(runmodel)[dim(runmodel)[1],])
-  } -> output
-
-output <- cbind(output, iterations)
-
-
- if(input$gradient == "b") plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
- if(input$gradient == "L") plot(rho_1 ~ L, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
  
-
 
  
  
