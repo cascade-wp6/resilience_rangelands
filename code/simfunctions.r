@@ -530,6 +530,19 @@ defplot <- function(...) plot(...,
 
 
 
+runODE_spex <- function(starting, model_parms, times = c(0,1000))  {
+  
+    out <- as.data.frame(ode(starting, func = odesys_spex, times = times, parms = model_parms))
+    
+    names(out) <- c("time", "rho_1", "rho_11", "rho_10", "rho_00", "rho_0")
+    
+    out$rho_10 <- out$rho_1- out$rho_11
+    out$rho_00 <- 1-2*out$rho_1+out$rho_11
+    out$rho_0  <- 1- out$rho_1
+    
+  return(round(out,6))
+}
+
 # graphical visualisation of attractor
 # simulates trajectories for many differently clustered starting conditions. 
 # running pairapprox = TRUE requires parallel backend
@@ -606,15 +619,10 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
       rho_starting <- ini[iteration, 2:6]
       
       # running the ode-solver
-      runmodel <- ode(y = as.numeric(rho_starting), func = odesys_spex, times = seq(1,2), parms = model_parms)
+      runmodel <- runODE_spex(as.numeric(rho_starting),  model_parms, times = seq(1,2))
       
-      out <-as.data.frame(runmodel)[dim(runmodel)[1],]
-      
-      # transfer into ouput and calculate missing rho values
-      return(out)
+      return(tail(runmodel,1))
     } -> output 
-    
-    names(output) <- c("time", "rho_1", "rho_11", "rho_10", "rho_00", "rho_0")
     
     steady <- ini$rho_1 == output$rho_1
     ini <- ini[!steady,]
@@ -674,10 +682,9 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(1,1000), ini =
     model_parms <- as.list(iterations[iteration,])
     
     # running the ode-solver
-    runmodel <- ode(y = ini_rho(model_parms$rho_ini), func = odesys_spex, times = times, parms = model_parms)
-    
-    # transfer into ouput and calculate missing rho values
-    return(as.data.frame(runmodel)[dim(runmodel)[1],])
+    runmodel <- runODE_spex(ini_rho(model_parms$rho_ini), model_parms, times = times) 
+      
+    return(tail(runmodel,1))
   } -> output
   
   output <- cbind(iterations,output)
@@ -702,7 +709,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(1,1000), ini =
       rho_ini <- ini_rho( (hi_1+lo_1)/2 , (hi_11+lo_11)/2 )
       
       # running the ode-solver
-      runmodel <- ode(y = rho_ini, func = odesys_spex, times = c(1,2), parms = model_parms)
+      
+      runmodel <- runODE_spex(rho_ini, model_parms,times = c(0,1.5)) 
       
       if(runmodel[2,"rho_1"] < runmodel[1,"rho_1"] ) {
         lo_1 <- (hi_1+lo_1)/2 
@@ -714,18 +722,20 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(1,1000), ini =
       
     }
     
-    return(as.data.frame(runmodel)[dim(runmodel)[1],])
+    return(tail(runmodel,1))
   } -> output_unstable
   
   
   output_unstable <- cbind(upper[,1:16],output_unstable)
   
   }
+  
   plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
   
   if(nrow(upper)>0) {
   points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
 }
+
 }
   
   
