@@ -310,11 +310,15 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
     # 3 - setting transition probabilities
     growth <- with(parms_temp, (r * (b + (1-b)*f*q_one_one) * rho_one^(1 + alpha) * ( 1 - (rho_one / (K * (1-c*q_one_one) ))) / (1 - rho_one))  *delta)  # recolonisation rates of all cells 
     
+    growth[growth < 0] <- 0
+    
     death <- with(parms_temp, (m + ( (a + v*q_one_one) * L * (1-p*q_one_one) * rho_one^(q) )/( 1 + (a + v*q_one_one) * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
+    
+    death[death < 0] <- 0
     
     # check for sum of probabilities to be inferior 1 and superior 0
     if(any(c(growth, death) > 1 )) warning(paste("a set probability is exceeding 1 in time step", i, "! decrease delta!!!")) 
-    if(any(c(growth, death) < 0)) warning(paste("a set probability falls below 0 in time step", i, "! balance parameters!!!")) 
+    #if(any(c(growth, death) < 0)) warning(paste("a set probability falls below 0 in time step", i, "! balance parameters!!!")) 
     
     # 4 - apply transition probabilities  
     
@@ -372,7 +376,14 @@ odesys <- function (t, rho, parms = model_parms) {
 
 
 d_rho_mean <- function(rho, parms) { 
-  with(parms, r *  rho^( 1 + alpha) * (b + (1-b) * f * rho)  * (1 - rho/(K * (1-c*rho) ) )  -  m * rho - ((a+v*rho) * rho^( 1 + q) * L * (1-p*rho))/(1 + (a+v*rho) * h * rho^( 1 + q)) )  
+  growth <- with(parms, r *  rho^( 1 + alpha) * (b + (1-b) * f * rho)  * (1 - rho/(K * (1-c*rho) ) ))
+  if(growth <= 0) {growth <- 0}
+  
+  mortality <- with(parms,  m * rho + ((a+v*rho) * rho^( 1 + q) * L * (1-p*rho))/(1 + (a+v*rho) * h * rho^( 1 + q)) )  
+  if(mortality <= 0 | is.na(mortality)) {mortality <- 0}
+  
+  return(growth - mortality)
+  
 }
 
 
@@ -385,15 +396,28 @@ odesys_mean <- function (t, rho, parms) {
 
 
 d_rho_1 <- function(rho, parms) { 
-  with(parms,
-       r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
-  )  
+  
+  growth <- with(parms, 
+                 r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) )) 
+  if(growth <= 0) {growth <- 0}
+
+  mortality <- with(parms, m * rho[1] + ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) )
+  if(mortality <= 0 | is.na(mortality)) {mortality <- 0}
+  
+  return(growth - mortality)
 }
+  
 
 d_rho_11 <- function(rho,  parms) { 
-  with(parms,
-       2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) 
-  )  
+  
+  growth <- with(parms,
+       2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]))
+  if(growth <= 0) growth <- 0
+  
+  mortality <- with(parms, 2 * rho[2] * m  + 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q))  )
+  if(mortality <= 0 | is.na(mortality)) mortality <- 0
+  
+  return(growth - mortality)
 }
 
 
