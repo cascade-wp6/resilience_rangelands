@@ -257,6 +257,7 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
   
   # initialize landscape: 
   parms_temp <- parms   # set temporary parameter object
+  
   parms_temp$rho_one <- init   # draw initial vegetation cover
   
   init_plant <- as.integer(width*height*parms_temp$rho_one) # how many initial plants
@@ -377,7 +378,7 @@ odesys <- function (t, rho, parms = model_parms) {
 
 d_rho_mean <- function(rho, parms) { 
   growth <- with(parms, r *  rho^( 1 + alpha) * (b + (1-b) * f * rho)  * (1 - rho/(K * (1-c*rho) ) ))
-  if(growth <= 0) {growth <- 0}
+  if(growth <= 0| is.na(growth)) {growth <- 0}
   
   mortality <- with(parms,  m * rho + ((a+v*rho) * rho^( 1 + q) * L * (1-p*rho))/(1 + (a+v*rho) * h * rho^( 1 + q)) )  
   if(mortality <= 0 | is.na(mortality)) {mortality <- 0}
@@ -399,7 +400,7 @@ d_rho_1 <- function(rho, parms) {
   
   growth <- with(parms, 
                  r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) )) 
-  if(growth <= 0) {growth <- 0}
+  if(growth <= 0 | is.na(growth)) {growth <- 0}
 
   mortality <- with(parms, m * rho[1] + ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) )
   if(mortality <= 0 | is.na(mortality)) {mortality <- 0}
@@ -412,7 +413,7 @@ d_rho_11 <- function(rho,  parms) {
   
   growth <- with(parms,
        2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]))
-  if(growth <= 0) growth <- 0
+  if(growth <= 0 | is.na(growth)) growth <- 0
   
   mortality <- with(parms, 2 * rho[2] * m  + 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q))  )
   if(mortality <= 0 | is.na(mortality)) mortality <- 0
