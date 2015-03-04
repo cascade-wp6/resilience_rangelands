@@ -1,54 +1,42 @@
 ---
-title: "global-model (ODE)"
+title: "spatially-explicit model"
 author: "Florian Schneider"
 date: "Thursday, January 30, 2015"
 output: html_document
 runtime: shiny
 ---
 
-   
-## developping the null model
 
-Non-spatial global model solved as ordinary differential equations. It includes global accelerating and decelerating feedbacks on mortality and grazing.
+The model includes global accelerating and decelerating feedbacks on mortality and grazing.
+ 
+This panel runs all three models
+
+- cellular automata (grey line)
+- pair-approximation (black line)
+- mean-field model (red line)
+
+The pair-approximation and mean field are  solved as ordinary differential equations.
 
 ```{r, echo=FALSE}
 
 library("deSolve")
 
-  ini_rho <- function(rho_1) {
-    c(
-    rho_1 = rho_1,
-    rho_11 = rho_1*rho_1,
-    rho_10 = rho_1*(1-rho_1)*2,
-    rho_00 = (1-rho_1)*(1-rho_1),
-    rho_0 = 1-rho_1
-    )
-    
-  }
+defparms <- list(
+    m = 0.05,
+    r = 1,
+    b = 0.4, 
+    K = 0.9, 
+    a = 0.3,
+    h = 50,
+    L = 5, 
+    alpha = 0,
+    q = 0,
+    c = 0,
+    f = 0,
+    v = 0,
+    p = 0
+  )
   
-d_rho_1 <- function(rho, parms) { 
-  with(parms,
-       r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) - m * rho[1] - ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
-       )  
-  }
-  
-
-d_rho_11 <- function(rho,  parms) { 
-  with(parms,
-       2* (rho[1] - rho[2]) * r * (b + (f - b) * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]) - 2 * rho[2] * m  - 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a + v*rho[2]/rho[1]) * (h / (1- p * rho[2]/rho[1]) ) * rho[1]^( 1 + q)) 
-       )  
-  }
-  
-
-odesys_spex <- function(t, rho, parms = model_parms) {
-  rho_1 <- d_rho_1(rho, parms)
-  rho_11 <- d_rho_11(rho, parms)
-  list(c(rho_1, rho_11, rho_1-rho_11, 1-rho_1-(rho_1-rho_11),1-rho_1  
-               ) )
-}
-
-
-
 ```
 
 ### growth parameters
@@ -56,22 +44,24 @@ odesys_spex <- function(t, rho, parms = model_parms) {
 The basic assumption is logistic plant growth, i.e. growth goes to zero as the carrying capacity is approached (decelerating effect). 
 
 As an accelerating feedback we add water runoff, which reduces growth at low cover. 
+As local feedbacks, we assume local competition, reducing the carrying capacity at high local cover, and local facilitation, compensating for poor environmental quality (a value of one restituates the maximal growth rate)
+
 
 ```{r, echo=FALSE}
 
 inputPanel(
   sliderInput("r", label = "max. growth rate:",
-              min = 0.0, max = 3, value = 1, step = 0.01),
+              min = 0.0, max = 3, value = defparms$r, step = 0.01),
   sliderInput("b", label = "environmental quality:",
-              min = 0.0, max = 1, value = 0.1, step = 0.01),
+              min = 0.0, max = 1, value = defparms$b, step = 0.0001),
   sliderInput("K", label = "carrying capacity:",
-              min = 0.0, max = 1, value = 0.9, step = 0.01),
+              min = 0.0, max = 1, value = defparms$K, step = 0.01),
   sliderInput("alpha", label = "water runoff:",
-              min = 0.0, max = 1, value = 0, step = 0.01),
+              min = 0.0, max = 1, value = defparms$alpha, step = 0.01),
   sliderInput("f", label = "local facilitation:",
-              min = 0.0, max = 1, value = 0.9, step = 0.01),
+              min = 0.0, max = 1, value = defparms$f, step = 0.01),
   sliderInput("c", label = "local competition:",
-              min = 0.0, max = 1, value = 0.1, step = 0.01)
+              min = 0.0, max = 1, value = defparms$c, step = 0.01)
 )
 
   
@@ -83,23 +73,25 @@ The basic assumption is a constant intrinsic mortality of plants and a type II f
 
 As an additional accelerating effect we assume the search efficiency to be lowest at low cover and increase with cover, turning the function into a type III functional response.
 
+Local feedbacks are local attractivity of vegetated patches, increasing the search efficiency, and local protection (associational resistance) which reduces the maximum feeding rate. 
+
 ```{r, echo=FALSE}
 
 inputPanel(
   sliderInput("m", label = "intrinsic mortality:",
-              min = 0.0, max = 1, value = 0.05, step = 0.01),
+              min = 0.0, max = 1, value = defparms$m, step = 0.01),
   sliderInput("a", label = "search efficiency:",
-              min = 0.0, max = 1, value = 0.6, step = 0.01), 
+              min = 0.0, max = 1, value = defparms$a, step = 0.01), 
   sliderInput("h", label = "handling time:",
-              min = 0.0, max = 200, value = 50, step = 1), 
+              min = 0.0, max = 200, value = defparms$h, step = 1), 
   sliderInput("L", label = "livestock units:",
-              min = 0.0, max = 100, value = 6, step = 1),
+              min = 0.0, max = 100, value = defparms$L, step = 1),
   sliderInput("q", label = "hill coefficient:",
-              min = 0.0, max = 1, value = 0, step = 0.01),
+              min = 0.0, max = 1, value = defparms$q, step = 0.01),
   sliderInput("v", label = "local attractivity:",
-              min = 0.0, max = 1, value = 0.0, step = 0.01),
+              min = 0.0, max = 1, value = defparms$v, step = 0.01),
   sliderInput("p", label = "local protection:",
-              min = 0.0, max = 1, value = 0.8, step = 0.01)
+              min = 0.0, max = 1, value = defparms$p, step = 0.01)
 )
 
   
@@ -115,6 +107,7 @@ inputPanel(
 
 renderPlot({
 
+  source("../code/simfunctions.r")
   
  parms <- list(
   m = as.numeric(input$m),
@@ -134,15 +127,21 @@ renderPlot({
  
 
 # running the ode-solver
-ODE_spex <- ode(y = ini_rho(input$rho_1), func = odesys_spex, times = 1.1^(1:50), parms = parms)
+ODE_spex <-  as.data.frame(ode(y = ini_rho(input$rho_1), func = odesys_spex, times = exp(seq(0,4,length = 100))-1, parms = parms))
 
-
-# transfer into ouput and calculate missing rho values
-ODE_spex <- as.data.frame(ODE_spex )
 
 par(mar = c(4,4,1,3)+0.1)
-plot(rho_1 ~ time , data = ODE_spex , type = "l", ylim = c(0,1))
+
+plot(rho_1 ~ time , data = ODE_spex , type = "l", ylim = c(0,1), xlim = c(0,50))
 axis(4, at = round(tail(ODE_spex,1)$rho_1,2),cex.axis = 0.7, las = 1 )
+
+
+spexmodel <- runCA(input$rho_1, parms, delta = 0.2, t_max = 60, t_min = 50, t_eval = 5, isstable = 0.001, saveeach = 1)
+
+lines(spexmodel$rho_one ~ spexmodel$time, col = "grey50")
+
+meanfield <-as.data.frame( ode(ini_rho(input$rho_1), func = odesys_mean, times = exp(seq(0,4,length = 100))-1, parms = parms))
+lines(rho_1 ~ time , data = meanfield, col = "red3")
 
 } )
 ```
