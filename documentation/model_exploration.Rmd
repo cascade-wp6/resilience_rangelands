@@ -63,10 +63,10 @@ defparms <- list(
 
 The paper departs from a general perception of grazing systems as non-equilibrium systems that are subject to 'dynamic regimes' or 'alternative stable states'.
 This means, they can shift their attractor between a vegetated state and a degraded state, if they experience a sufficient perturbation.
-The question is how resilience thinking in managed rangelands can be improved [@folke06; @walker04; @walker12; @folke10]. How can the ecosystem be put in a state that is far from the tipping point or the critical thresholds [@may75; @westoby89; @walker81]?
+The question is how resilience thinking in managed rangelands in arid and semi-arid ecosystems can be improved [@folke06; @walker04; @walker12; @folke10]. How can the ecosystem be put in a state that is far from the tipping point or the critical thresholds [@may75; @westoby89; @walker81]?
 
-It aims at an integration of spatial grazing mortality into a graphical population-dynamics framework as developed by @noy-meir75 and extended by @vandekoppel97 and @rietkerk97.
-The model is of conceptual character and identifies how certain management practices or characteristics of vegetation affect the thresholds of catastrophic shifts. This kind of model can be used to inform state-and-transition models that are of high relevance in decisionmaking in the management of rangelands [@westoby89; @briske05; @bestelmeyer03; @briske08].
+It aims at an integration of local feedback mechanisms in drylands into a graphical population-dynamics framework as developed by @noy-meir75 and extended by @vandekoppel97 and @rietkerk97.
+The model identifies how certain mechanisms of vegetation affect the thresholds of catastrophic shifts. This kind of model can be used to inform state-and-transition models that are of high relevance in decisionmaking in the management of rangelands [@westoby89; @briske05; @bestelmeyer03; @briske08].
 
 # alternative stable states due to feedbacks
 
@@ -95,7 +95,7 @@ bifurcation(parms, "b", c(0,1))
 
 ```
 
-The model is neutral in terms of species and assumes only one relevant type of vegetation and one population of grazer. Noy-meir notes that the model can apply also if there is one plant species that dominates the ecological dynamics of the entire system. [@noy-meir75]
+The model is neutral in terms of species and assumes only one relevant type of vegetation and one population of grazer. Noy-meir notes that the model can apply also if there is one plant species that dominates the ecological dynamics of the entire system [@noy-meir75].
 We stick to this approach of neglecting species-specific differences. 
 
 ## spatially-explicit mechanisms
@@ -103,7 +103,6 @@ We stick to this approach of neglecting species-specific differences.
 The spatial extend at which ecological feedback mechanisms act often differ between small local scales and the entire landscape. Previous models have shown that feedbacks acting simultaneously but on different spatial scales emerge and alter the stability properties of the ecosystem [@kefi07a]. Therefore, we are going to implement different kinds of local feedback, complementary to the global feedbacks described above, into the model framework. 
 
 The graphical approach pursued by @noy-meir75 and @vandekoppel97 is limited by it's dimensionality. The functions of vegetation growth and mortality are well defined by only one parameter, vegetation cover. Especially in arid and semi-arid ecosystems vegetation cover turned out to be insufficient to describe the state of the ecosystem. 
-
 
 
 ```{r, echo=FALSE}
