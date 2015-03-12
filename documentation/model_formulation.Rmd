@@ -597,6 +597,10 @@ $$ a = a^*  + v q_{1|1} $$
 
 Thus, at low local cover feeding will be high on plants with neighbors, whereas at high cover the term has no effect since handling time is limiting consumption. An enhanced search efficiency will raise the critical thresholds for a collapse. 
 
+**Update 12.03.2015:** This is not a straightforward logic. If plants are attractive to grazers, they increase local presence of grazers. Thus the model should ensure that attractivity redistributes grazing to plants with high local cover. 
+Thus a value of $v = 0$ means that grazing distributes homogeneously, whereas $v = 1$ means that grazing goes with maximal intensity on plants with many neighbors. But it would need to make sure that grazing is not exploding at high cover. It is difficult to define this properly and in a simple way, though. 
+
+
 ```{r, echo=FALSE}
 
 
@@ -619,6 +623,12 @@ Instead, we could define associational protection as a reduced impact due to a r
 
 $$ L = L^* (1 - p  q_{1|1}) $$
 
+**Update 12.03.2015:** since the effect is of less relevance at high cover, since the development of thorns is only induced if local pressure is already high,  it makes more sense to implement associational protection as an effect on search efficiency. 
+
+
+$$ a = a^* (1- p q_{1|1}) $$ 
+
+This causes a to fall to its minimal value ($1-p$) at full local cover. 
 
 ```{r, echo=FALSE}
 
