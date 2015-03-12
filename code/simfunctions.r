@@ -543,6 +543,15 @@ runODE_spex <- function(starting, model_parms, times = c(0,1000))  {
   return(round(out,6))
 }
 
+runODE_meanfield <- function(starting, model_parms, times = c(0,1000))  {
+  
+  out <- as.data.frame(ode(starting, func = odesys_mean, times = times, parms = model_parms))
+  
+  names(out) <- c("time", "rho_1")
+  
+  return(round(out,6))
+}
+
 # graphical visualisation of attractor
 # simulates trajectories for many differently clustered starting conditions. 
 # running pairapprox = TRUE requires parallel backend
@@ -676,65 +685,144 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
   iterations <- expand.grid(parms)
   iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
       
-  foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-    source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+  
+  if(pairapprox) {
     
-    model_parms <- as.list(iterations[iteration,])
-    
-    # running the ode-solver
-    runmodel <- runODE_spex(ini_rho(model_parms$rho_ini), model_parms, times = times) 
+    foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+      source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
-    return(tail(runmodel,1))
-  } -> output
-  
-  output <- cbind(iterations,output)
-  
-  upper <- output[output$rho_ini == ini[1],][which(round(output[output$rho_ini == ini[1],]$rho_1,4) != round(output[output$rho_ini == ini[2],]$rho_1,4)),]
-  lower <- output[output$rho_ini == ini[2],][which(round(output[output$rho_ini == ini[2],]$rho_1,4) != round(output[output$rho_ini == ini[1],]$rho_1,4)),]
-  
-  if(nrow(upper)>0) {
-  foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
-    
-    source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
-    
-    model_parms <- upper[upper[, over] == i,]
-    
-    hi_1 <- upper[upper[, over] == i,]$rho_1
-    lo_1 <- lower[lower[, over] == i,]$rho_1
-    hi_11 <- upper[upper[, over] == i,]$rho_11
-    lo_11 <- lower[lower[, over] == i,]$rho_11
-    
-    for(j in 1:10) {
-      
-      rho_ini <- ini_rho( (hi_1+lo_1)/2 , (hi_11+lo_11)/2 )
+      model_parms <- as.list(iterations[iteration,])
       
       # running the ode-solver
+      runmodel <- runODE_spex(ini_rho(model_parms$rho_ini), model_parms, times = times) 
       
-      runmodel <- runODE_spex(rho_ini, model_parms,times = c(0,1.5)) 
+      return(tail(runmodel,1))
+    } -> output
+    
+    output <- cbind(iterations,output)
+    
+    upper <- output[output$rho_ini == ini[1],][which(round(output[output$rho_ini == ini[1],]$rho_1,4) != round(output[output$rho_ini == ini[2],]$rho_1,4)),]
+    lower <- output[output$rho_ini == ini[2],][which(round(output[output$rho_ini == ini[2],]$rho_1,4) != round(output[output$rho_ini == ini[1],]$rho_1,4)),]
+    
+    if(nrow(upper)>0) {
+      foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
+        
+        source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        
+        model_parms <- upper[upper[, over] == i,]
+        
+        hi_1 <- upper[upper[, over] == i,]$rho_1
+        lo_1 <- lower[lower[, over] == i,]$rho_1
+        hi_11 <- upper[upper[, over] == i,]$rho_11
+        lo_11 <- lower[lower[, over] == i,]$rho_11
+        
+        for(j in 1:10) {
+          
+          rho_ini <- ini_rho( (hi_1+lo_1)/2 , (hi_11+lo_11)/2 )
+          
+          # running the ode-solver
+          
+          runmodel <- runODE_spex(rho_ini, model_parms,times = c(0,1.5)) 
+          
+          if(runmodel[2,"rho_1"] < runmodel[1,"rho_1"] ) {
+            lo_1 <- (hi_1+lo_1)/2 
+            lo_11 <- (hi_11+lo_11)/2 
+          } else {
+            hi_1 <- (hi_1+lo_1)/2 
+            hi_11 <- (hi_11+lo_11)/2 
+          }
+          
+        }
+        
+        return(tail(runmodel,1))
+      } -> output_unstable
       
-      if(runmodel[2,"rho_1"] < runmodel[1,"rho_1"] ) {
-        lo_1 <- (hi_1+lo_1)/2 
-        lo_11 <- (hi_11+lo_11)/2 
-      } else {
-        hi_1 <- (hi_1+lo_1)/2 
-        hi_11 <- (hi_11+lo_11)/2 
-      }
+      
+      output_unstable <- cbind(upper[,1:16],output_unstable)
       
     }
     
-    return(tail(runmodel,1))
-  } -> output_unstable
-  
-  
-  output_unstable <- cbind(upper[,1:16],output_unstable)
-  
+    plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
+    
+    if(nrow(upper)>0) {
+      points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
+    }
   }
   
-  plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
-  
-  if(nrow(upper)>0) {
-  points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
-}
+  if(meanfield) {
+    
+    
+    foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+      source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      
+      model_parms <- as.list(iterations[iteration,])
+      
+      # running the ode-solver
+      runmodel <- runODE_meanfield(model_parms$rho_ini, model_parms, times = times) 
+      
+      return(tail(runmodel,1))
+    } -> output
+    
+    output <- cbind(iterations,output)
+    
+    upper <- output[output$rho_ini == ini[1],][which(round(output[output$rho_ini == ini[1],]$rho_1,4) != round(output[output$rho_ini == ini[2],]$rho_1,4)),]
+    lower <- output[output$rho_ini == ini[2],][which(round(output[output$rho_ini == ini[2],]$rho_1,4) != round(output[output$rho_ini == ini[1],]$rho_1,4)),]
+    
+    if(nrow(upper)>0) {
+      foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
+        
+        source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        
+        model_parms <- upper[upper[, over] == i,]
+        
+        hi_1 <- upper[upper[, over] == i,]$rho_1
+        lo_1 <- lower[lower[, over] == i,]$rho_1
+
+        for(j in 1:10) {
+          
+          rho_ini <-  (hi_1+lo_1)/2
+          
+          # running the ode-solver
+          
+          runmodel <- runODE_meanfield(rho_ini, model_parms,times = c(0,1.5)) 
+          
+          if(runmodel[2,"rho_1"] < runmodel[1,"rho_1"] ) {
+            lo_1 <- (hi_1+lo_1)/2 
+          } else {
+            hi_1 <- (hi_1+lo_1)/2  
+          }
+          
+        }
+        
+        return(tail(runmodel,1))
+      } -> output_unstable
+      
+      
+      output_unstable <- cbind(upper[,1:16],output_unstable)
+      
+    }
+    
+    if(pairapprox) {
+      
+      points(output[,over], output$rho_1, pch  = 20, cex = 0.5, col = "grey30" )
+      
+      if(nrow(upper)>0) {
+        points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey90", cex = 0.5)
+      }
+      
+    } else {
+      
+      plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
+      
+      if(nrow(upper)>0) {
+        points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
+    }
+    
+    }
+    
+    
+  }
+
 
 }
   
