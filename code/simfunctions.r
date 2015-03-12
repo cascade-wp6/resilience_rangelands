@@ -313,7 +313,7 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
     
     growth[growth < 0] <- 0
     
-    death <- with(parms_temp, (m + ( (a + v*q_one_one) * L * (1-p*q_one_one) * rho_one^(q) )/( 1 + (a + v*q_one_one) * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
+    death <- with(parms_temp, (m + ( (a * (1-p*q_one_one)) * L * rho_one^(q) )/( 1 + ((a * (1-p*q_one_one))  + v*q_one_one) * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
     
     death[death < 0] <- 0
     
@@ -380,7 +380,7 @@ d_rho_mean <- function(rho, parms) {
   growth <- with(parms, r *  rho^( 1 + alpha) * (b + (1-b) * f * rho)  * (1 - rho/(K * (1-c*rho) ) ))
   if(growth <= 0| is.na(growth)) {growth <- 0}
   
-  mortality <- with(parms,  m * rho + ((a+v*rho) * rho^( 1 + q) * L * (1-p*rho))/(1 + (a+v*rho) * h * rho^( 1 + q)) )  
+  mortality <- with(parms,  m * rho + ((a* (1-p*rho)+v*rho) * rho^( 1 + q) * L )/(1 + (a* (1-p*rho)+v*rho) * h * rho^( 1 + q)) )  
   if(mortality <= 0 | is.na(mortality)) {mortality <- 0}
   
   return(growth - mortality)
@@ -402,7 +402,7 @@ d_rho_1 <- function(rho, parms) {
                  r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) )) 
   if(growth <= 0 | is.na(growth)) {growth <- 0}
 
-  mortality <- with(parms, m * rho[1] + ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) )
+  mortality <- with(parms, m * rho[1] + ( (a * (1 - p * rho[2]/rho[1]) + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a * (1 - p * rho[2]/rho[1]) + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) )
   if(mortality <= 0 | is.na(mortality)) {mortality <- 0}
   
   return(growth - mortality)
@@ -415,7 +415,7 @@ d_rho_11 <- function(rho,  parms) {
        2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]))
   if(growth <= 0 | is.na(growth)) growth <- 0
   
-  mortality <- with(parms, 2 * rho[2] * m  + 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L * (1 - p * rho[2]/rho[1]))/(1 +(a + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q))  )
+  mortality <- with(parms, 2 * rho[2] * m  + 2 * rho[2] * ( (a* (1 - p * rho[2]/rho[1]) + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L )/(1 +(a* (1 - p * rho[2]/rho[1]) + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q))  )
   if(mortality <= 0 | is.na(mortality)) mortality <- 0
   
   return(growth - mortality)
@@ -510,7 +510,7 @@ C <- function(rho_1, q_11 = 1, parms = defparms, set = list(NA)) {
     else parms[[i]]
   }, simplify = FALSE)
   
-  with(parms_temp, (m * rho_1) +( (a+v*q_11  ) *rho_1^(1+q)*L*(1-p*q_11))/(1+(a+v*q_11)*h*(rho_1^(1+q)) ) )
+  with(parms_temp, (m * rho_1) +( (a*(1-p*q_11)+v*q_11  ) *rho_1^(1+q)*L)/(1+(a*(1-p*q_11)+v*q_11)*h*(rho_1^(1+q)) ) )
 
 }
 
@@ -674,7 +674,7 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
 }
 
 
-bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini = c(0.9, 0.0001) , meanfield = TRUE, pairapprox = FALSE, numerical = FALSE ) {
+bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini = c(0.9, 0.0001) , meanfield = TRUE, pairapprox = FALSE, numerical = FALSE, add = FALSE ) {
   
   require(foreach)
   
@@ -742,11 +742,16 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
       
     }
     
-    plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
+    if(!add) {
+      plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
+    } else {
+      points(output[,over],output$rho_1, pch  = 20,  cex = 0.5)
+    }
     
     if(nrow(upper)>0) {
       points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
     }
+    
   }
   
   if(meanfield) {
@@ -812,7 +817,12 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
       
     } else {
       
-      plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
+      
+      if(!add) {
+        plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
+      } else {
+        points(output[,over],output$rho_1, pch  = 20,  cex = 0.5)
+      }
       
       if(nrow(upper)>0) {
         points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
