@@ -6,6 +6,10 @@ output:
   pdf_document:
     fig_height: 3
     fig_width: 7
+    fig_caption: yes
+    fig_crop: no
+    includes:
+      in_header: include.tex
 fontsize: 12pt
 geometry: margin=1.4in
 csl: ../manuscript/amnat.csl
@@ -68,7 +72,7 @@ The question is how resilience thinking [@folke06; @walker04; @walker12; @folke1
 Therefore, this study ims at an integration of local feedback mechanisms in drylands into a graphical population-dynamics framework as developed by @noy-meir75 and extended by @vandekoppel97 and @rietkerk97.
 The model identifies how certain mechanisms of vegetation affect the thresholds of catastrophic shifts. This kind of model can be used to inform state-and-transition models that are of high relevance in decisionmaking in the management of rangelands [@westoby89; @briske05; @bestelmeyer03; @briske08].
 
-# alternative stable states due to feedbacks
+## alternative stable states due to global feedbacks
 
 Ecological systems with non-linear stability are common in nature [@carpenter03; @scheffer01; @gunderson02; @berkes03] and this has enormous impacts on how we analyse and manage those systems. 
 As early as 40 years ago, rangelands were identified as a system with non-linear stability, i.e. with alternative stable states [@noy-meir75], from graphical analysis as a simple consumer-resource system.
@@ -99,7 +103,7 @@ bifurcation(parms, "b", c(0,1))
 The model is neutral in terms of species and assumes only one relevant type of vegetation and one population of grazer. Noy-meir notes that the model can apply also if there is one plant species that dominates the ecological dynamics of the entire system [@noy-meir75].
 We stick to this approach of neglecting species-specific differences. 
 
-## local mechanisms
+## local feedback mechanisms
 
 The graphical approach pursued by @noy-meir75 and @vandekoppel97 is limited to systems that are spatially homogeneous. The functions of vegetation growth and mortality are well defined by only one parameter, vegetation cover. However, in arid and semi-arid ecosystems vegetation cover turns out to be insufficient to describe the state of the ecosystem. Moreover, in a landscape where vegetation grows in aggregated clusters, spatial vegetation structure is important in determining the amount of growth or mortality. This is due to the dependence of the underlying feedback mechanisms on the locally present vegetation, rather than on total cover on the landscape scale. We subsequently describe positive feedback mechanisms that are known to play a role in the determination of growth and mortality in arid and semi-arid rangelands.  
 
@@ -123,12 +127,13 @@ attractor(p1)
 
 
 
-### facilitation
+#### facilitation
 
-The mechanism of facilitation, i.e. the positive effect of one individual or species onto another, is well described in terms of species interaction networks [@bruno09; @kefi12]. Such mechanisms can be species-pair specific but they also play a general abiotic role as the cause of local amelioration of the environmental conditions of the neighborhood of a 'nurse' plant. 
+The mechanism of facilitation, i.e. the positive effect of one individual or species onto another, is well described in terms of species interaction networks [@bruno09; @kefi12]. Such mechanisms can be species-pair specific but they also play a general abiotic role as the cause of local amelioration of the environmental conditions of the neighborhood of a 'nurse' plant. The mechanisms commonly subsumised under local facilitation are shading effects, soil water retention, aggregation of litter and fixation of organic matter in top soils [@bautista]. 
 
+We implement local facilitation as a mechanism that increases growth rates on empty ground locally with increasing local plant cover, $q_{0|1}$. 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.cap="a) mean field approximation of density dependent mortality and growth of vegetation with local facilitation. As plant cover increases, the effect of facilitation is stronger. solid points show steady states, open circle shows unstable equilibrium. b) bifurcation diagram of vegetation cover over a gradient of environmental quality (black: steady states, grey: unstable equilibria). High facilitation has strong stabilising effects on the vegetated state. "}
 
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
@@ -138,14 +143,37 @@ parms$b = 0.3
 
 attractor(parms, pairapprox = FALSE, localvals = TRUE)
 
-bifurcation(parms, pairapprox = TRUE, "b", c(0,1))
+
+parms$f = 0.8
+bifurcation(parms, pairapprox = FALSE, "b", c(0,1))
  
+parms$f = 0.4
+bifurcation(parms, pairapprox = FALSE, "b", c(0,1), add =TRUE)
+
+parms$f = 0
+bifurcation(parms, pairapprox = FALSE, "b", c(0,1), add =TRUE)
+
+
+#parms$b = 0.5
+#parms$f = 0.8
+#bifurcation(parms, pairapprox = FALSE, "L", c(0,12))
+#
+#parms$f = 0.4
+#bifurcation(parms, pairapprox = FALSE, "L", c(0,12), add = TRUE)
+#
+#parms$f = 0
+#bifurcation(parms, pairapprox = FALSE, "L", c(0,12), add = TRUE)
+
+
 
 ```
 
+Facilitation has a strong stabilizing effect on the vegetated state of the ecosystem and extends the range where vegetation can persist far towards very harsh environmental conditions. 
 
+#### local competition
 
-### local competition
+Local competition is a mechanism counteracting local facilitation. If plants grow close together they exploit the locally available resources, like water or nutrients. Thus, the perceived carrying capacity of an empty space is reduced as the neighboring plant cover $q_{1|1}$ increases. 
+
 
 ```{r, echo = FALSE}
 
@@ -153,16 +181,30 @@ bifurcation(parms, pairapprox = TRUE, "b", c(0,1))
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
 parms <- defparms
 
-parms$c = 0.3
+parms$c = 0.6
 
 attractor(parms,  pairapprox = FALSE, localvals = TRUE)
 
-bifurcation(parms, pairapprox = TRUE, "b", c(0,1))
+parms$c = 0
+bifurcation(parms, pairapprox = FALSE, "b", c(0,1))
+
+parms$c = 0.3
+bifurcation(parms, pairapprox = FALSE, "b", c(0,1), add = TRUE)
+ 
+parms$c = 0.6
+bifurcation(parms, pairapprox = FALSE, "b", c(0,1), add = TRUE)
  
 
 ```
 
-### associational resistance
+Where local competition is important, the total vegetation cover is reduced, since competition affects growth primarily at high cover. The critical thresholds of sustaineable environmental quality are hardly affected. 
+
+
+#### associational resistance
+
+In arid rangelands many plants develop protective physical structures, like thorns or cushion growth, or secondary plant metabolites to reduce the impact of grazing. This investment usually not only benefits the plant itself but also other plants in the direct neighborhood, since it reduces the accessibility of space or acts as a repellent for herbivores. 
+This associational resistance is providing a local decrease of search efficiency (or an increase of handling effort) for grazers, which is reducing total consumption, and thus acts as a positive local feedback on vegetation cover. 
+
 
 ```{r, echo = FALSE}
 
@@ -170,18 +212,46 @@ bifurcation(parms, pairapprox = TRUE, "b", c(0,1))
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
 parms <- defparms
 
-parms$L = 8
-parms$p = 0.7
+parms$L = 6
+parms$p = 0.6
 
 attractor(parms, pairapprox = FALSE, localvals = TRUE)
 
-bifurcation(parms, pairapprox = TRUE, "L", c(0,12))
- 
+parms$p = 0.0
+bifurcation(parms, pairapprox = FALSE, "L", c(0,12))
+text(3,0.7, "0.0")
+
+parms$p = 0.6
+bifurcation(parms, pairapprox = FALSE,add = TRUE, "L", c(0,12))
+text(7,0.65, "0.6")
+
+parms$p = 1
+bifurcation(parms, pairapprox = FALSE,add = TRUE, "L", c(0,12))
+text(8,0.81, "1.0")
+
+
+#parms$p = 0.0
+#bifurcation(parms, pairapprox = FALSE, "b", c(0,1))
+#text(3,0.7, "0.0")
+
+#parms$p = 0.6
+#bifurcation(parms, pairapprox = FALSE,add = TRUE, "b", c(0,1))
+#text(7,0.65, "0.6")
+
+#parms$p = 1
+#bifurcation(parms, pairapprox = FALSE,add = TRUE, "b", c(0,1))
+#text(8,0.81, "1.0")
 
 ```
 
+Associational resistance is a stabilizing feature of vegetation cover. It greatly extends the range of persistent vegetation cover under high levels of livestock grazing, since it effectively reduces grazing impact at high vegetation cover. 
 
-### attractant-decoy
+
+
+#### attractant-decoy
+
+As an opposing mechanism to associational resistance, palatable plants attract grazers and 
+
 
 ```{r, echo = FALSE}
 
@@ -196,12 +266,35 @@ parms$v = 0.9
 
 attractor(parms, pairapprox = FALSE, localvals = TRUE)
 
+parms$v = 0.9
+
 bifurcation(parms, pairapprox = FALSE, "L", c(0,12))
- 
+
+text(8,0.75, "0.9")
+
+parms$v = 0.5
+
+bifurcation(parms, pairapprox = FALSE, "L", c(0,12), add = TRUE)
+
+text(8,0.75, "0.5")
+
+parms$v = 0
+
+bifurcation(parms, pairapprox = FALSE, "L", c(0,12), add = TRUE)
+
+text(8,0.75, "0")
+
+
 ```
 
 
-We conclude that the different kinds of local feedbacks can fundamentally alter the critical thresholds of arid rangelands. Knowing about their relative importance is vital for the management of arid ecosystems under grazing pressure. 
+
+Note that competition too could cause increased mortality due to high local cover. For reasons of simplicity we do not mix those effects here, but consider it of similar effect as an inverse of the associational resistance.
+
+### conclusion
+
+
+We conclude that the different kinds of local feedbacks can fundamentally alter the stability properties of arid rangelands. Knowing about their relative importance is vital for the management of arid ecosystems under grazing pressure. 
 
 But how can this knowledge be put to practice? The acknowledgement of alternative stable states in rangelands led to the development of state-and-transition models, i.e. descriptions of the ecosystems states and the probabilities and conditions for transitions between them. 
 
