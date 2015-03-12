@@ -79,6 +79,7 @@ rho <- seq(0,1,length = 100)
 parms <- defparms
 
 par(mfrow = c(2,2), bty ="n", las = 1 ) 
+
 defplot(rho, G(rho), ylab = "plant mortality/growth", col = colpal$grow[1])
 lines(rho, C(rho, set = list(L = 2)), col = colpal$mort[1] )
 lines(rho, C(rho, set = list(L = 5)), col = colpal$mort[1] )
@@ -131,12 +132,12 @@ The mechanism of facilitation, i.e. the positive effect of one individual or spe
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
 parms <- defparms
-parms$f = 0.9
-parms$b = 0.4
+parms$f = 0.8
+parms$b = 0.3
 
-attractor(parms)
+attractor(parms, pairapprox = FALSE, localvals = TRUE)
 
-bifurcation(parms, "b", c(0,1))
+bifurcation(parms, pairapprox = TRUE, "b", c(0,1))
  
 
 ```
@@ -153,9 +154,9 @@ parms <- defparms
 
 parms$c = 0.3
 
-attractor(parms)
+attractor(parms,  pairapprox = FALSE, localvals = TRUE)
 
-bifurcation(parms, "b", c(0,1))
+bifurcation(parms, pairapprox = TRUE, "b", c(0,1))
  
 
 ```
@@ -169,11 +170,11 @@ par(mfrow = c(1,2), bty ="n", las = 1 )
 parms <- defparms
 
 parms$L = 8
-parms$p = 0.8
+parms$p = 0.7
 
-attractor(parms)
+attractor(parms, pairapprox = FALSE, localvals = TRUE)
 
-bifurcation(parms, "L", c(0,12))
+bifurcation(parms, pairapprox = TRUE, "L", c(0,12))
  
 
 ```
@@ -189,12 +190,12 @@ par(mfrow = c(1,2), bty ="n", las = 1 )
 parms <- defparms
 
 parms$L = 6
-parms$q = 0
+parms$q = 0.5
 parms$v = 0.9
 
-attractor(parms)
+attractor(parms, pairapprox = FALSE, localvals = TRUE)
 
-bifurcation(parms, "L", c(0,12))
+bifurcation(parms, pairapprox = FALSE, "L", c(0,12))
  
 ```
 
