@@ -560,7 +560,8 @@ runODE_meanfield <- function(starting, model_parms, times = c(0,1000))  {
 
 attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini = seq(0,1, length = 11), meanfield = TRUE, pairapprox = TRUE, localvals = FALSE) {
   
-  defplot(NA,NA, ylab = "plant mortality/growth")
+  plot(NA,NA, ylab = "plant mortality/growth", xlim = c(0,1), ylim= c(0,.25), bty = "n", xaxs = "i" , yaxs = "i")
+  
   rho <- seq(0,1,length = 100)
   
   if(meanfield) {
@@ -597,51 +598,65 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
   
   if(pairapprox) {
     
-    ini <- list(
-      rho_1 = rho_1_ini,
-      rho_11 = rho_11_ini,
-      rho_10 = NA,
-      rho_00 = NA,
-      rho_0 = NA
-    )
+ ini <- list(
+   rho_1 = rho_1_ini,
+   rho_11 = c(0, NA),
+   rho_10 = NA,
+   rho_00 = NA,
+   rho_0 = NA
+ )
+ 
+ ini <- expand.grid(ini)
+ 
+ ini$rho_11[is.na(ini$rho_11)] <- ini$rho_1[is.na(ini$rho_11)]
+ 
+ 
+ for(x in 1:nrow(ini)) {
+   temp <- ini_rho(ini[x,]$rho_1, ini[x,]$rho_11)
+   
+   #if(ini[x,]$rho_11 == 0) {
+      while(any(is.na(temp)) & ini[x,]$rho_11 <=ini[x,]$rho_1) {
+        ini[x,]$rho_11 <-  ini[x,]$rho_11+0.005
+        temp <- ini_rho(ini[x,]$rho_1, ini[x,]$rho_11)
+      }
+  
+   ini[x,]$rho_1 <- temp[1]
+   ini[x,]$rho_11 <- temp[2]
+   ini[x,]$rho_10 <- temp[3]
+   ini[x,]$rho_00 <- temp[4]
+   ini[x,]$rho_0 <- temp[5]
+ } 
+ 
+ 
+ ini$m_ini <- C(ini$rho_1, ini$rho_11/ini$rho_1, model_parms)
+ ini$g_ini <- G(ini$rho_1, ini$rho_10/1-ini$rho_0, model_parms)
+ 
+ ini <- subset(ini, !is.na(m_ini) & !is.na(ini$g_ini) &  ini$g_ini >= 0)
+ ini <- cbind(ID = 1:nrow(ini),ini)
+ 
     
-    ini <- expand.grid(ini)
-    
-    for(x in 1:nrow(ini)) {
-      temp <- ini_rho(ini[x,]$rho_1, ini[x,]$rho_11)
-      ini[x,]$rho_1 <- temp[1]
-      ini[x,]$rho_11 <- temp[2]
-      ini[x,]$rho_10 <- temp[3]
-      ini[x,]$rho_00 <- temp[4]
-      ini[x,]$rho_0 <- temp[5]
-    } 
-    
-    
-    ini$m_ini <- C(ini$rho_1, ini$rho_11/ini$rho_1, model_parms)
-    ini$g_ini <- G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1), model_parms)
-    
-    ini <- subset(ini, !is.na(m_ini) & !is.na(ini$g_ini) &  ini$g_ini >= 0)
-    ini <- cbind(ID = 1:nrow(ini),ini)
-    
-    
-    foreach(iteration = ini$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+    foreach(iteration = ini$ID, .packages = c("deSolve")) %dopar% { 
       source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       rho_starting <- ini[iteration, 2:6]
       
       # running the ode-solver
-      runmodel <- runODE_spex(as.numeric(rho_starting),  model_parms, times = seq(1,2))
-      
-      return(tail(runmodel,1))
+      runmodel <- runODE_spex(as.numeric(rho_starting),  model_parms, times = 1.1^seq(0,30,1))
+ 
+      return(runmodel)
     } -> output 
     
-    steady <- ini$rho_1 == output$rho_1
-    ini <- ini[!steady,]
-    output <- output[!steady,]
+steady <-  as.data.frame(t(sapply(output, function(x){
+      
+      lines(x$rho_1, C(x$rho_1, x$rho_11/x$rho_1, model_parms))  
+      arrows(tail(x$rho_1,2)[1],tail(C(x$rho_1, x$rho_11/x$rho_1, model_parms),2)[1],tail(x$rho_1,1),tail(C(x$rho_1, x$rho_11/x$rho_1, model_parms),1), length = 0.04 )
+      lines(x$rho_1, G(x$rho_1, x$rho_10/x$rho_0, model_parms), col = "#009933")  
+      arrows(tail(x$rho_1,2)[1],tail(G(x$rho_1, x$rho_10/x$rho_0, model_parms),2)[1],tail(x$rho_1,1),tail(G(x$rho_1, x$rho_10/x$rho_0, model_parms),1), length = 0.04 , col = "#009933")
     
-    arrows(ini$rho_1, C(ini$rho_1, ini$rho_11/ini$rho_1, model_parms),output$rho_1, C(output$rho_1, output$rho_11/output$rho_1, model_parms), length = 0.02)
-    
-    arrows(ini$rho_1, G(ini$rho_1, (ini$rho_1-ini$rho_11)/(1-ini$rho_1), model_parms),output$rho_1, G(output$rho_1, (output$rho_1-output$rho_11)/(1-output$rho_1) , model_parms), length = 0.02, col = "#009933" )
+    return(c(rho_1 = tail(x$rho_1,1), G =  tail(G(x$rho_1, x$rho_10/x$rho_0, model_parms),1)  , C = tail(C(x$rho_1, x$rho_11/x$rho_1, model_parms),1)) )
+    }
+           ) )
+  )
     
     ## plot steady states
     
@@ -948,3 +963,4 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
   points(trans3d(output[,over], output$rho_1, output$rho_11/output$rho_1, pmat = p), pch = 20,  cex = 0.5)
   
 }
+
