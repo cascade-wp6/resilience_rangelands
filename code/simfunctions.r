@@ -680,13 +680,15 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
   
   require(foreach)
   
+  out <- list() # initialise output object
+  
   parms[[over]] <- seq(xrange[1],xrange[2],length = res)
   
   parms$rho_ini <- ini
   
   iterations <- expand.grid(parms)
   iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
-      
+  iterations$b <- as.numeric(as.character(iterations$b))
   
   if(pairapprox) {
     
@@ -703,6 +705,9 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     
     output <- cbind(iterations,output)
     
+    out$pairapprox <- output
+    out$pairapprox$q_11 <- out$pairapprox$rho_11/out$pairapprox$rho_1
+    
     upper <- output[output$rho_ini == ini[1],][which(round(output[output$rho_ini == ini[1],]$rho_1,4) != round(output[output$rho_ini == ini[2],]$rho_1,4)),]
     lower <- output[output$rho_ini == ini[2],][which(round(output[output$rho_ini == ini[2],]$rho_1,4) != round(output[output$rho_ini == ini[1],]$rho_1,4)),]
     
@@ -711,7 +716,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
         
         source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
         
-        model_parms <- upper[upper[, over] == i,]
+        model_parms <- upper[ upper[, over] == i,]
         
         hi_1 <- upper[upper[, over] == i,]$rho_1
         lo_1 <- lower[lower[, over] == i,]$rho_1
@@ -742,17 +747,22 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
       
       output_unstable <- cbind(upper[,1:16],output_unstable)
       
+      out$pairapprox_unstable <- output_unstable
     }
     
     if(!add) {
-      plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
-    } else {
-      points(output[,over],output$rho_1, pch  = 20,  cex = 0.5)
-    }
+      plot(NA,NA, 
+           xlab = over, ylab = "vegetation cover",
+           type = "p", xlim = xrange,
+           ylim = c(0,1), yaxp = c(0,1,2)
+           )
+    } 
     
     if(nrow(upper)>0) {
-      points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
+      points(output_unstable$rho_1 ~ output_unstable[,over], col = "grey80", pch = 20,  cex = 0.5)
     }
+        points(output$rho_1 ~ output[,over], pch = 20,  cex = 0.5)
+    
     
   }
   
@@ -771,6 +781,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     } -> output
     
     output <- cbind(iterations,output)
+    
+    out$meanfield <- output
     
     upper <- output[output$rho_ini == ini[1],][which(round(output[output$rho_ini == ini[1],]$rho_1,4) != round(output[output$rho_ini == ini[2],]$rho_1,4)),]
     lower <- output[output$rho_ini == ini[2],][which(round(output[output$rho_ini == ini[2],]$rho_1,4) != round(output[output$rho_ini == ini[1],]$rho_1,4)),]
@@ -807,35 +819,41 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
       
       output_unstable <- cbind(upper[,1:16],output_unstable)
       
+      out$meanfield_unstable <- output_unstable
+      
     }
     
     if(pairapprox) {
-      
-      points(output[,over], output$rho_1, pch  = 20, cex = 0.5, col = "grey30" )
       
       if(nrow(upper)>0) {
         points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey90", cex = 0.5)
       }
       
+      points(output[,over], output$rho_1, pch  = 20, cex = 0.5, col = "grey30" )
+            
     } else {
       
       
       if(!add) {
-        plot(output$rho_1 ~ output[,over], xlab = over, ylab = "vegetation cover", type = "p", pch  = 20, ylim = c(0,1), cex = 0.5, yaxp = c(0,1,2))
-      } else {
-        points(output[,over],output$rho_1, pch  = 20,  cex = 0.5)
+        plot(NA,NA, 
+             xlab = over, xlim = xrange, ylab = "vegetation cover",
+             type = "p", pch  = 20, cex = 0.5,
+             ylim = c(0,1), yaxp = c(0,1,2)
+             )
       }
-      
       if(nrow(upper)>0) {
-        points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
-    }
+      points(output_unstable$rho_1 ~ output_unstable[,over], pch = 20, col = "grey80", cex = 0.5)
+      }
+      points(output[,over],output$rho_1, pch  = 20,  cex = 0.5)
+      
+      
     
     }
     
     
   }
 
-
+ return(out)
 }
   
   
