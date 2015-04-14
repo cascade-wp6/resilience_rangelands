@@ -4,7 +4,7 @@ patches-own [
    state      ; integer 0, 1 or 2  for degraded, empty, or vegetated
    ]
 
-globals [ cover delta_t change ]
+globals [ cover delta_t change q_plus_plus ]
 
 ; ------------------ Initializing  --------------
 ; --------- INITIALIZE button calls ---------------
@@ -14,6 +14,7 @@ to init
    init-patches
    init-globals 
    count-cover
+   set q_plus_plus cover
    set delta_t 1
    ask patches [color-patch]
    reset-ticks
@@ -64,7 +65,7 @@ to update-patch
    let neighb_ij count neighbors4 with [state = 1] / 4
    let r random-float 1
    let growth growth_max * (aridity + (1 - aridity) * facilitation * neighb_ij ) * cover ^ ( 1 + runoff)  * (1 - (cover / (capacity * (1 - competition * neighb_ij) )) ) / (1 - cover)
-   let death mortality + ( (search + attraction * neighb_ij ) * livestock * (1 - protection * neighb_ij ) * cover ^ ( q ) ) / ( 1 + (search +  attraction * neighb_ij ) * (handling ) * cover ^ ( 1 + q ) ) 
+   let death mortality + ( (search + attraction * neighb_ij ) * (1 - protection * neighb_ij ) * livestock  * cover ^ ( q ) ) / (  1 + (search +  attraction * neighb_ij) * (1 - protection * neighb_ij ) * (handling ) * cover ^ ( 1 + q ) ) 
    set change TRUE
 
    if (state = 1 and change) and (r <= death * delta_t) [ set state 0 set change FALSE ] 
@@ -116,7 +117,7 @@ capacity
 capacity
 0
 1
-0.6
+0.8
 0.01
 1
 NIL
@@ -131,8 +132,8 @@ mortality
 mortality
 0
 0.2
-0.05
-0.005
+0.0020
+0.001
 1
 NIL
 HORIZONTAL
@@ -146,7 +147,7 @@ livestock
 livestock
 0
 50
-6
+1.5
 0.5
 1
 NIL
@@ -161,7 +162,7 @@ initial_cover
 initial_cover
 0
 1
-0.03
+0.06
 0.005
 1
 NIL
@@ -264,7 +265,7 @@ search
 search
 0
 2
-0.2
+0.02
 0.01
 1
 NIL
@@ -279,30 +280,11 @@ handling
 handling
 0
 100
-100
+50
 1
 1
 NIL
 HORIZONTAL
-
-PLOT
-940
-269
-1250
-512
-attractor
-cover
-mortality/growth
-0.0
-1.0
-0.0
-2.5
-false
-false
-"" ""
-PENS
-"pen-1" 1.0 0 -3844592 true "" "plotxy cover ( ( mortality + ( (search + attraction * neighb_ij ) * livestock * cover ^ ( q ) ) / ( 1 + (search +  attraction * neighb_ij ) * (handling / (1 - protection * neighb_ij ) ) * cover ^ ( 1 + q ) ) ) * cover )"
-"pen-2" 1.0 0 -7500403 true "" "plotxy cover ( growth_max * (aridity + (facilitation - aridity) * neighb_ij ) * cover ^ ( 1 + runoff)  * (1 - (cover / (capacity * (1 - competition * neighb_ij) )) )   )"
 
 SLIDER
 279
@@ -328,7 +310,7 @@ aridity
 aridity
 0
 1
-0.76
+0.07
 0.01
 1
 NIL
@@ -368,7 +350,7 @@ facilitation
 facilitation
 0
 1
-0.9
+1
 0.01
 1
 NIL
@@ -383,7 +365,7 @@ protection
 protection
 0
 1
-0.91
+0.9
 0.01
 1
 NIL
@@ -413,7 +395,7 @@ attraction
 attraction
 0
 1
-0
+0.57
 0.01
 1
 NIL
