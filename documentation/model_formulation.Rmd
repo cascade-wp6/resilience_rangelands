@@ -478,6 +478,18 @@ lines(ODEnullmodel, lty = 3)
 
 And the animated lattice would look like this:
 
+```{r, eval = FALSE, dev='png', echo = FALSE, fig.show='animate', fig.height = 4, fig.width = 4, interval = 0.01}
+if(Sys.info()[['sysname']] == "Linux") X11.options(antialias = "none") #for Linux Systems to enable pixel-wise plotting in (animated) gif-files. 
+  if(Sys.info()[['sysname']] == "Windows") windows.options(antialias = "none") #for Windows Systems to enable pixel-wise plotting in (animated) gif-files. 
+  width = nullmodel$timeseries[[1]]$dim[1]
+  height = nullmodel$timeseries[[1]]$dim[2]
+     
+    for(i in 1:length(nullmodel$timeseries) ) {
+      par(mar = c(0,0,0,0))
+      plot(nullmodel$timeseries[[i]], grid = FALSE, ani = TRUE) 
+    }
+```
+
 ```{r, eval = FALSE, echo = FALSE, warning = FALSE}
 animateCA(nullmodel, "ca_nullmodel.gif")
 
