@@ -508,16 +508,16 @@ $$ w_{0,1} = \frac{r \rho_1^{1+\alpha} b (1-\frac{\rho_1}{K})}{1-\rho_1} $$
 
 ```{r, echo=FALSE}
 
-defparms <- list(
+defparms <- list(  
     m = 0.05,
     r = 1,
     b = 0.9, 
     K = 0.9, 
     a = 0.6,
-    h = 50,
-    L = 6, 
-    alpha = 0.3,
-    q = 0.5,
+    h = 100,
+    L = 16, 
+    alpha = 0.1,
+    q = 1,
     c = 0,
     f = 0,
     v = 0,
@@ -676,7 +676,7 @@ attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
 #### multiple effects 
 
-If those effects coincide, potentially even with the global feedbacks, the intersections are difficult to estimate. 
+If those effects coincide, potentially even with the global feedbacks, the intersections are difficult to estimate visually. 
 
 ```{r, echo=FALSE}
 
@@ -763,14 +763,14 @@ parms <- list(
     f = 0.8, #  local facilitation
     b = 0.4,  # environmental quality inverse of aridity
     K = 0.9,  # carrying capacity
-    alpha = 0.1, # water runoff
+    alpha = 0, # water runoff
     c = 0.2, # local competition
-    a = 0.6, # search efficiency
-    v = 0.1, # attraction effect
+    a = 0.2, # search efficiency
+    v = 0.8, # attraction effect
     h = 50, # handling time (one individual on landscape unit)
-    p = 0.8, # protection effect
-    L = 6, # livestock units per landscape unit 
-    q = 1 # search ineffiency at low cover
+    p = 0.99, # protection effect
+    L = 5, # livestock units per landscape unit 
+    q = 0 # search ineffiency at low cover
   )
 
 ```
@@ -908,55 +908,86 @@ $$x = \frac{-b\pm \sqrt{b^2-4ac} }{2a}$$
 
 This works quite well, but produces unequal distributions of arrows along the y-axis. 
 
-
 ```{r, echo=FALSE}
 attractor(parms)
 ```
 
-
-```{r, echo=FALSE}
-
-parms <- list(
-    m = 0.05,  # intrinsic mortality of plants 
-    r = 1,   # growth rate
-    f = 0.8, #  local facilitation
-    b = 0.3,  # environmental quality inverse of aridity
-    K = 0.9,  # carrying capacity
-    alpha = 0, # water runoff
-    c = 0.2, # local competition
-    a = 0.6, # search efficiency
-    v = 0.1, # attraction effect
-    h = 50, # handling time (one individual on landscape unit)
-    p = 0.8, # protection effect
-    L = 6, # livestock units per landscape unit 
-    q = 1 # search ineffiency at low cover
-  )
-
-attractor(parms)
-
-```
 
 ### Bifurcation diagrams
 
-The following shows bifurcation diagrams over an environmental gradient, $b$, as well as over a gradient of livestock density, $L$. 
+The following shows bifurcation diagrams of the mean field approximation over an environmental gradient, $b$, as well as over a gradient of livestock density, $L$. 
 
-```{r, echo=FALSE, fig.height = 3}
+```{r, echo=FALSE, fig.height = 3 }
 par(mfrow = c(1,2))
-bifurcation(parms, "L", c(0,12))
+parms$q = 0.4
+bifurcation(parms, "L", c(0,12)) -> over_L
  
-bifurcation(parms,"b", c(0,1))
-
-
-stopCluster(cl)
-
+bifurcation(parms,"b", c(0,1)) -> over_b
 
 ```
 
 A dynamic Shiny implementation of that can be found under 'documentation/interactive_spexmodel_bifurcations.Rmd' ( run in RStudio, specify parallel backend.).
 
-The simulation backend is now all set up. As a final step, we want to check out if the model can be solved analytically. 
+
+The same graph using the pair-approximation. 
+
+```{r, echo=FALSE, fig.height = 3}
+par(mfrow = c(1,2))
+bifurcation(parms, "L", pairapprox = TRUE, meanfield = FALSE, c(0,12)) -> over_L
+ 
+bifurcation(parms,"b", pairapprox = TRUE, meanfield = FALSE, c(0,1)) -> over_b
+
+
+```
+
+The bifurcation diagram visualises the attractor only along the total cover which is only an incomplete visualisation, since the steady state is described by both, global vegetation cover $\rho_1$ and average local cover $q_{1|1}$ (or alternatively the cover of vegetated pairs $\rho_{11}$ but this is rather unintuitive). To visualise this, a three dimensional graph is necessary. 
+
+```{r, echo=FALSE, fig.height = 5}
+
+persp(0:1,0:1, matrix(c(0,0,0,0), ncol = 2), zlim = c(0,1), ticktype = "detailed", zlab = "vegetation cover", ylab = "local cover" , xlab = "b", theta = -65, phi = 19, r = sqrt(3), d = 1) -> p
+    
+  points(trans3d(over_b$pairapprox$b, over_b$pairapprox$rho_1, rep(0, length(over_b$pairapprox$rho_1)), pmat = p), col = "#D0D0D0", pch = 20,  cex = 0.5)
+  points(trans3d(over_b$pairapprox$b,rep(1, length(over_b$pairapprox$rho_1)), over_b$pairapprox$rho_11/over_b$pairapprox$rho_1,  pmat = p), col = "#D0D0D0", pch = 20,  cex = 0.5)  
+  points(trans3d(rep(1, length(over_b$pairapprox$rho_1)),over_b$pairapprox$rho_1, over_b$pairapprox$rho_11/over_b$pairapprox$rho_1,  pmat = p), col = "#D0D0D0", pch = 20,  cex = 0.5)  
+  
+  points(trans3d(over_b$pairapprox$b, over_b$pairapprox$rho_1, over_b$pairapprox$rho_11/over_b$pairapprox$rho_1, pmat = p), pch = 20,  cex = 0.5)
+
+
+```
+
+Decomposing it into its dimensions is easier to print. 
+
+```{r, echo = FALSE}
+over_b$pairapprox$q_11 <- over_b$pairapprox$rho_11/over_b$pairapprox$rho_1
+over_b$pairapprox$q_11[is.na(over_b$q_11)] <- 0
+
+par(mfrow =c(1,2))
+  plot(over_b$pairapprox$b, over_b$pairapprox$rho_1, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+  plot(over_b$pairapprox$b, over_b$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+```
+
+The direct comparison of global cover vs. local cover indicates the amount of clustering along the stress gradient and at the critical thresholds. 
+We are going to compare these plots for a range of models to see how the spatial configuration changes with increasing stress under different mechanism scenarios. 
+
+```{r, echo=FALSE, fig.width = 3}
+par(mfrow = c(1,1))
+  plot(over_b$pairapprox$rho_11, over_b$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+abline(a = 0, b = 1, lty = 3, col = "#D0D0D0")
+points(0,0, pch=20, col = "white", cex = 2)
+ points(0,0, pch=20, cex = 0.5)
+
+```
+
+
+```{r}
+
+stopCluster(cl)
+
+```
 
 ## analytical solutions
+
+The simulation backend is now all set up. As a final step, we want to check out if the model can be solved analytically. 
 
 I tried to solve the equilibria of the equation system by assuming 
 
