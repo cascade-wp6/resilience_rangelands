@@ -313,7 +313,7 @@ runCA <- function(init, parms, width = 100, height = 100, delta = 0.1, t_max = 1
     
     growth[growth < 0] <- 0
     
-    death <- with(parms_temp, (m + ( (a * (1-p*q_one_one)) * L * rho_one^(q) )/( 1 + ((a * (1-p*q_one_one))  + v*q_one_one) * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
+    death <- with(parms_temp, (m + ( (a+ v*q_one_one) * (1-p*q_one_one) * L * rho_one^(q) )/( 1 + (a+ v*q_one_one) * (1-p*q_one_one) * h * rho_one^(1+q) )) *delta)   # set probability of death for each cell
     
     death[death < 0] <- 0
     
@@ -380,7 +380,7 @@ d_rho_mean <- function(rho, parms) {
   growth <- with(parms, r *  rho^( 1 + alpha) * (b + (1-b) * f * rho)  * (1 - rho/(K * (1-c*rho) ) ))
   if(growth <= 0| is.na(growth)) {growth <- 0}
   
-  mortality <- with(parms,  m * rho + ((a* (1-p*rho)+v*rho) * rho^( 1 + q) * L )/(1 + (a* (1-p*rho)+v*rho) * h * rho^( 1 + q)) )  
+  mortality <- with(parms,  m * rho + ( (a+v*rho) * (1-p*rho) * rho^( 1 + q) * L )/(1 + (a+v*rho) * (1-p*rho) * h * rho^( 1 + q)) )  
   if(mortality <= 0 | is.na(mortality)) {mortality <- 0}
   
   return(growth - mortality)
@@ -402,7 +402,7 @@ d_rho_1 <- function(rho, parms) {
                  r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) )) 
   if(growth <= 0 | is.na(growth)) {growth <- 0}
 
-  mortality <- with(parms, m * rho[1] + ( (a * (1 - p * rho[2]/rho[1]) + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 +(a * (1 - p * rho[2]/rho[1]) + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) )
+  mortality <- with(parms, m * rho[1] + ( (a + v*rho[2]/rho[1]) * (1 - p * rho[2]/rho[1]) * rho[1]^( 1 + q) * L)/(1 + (a + v*rho[2]/rho[1]) * (1 - p * rho[2]/rho[1]) * h  * rho[1]^( 1 + q)) )
   if(mortality <= 0 | is.na(mortality)) {mortality <- 0}
   
   return(growth - mortality)
@@ -415,7 +415,7 @@ d_rho_11 <- function(rho,  parms) {
        2* (rho[1] - rho[2]) * r * (b + (1 - b) * f * (rho[1] - rho[2])/(1- rho[1]) ) * rho[1]^( 1 + alpha) * (1 - rho[1]/(K * (1-c*(rho[1] - rho[2])/(1- rho[1])) ) ) / (1-rho[1]))
   if(growth <= 0 | is.na(growth)) growth <- 0
   
-  mortality <- with(parms, 2 * rho[2] * m  + 2 * rho[2] * ( (a* (1 - p * rho[2]/rho[1]) + v*rho[2]/rho[1]) * rho[1]^( 1 + q) * L )/(1 +(a* (1 - p * rho[2]/rho[1]) + v*rho[2]/rho[1]) * h  * rho[1]^( 1 + q))  )
+  mortality <- with(parms, 2 * rho[2] * m  + 2 * rho[2] * ( (a + v*rho[2]/rho[1]) * (1 - p * rho[2]/rho[1])  * rho[1]^( 1 + q) * L )/(1 +(a + v*rho[2]/rho[1]) * (1 - p * rho[2]/rho[1])  * h  * rho[1]^( 1 + q))  )
   if(mortality <= 0 | is.na(mortality)) mortality <- 0
   
   return(growth - mortality)
@@ -510,7 +510,7 @@ C <- function(rho_1, q_11 = 1, parms = defparms, set = list(NA)) {
     else parms[[i]]
   }, simplify = FALSE)
   
-  with(parms_temp, (m * rho_1) +( (a*(1-p*q_11)+v*q_11  ) *rho_1^(1+q)*L)/(1+(a*(1-p*q_11)+v*q_11)*h*(rho_1^(1+q)) ) )
+  with(parms_temp, (m * rho_1) +( (a + v*q_11 )*(1-p*q_11) *rho_1^(1+q)*L)/(1+(a + v*q_11 )*(1-p*q_11)*h*(rho_1^(1+q)) ) )
 
 }
 
@@ -532,7 +532,7 @@ defplot <- function(...) plot(...,
 
 runODE_spex <- function(starting, model_parms, times = c(0,1000))  {
   
-    out <- as.data.frame(ode(starting, func = odesys_spex, times = times, parms = model_parms))
+    out <- as.data.frame(ode(starting, func = odesys_spex, times = times, parms = model_parms, method = "ode45"))
     
     names(out) <- c("time", "rho_1", "rho_11", "rho_10", "rho_00", "rho_0")
     
@@ -540,6 +540,7 @@ runODE_spex <- function(starting, model_parms, times = c(0,1000))  {
     out$rho_00 <- 1-2*out$rho_1+out$rho_11
     out$rho_0  <- 1- out$rho_1
     
+    out[out < 1e-6] <- 0
   return(round(out,6))
 }
 

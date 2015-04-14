@@ -555,6 +555,22 @@ with the effect of aridity, $a_0$ in absence of local vegetation being increased
 
 ```{r, echo=FALSE}
 
+defparms <- list(  
+    m = 0.05,
+    r = 1,
+    b = 0.9, 
+    K = 0.9, 
+    a = 0.6,
+    h = 100,
+    L = 12, 
+    alpha = 0,
+    q = 0,
+    c = 0,
+    f = 0,
+    v = 0,
+    p = 0
+    
+  )
 parms <- defparms
 parms$f = 0.8
 parms$b = 0.3
@@ -601,11 +617,13 @@ Thus, at low local cover feeding will be high on plants with neighbors, whereas 
 Thus a value of $v = 0$ means that grazing distributes homogeneously, whereas $v = 1$ means that grazing goes with maximal intensity on plants with many neighbors. But it would need to make sure that grazing is not exploding at high cover. It is difficult to define this properly and in a simple way, though. 
 
 
+
 ```{r, echo=FALSE}
 
 
 parms <- defparms
-parms$v = 0.9
+parms$v = 1
+parms$q = 1
 attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
 
@@ -623,17 +641,22 @@ Instead, we could define associational protection as a reduced impact due to a r
 
 $$ L = L^* (1 - p  q_{1|1}) $$
 
-**Update 12.03.2015:** since the effect is of less relevance at high cover, since the development of thorns is only induced if local pressure is already high,  it makes more sense to implement associational protection as an effect on search efficiency. 
-
+**Update 12.03.2015:** the effect is of less relevance at high cover, since the development of thorns is only induced if local pressure is already high. At high cover it is the handling time limitation that acts as an individual protection. Thus, it makes more sense to implement associational protection as an effect on search efficiency. 
 
 $$ a = a^* (1- p q_{1|1}) $$ 
 
-This causes a to fall to its minimal value ($1-p$) at full local cover. 
+This causes $a$ to fall to its minimal value ($1-p$) at full local cover. If $p=1$ the feeding is completely neutralized under high local cover, which also causes a drop in grazing mortality if cover is really high. This might be unrealistic, for the biological reasons named above. So, values of $p \leq 0.9$ seem to make sense. 
+
+**Update 26.03.2015:** Also, the formulations of local effects on mortality are unclear about their compatibility, since the attractant effect it is additive while the protective effect is multiplied. 
+Thus, I have to specify
+
+$$ a =  (a^*  + v q_{1|1} ) (1- p q_{1|1}) $$ 
+
 
 ```{r, echo=FALSE}
 
 parms <- defparms
-parms$p = 0.8
+parms$p = 0.99
 attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
 
@@ -674,13 +697,13 @@ $$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}w_{0,1} - \rho_{1}w_{1,0}  
 
 Thus, we can substitute $C(\rho) = w_{1,0}$ and $G(\rho) = w_{0,1}$ and obtain
 
-$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)(1 - p \rho_1)L \rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
 
 Plotting the meanfield growth and mortality over vegetation cover is straigthforward now. 
 
 $$ G = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) $$
 
-$$ C = \rho_{1}m + \frac{(a  + v \rho_1)L (1 - p \rho_1)\rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}$$
+$$ C = \rho_{1}m + \frac{(a  + v \rho_1)(1 - p \rho_1)L \rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}$$
 
 The alternative steady states and unstable equilibria can be simulated by solving the ODE. 
 
