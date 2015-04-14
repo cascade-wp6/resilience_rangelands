@@ -47,7 +47,7 @@ defparms <- list(
     r = 1,
     b = 0.7, 
     K = 0.9, 
-    a = 0.6,
+    a = 0.2,
     h = 50,
     L = 4, 
     alpha = 0,
@@ -100,7 +100,7 @@ bifurcation(parms, "b", c(0,1))
 
 ```
 
-The model is neutral in terms of species and assumes only one relevant type of vegetation and one population of grazer. Noy-meir notes that the model can apply also if there is one plant species that dominates the ecological dynamics of the entire system [@noy-meir75].
+The model is neutral in terms of species and assumes only one relevant type of vegetation and one population of grazer. Noy-meir emphasizes that the model can apply also if there is one plant species that dominates the ecological dynamics of the entire system [@noy-meir75].
 We stick to this approach of neglecting species-specific differences. 
 
 ## local feedback mechanisms
@@ -129,9 +129,9 @@ attractor(p1)
 
 #### facilitation
 
-The mechanism of facilitation, i.e. the positive effect of one individual or species onto another, is well described in terms of species interaction networks [@bruno09; @kefi12]. Such mechanisms can be species-pair specific but they also play a general abiotic role as the cause of local amelioration of the environmental conditions of the neighborhood of a 'nurse' plant. The mechanisms commonly subsumised under local facilitation are shading effects, soil water retention, aggregation of litter and fixation of organic matter in top soils [@bautista]. 
+The mechanism of facilitation, i.e. the positive effect of one individual or species onto another, is well described in terms of species interaction networks [@bruno09; @kefi12]. Such mechanisms can be species-pair specific but they also play a general abiotic role as the cause of local amelioration of the environmental conditions of the neighborhood of a 'nurse' plant. The mechanisms commonly subsumised under local facilitation are shading effects, soil water retention, aggregation of litter and fixation of organic matter in top soils [@bautista04, @milchunas02]. 
 
-We implement local facilitation as a mechanism that increases growth rates on empty ground locally with increasing local plant cover, $q_{0|1}$. 
+We implement local facilitation as a mechanism that increases local growth rates on empty ground with increasing local plant cover, $q_{1|0}$. 
 
 ```{r, echo = FALSE, fig.cap="a) mean field approximation of density dependent mortality and growth of vegetation with local facilitation. As plant cover increases, the effect of facilitation is stronger. solid points show steady states, open circle shows unstable equilibrium. b) bifurcation diagram of vegetation cover over a gradient of environmental quality (black: steady states, grey: unstable equilibria). High facilitation has strong stabilising effects on the vegetated state. "}
 
@@ -168,11 +168,11 @@ bifurcation(parms, pairapprox = FALSE, "b", c(0,1), add =TRUE)
 
 ```
 
-Facilitation has a strong stabilizing effect on the vegetated state of the ecosystem and extends the range where vegetation can persist far towards very harsh environmental conditions. 
+The mean-field model shows that facilitation has a strong stabilizing effect on the vegetated state of the ecosystem and extends the range where vegetation can persist far towards very harsh environmental conditions [@kefi07a]. 
 
 #### local competition
 
-Local competition is a mechanism counteracting local facilitation. If plants grow close together they exploit the locally available resources, like water or nutrients. Thus, the perceived carrying capacity of an empty space is reduced as the neighboring plant cover $q_{1|1}$ increases. 
+Local competition is a mechanism counteracting local facilitation. If plants grow close together they exploit the locally available resources, like water or nutrients. Thus, the perceived carrying capacity of an empty space is reduced as the neighboring plant cover $q_{1|0}$ increases. 
 
 
 ```{r, echo = FALSE}
@@ -183,10 +183,10 @@ parms <- defparms
 
 parms$c = 0.6
 
-attractor(parms,  pairapprox = FALSE, localvals = TRUE)
+attractor(parms,  pairapprox = FALSE, localvals = TRUE) 
 
 parms$c = 0
-bifurcation(parms, pairapprox = FALSE, "b", c(0,1))
+bifurcation(parms, pairapprox = FALSE, "b", c(0,1)) 
 
 parms$c = 0.3
 bifurcation(parms, pairapprox = FALSE, "b", c(0,1), add = TRUE)
@@ -197,13 +197,13 @@ bifurcation(parms, pairapprox = FALSE, "b", c(0,1), add = TRUE)
 
 ```
 
-Where local competition is important, the total vegetation cover is reduced, since competition affects growth primarily at high cover. The critical thresholds of sustaineable environmental quality are hardly affected. 
+Where local competition is important, the total vegetation cover is reduced, since competition affects growth primarily at high cover. The critical thresholds of sustainable environmental quality are only marginally affected. Primarily, local competition affects the potential vegetation cover. 
 
 
 #### associational resistance
 
 In arid rangelands many plants develop protective physical structures, like thorns or cushion growth, or secondary plant metabolites to reduce the impact of grazing. This investment usually not only benefits the plant itself but also other plants in the direct neighborhood, since it reduces the accessibility of space or acts as a repellent for herbivores. 
-This associational resistance is providing a local decrease of search efficiency (or an increase of handling effort) for grazers, which is reducing total consumption, and thus acts as a positive local feedback on vegetation cover. 
+This associational resistance [@milchunas02] is providing a local decrease of search efficiency (or an increase of handling effort) for grazers, which is reducing total consumption, and thus acts as a positive local feedback on vegetation cover. 
 
 
 ```{r, echo = FALSE}
@@ -213,7 +213,7 @@ par(mfrow = c(1,2), bty ="n", las = 1 )
 parms <- defparms
 
 parms$L = 6
-parms$p = 0.6
+parms$p = 1
 
 attractor(parms, pairapprox = FALSE, localvals = TRUE)
 
@@ -244,13 +244,14 @@ text(8,0.81, "1.0")
 
 ```
 
-Associational resistance is a stabilizing feature of vegetation cover. It greatly extends the range of persistent vegetation cover under high levels of livestock grazing, since it effectively reduces grazing impact at high vegetation cover. 
+Associational resistance is a stabilizing feature of vegetation cover. It greatly extends the range of persistent vegetation cover, especially under high levels of livestock grazing, since it effectively reduces grazing impact at high vegetation cover. 
+At low cover, grazing effects are relatively strong because most plants are not associated in patches. The establishment of patches is facilitated, but is regularly broken by the plants intrinsic mortality. 
 
 
 
 #### attractant-decoy
 
-As an opposing mechanism to associational resistance, palatable plants attract grazers and 
+As an opposing mechanism to associational resistance, volatiles and visual impression of palatable plants attract grazers to spaces with many plants, which renders the grazers search more efficient. Thus, search efficiency of grazers is locally increased if a plant has many neighbors. 
 
 
 ```{r, echo = FALSE}
@@ -261,12 +262,13 @@ par(mfrow = c(1,2), bty ="n", las = 1 )
 parms <- defparms
 
 parms$L = 6
-parms$q = 0.5
-parms$v = 0.9
+parms$q = 0
+parms$a = 0.1
+parms$v = 1
 
 attractor(parms, pairapprox = FALSE, localvals = TRUE)
 
-parms$v = 0.9
+parms$v = 1
 
 bifurcation(parms, pairapprox = FALSE, "L", c(0,12))
 
@@ -288,26 +290,179 @@ text(8,0.75, "0")
 ```
 
 
-
 Note that competition too could cause increased mortality due to high local cover. For reasons of simplicity we do not mix those effects here, but consider it of similar effect as an inverse of the associational resistance.
 
 ### conclusion
 
 
-We conclude that the different kinds of local feedbacks can fundamentally alter the stability properties of arid rangelands. Knowing about their relative importance is vital for the management of arid ecosystems under grazing pressure. 
+We conclude that the different kinds of local feedbacks can fundamentally alter the stability properties of arid rangelands. Knowing about their relative importance is vital for the management of arid ecosystems under grazing pressure. Four types of positive feedbacks were discussed here. They might be accelerating mortality at low local cover (attractant-decoy), decelerating mortality at high local cover (associational protection), accelerating growth at high cover (facilitation), or decelerating growth at high local cover (competition).
 
-But how can this knowledge be put to practice? The acknowledgement of alternative stable states in rangelands led to the development of state-and-transition models, i.e. descriptions of the ecosystems states and the probabilities and conditions for transitions between them. 
+But how can this knowledge be put to practice? The acknowledgement of alternative stable states in rangelands led to the descriptions of the ecosystems states and the probabilities and conditions for transitions between them (i.e., state-and-transition models). 
+
+
+## attractor of spatial structure 
+
+The pair-approximation model is much more informative about the characteristics of the vegetated and the degraded state, since it describes the attractor as a function of both global and local cover.
+
+
+
 
 
 ## trajectories 
 
-The mean-field approximation allows us to estimate the alternative states of an ecosystem under a given set of circumstances, it is not very informative about which starting conditions would lead to the one or the other alternative steady state. 
+The mean-field approximation allows us to estimate the alternative stable states of an ecosystem under a given set of circumstances, it is not very informative about which spatial configuration would develop into the one or the other alternative steady state. 
 
-Here, pair-approximation models, that keep track not only of the total vegetation cover but also of the local cover, provide more information and can help to estimate the boundary between the alternative steady state attractors. 
+Here, pair-approximation models, that keep track not only of the total vegetation cover but also of the local cover, provide more information about the transient dynamics and the domain of attraction and can help to estimate the boundary between the alternative steady state attractors. 
 
 We apply this approach to different scenarios, to discuss under which circumstances an ecosystem might respond positively to a given management condition (e.g. the increase or decrease of livestock)
 
-## spatial structure as state indicator
+
+### facilitation and protection
+
+```{r, echo = FALSE, fig.cap="", fig.height = 2}
+
+par(mfrow = c(1,3), bty ="n", las = 1 ) 
+parms <- defparms
+parms$f = 1
+parms$b = 0.3
+parms$L = 6
+parms$p = 1
+
+attractor(parms, pairapprox = TRUE, localvals = FALSE, meanfield = FALSE)
+
+
+parms$f = 1
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1)) -> out_1
+
+parms$f = 0.5
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE) -> out_2
+
+parms$f = 0
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE) -> out_3
+
+
+###
+
+parms$f = 1
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12))-> out_4
+ 
+parms$f = 0.5
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)-> out_5
+
+parms$f = 0
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)-> out_6
+
+
+
+
+```
+
+
+
+### facilitation and attraction
+
+```{r, echo = FALSE, fig.cap="", fig.height = 2}
+
+par(mfrow = c(1,3), bty ="n", las = 1 ) 
+parms <- defparms
+parms$f = 1
+parms$b = 0.3
+parms$L = 6
+parms$v = 1
+
+attractor(parms, pairapprox = TRUE, localvals = FALSE, meanfield = FALSE)
+
+
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1))
+
+parms$f = 0.5
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE)
+
+parms$f = 0
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE)
+
+parms$f = 1
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12))
+ 
+parms$f = 0.5
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)
+
+parms$f = 0
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)
+
+
+```
+
+
+
+### competition and protection
+
+```{r, echo = FALSE, fig.cap="", fig.height = 2}
+
+par(mfrow = c(1,3), bty ="n", las = 1 ) 
+parms <- defparms
+parms$c = 1
+parms$L = 6
+parms$p = 1
+
+attractor(parms, pairapprox = TRUE, localvals = FALSE, meanfield = FALSE)
+
+
+bifurcation(parms,  pairapprox = TRUE, meanfield = FALSE, "b", c(0,1))
+
+parms$c = 0.5
+bifurcation(parms,  pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE)
+
+parms$c = 0
+bifurcation(parms,  pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE)
+
+parms$c = 1
+bifurcation(parms,  pairapprox = TRUE, meanfield = FALSE, "L", c(0,12))
+ 
+parms$c = 0.5
+bifurcation(parms,  pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)
+
+parms$c = 0
+bifurcation(parms,  pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)
+
+
+```
+
+### competition and attraction
+
+```{r, echo = FALSE, fig.cap="", fig.height = 2}
+
+par(mfrow = c(1,3), bty ="n", las = 1 ) 
+parms <- defparms
+parms$c = 1
+parms$L = 6
+parms$v = 1
+
+attractor(parms, pairapprox = TRUE, localvals = FALSE)
+
+
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1))
+
+
+parms$c = 0.5
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE)
+
+parms$c = 0
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE)
+
+parms$c = 1
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12))
+ 
+parms$c = 0.5
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)
+
+parms$c = 0
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)
+
+
+```
+
+
 
 
 
