@@ -546,10 +546,11 @@ runODE_spex <- function(starting, model_parms, times = c(0,1000))  {
 
 runODE_meanfield <- function(starting, model_parms, times = c(0,1000))  {
   
-  out <- as.data.frame(ode(starting, func = odesys_mean, times = times, parms = model_parms))
+  out <- as.data.frame(ode(starting, func = odesys_mean, times = times, parms = model_parms, method = "ode45"))
   
   names(out) <- c("time", "rho_1")
   
+  out[out < 1e-6] <- 0
   return(round(out,6))
 }
 
@@ -568,11 +569,11 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
     lines(rho,G(rho, rho, model_parms), col = colpal$grow[1], lwd = 2)
     
     
-    runmodel_high <- as.data.frame(ode(y = 0.99, func = odesys_mean, times = c(1,1000), parms = model_parms))
+    runmodel_high <- as.data.frame(ode(y = 0.99, func = odesys_mean, times = c(0,1000), parms = model_parms, method = "ode45"))
     
     points(runmodel_high[2,2],G(runmodel_high[2,2], runmodel_high[2,2], model_parms), xpd = TRUE, pch = 20, cex = 2)
     
-    runmodel_low <- as.data.frame(ode(y = 0.0001, func = odesys_mean, times = c(1,1000), parms = model_parms))
+    runmodel_low <- as.data.frame(ode(y = 0.0001, func = odesys_mean, times = c(0,1000), parms = model_parms, method = "ode45"))
     
     points(runmodel_low[2,2],G(runmodel_low[2,2],runmodel_low[2,2],model_parms), xpd = TRUE, pch = 20, cex = 2)
     
@@ -582,7 +583,7 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
     for(i in 1:10) {
       
       mid <- (lo+hi)/2 
-      runmodel_mid <- as.data.frame(ode(mid, func = odesys_mean, times = c(1,1.2), parms = model_parms))
+      runmodel_mid <- as.data.frame(ode(mid, func = odesys_mean, times = c(0,0.2), parms = model_parms, method = "ode45"))
       
       if(runmodel_mid[2,2] > mid) { hi <- mid } else { lo <- mid}
       
@@ -644,13 +645,13 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
     
     ## plot steady states
     
-    high_equ <- as.data.frame(ode(y = ini_rho(0.8), func = odesys_spex, times = c(1,1000), parms = model_parms) )[2,]
+    high_equ <- as.data.frame(ode(y = ini_rho(0.9), func = odesys_spex, times = c(0,1000), parms = model_parms, method = "ode45") )[2,]
     
-    points(high_equ$rho_1, C(high_equ$rho_1, high_equ$rho_11/high_equ$rho_1, model_parms), pch = 20, xpd = TRUE)
+    points(high_equ$rho_1, C(high_equ$rho_1, high_equ$rho_11/high_equ$rho_1, model_parms), pch = 20,cex = 2, xpd = TRUE)
     
-    low_equ <- as.data.frame(ode(y = ini_rho(0.0001), func = odesys_spex, times = c(1,1000), parms = model_parms) )[2,]
+    low_equ <- as.data.frame(ode(y = ini_rho(0.0001), func = odesys_spex, times = c(0,1000), parms = model_parms, method = "ode45") )[2,]
     
-    points(low_equ$rho_1, C(low_equ$rho_1,low_equ$rho_11/low_equ$rho_1, model_parms), pch = 20, xpd = TRUE)
+    points(low_equ$rho_1, C(low_equ$rho_1,low_equ$rho_11/low_equ$rho_1, model_parms), pch = 20, cex = 2, xpd = TRUE)
     
   }
   
