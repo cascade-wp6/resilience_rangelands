@@ -388,10 +388,10 @@ plot(rho,  with(parms,  m * rho + (a * rho^( 1 + q) * L)/(1 + a * h * rho^( 1 + 
 
 d_rho <- function(rho, parms, z = 4) { 
   with(parms, r* b* rho^( 1 + alpha) * (1 - rho/K) - m * rho - (a * rho^( 1 + q) * L)/(1 + a * h * rho^( 1 + q)) )  
-  }
+  } # instead use function from simfunctions.r?
   
 # running the ode-solver
-ODEglobal_high <- ode(y = 0.9, func = odesys, times = 1.1^(1:50), parms = parms)
+ODEglobal_high <- ode(y = 0.9, func = odesys, times = 1.1^(0:50)-1, parms = parms)
 
 # transfer into ouput and calculate missing rho values
 ODEglobal_high <- as.data.frame(ODEglobal_high)
@@ -401,7 +401,7 @@ axis(4, at = round(tail(ODEglobal_high,1)[["1"]],2),cex.axis = 0.75, las = 1 )
 
 
 # running the ode-solver
-ODEglobal_low <- ode(y = 0.1, func = odesys, times = 1.1^(1:50), parms = parms)
+ODEglobal_low <- ode(y = 0.1, func = odesys, times = 1.1^(0:50)-1, parms = parms)
 
 # transfer into ouput and calculate missing rho values
 ODEglobal_low <- as.data.frame(ODEglobal_low)
