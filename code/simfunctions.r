@@ -856,4 +856,95 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
  return(out)
 }
   
+
+
+bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini = c(0.9, 0.0001) , add = FALSE ) {
   
+  require(foreach)
+  
+  parms[[over]] <- seq(xrange[1],xrange[2],length = res)
+  
+  parms$rho_ini <- ini
+  
+  iterations <- expand.grid(parms)
+  iterations <- cbind(ID = 1:dim(iterations)[1],iterations)
+  iterations$b <- as.numeric(as.character(iterations$b))
+  
+    foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
+      source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      
+      model_parms <- as.list(iterations[iteration,])
+      
+      # running the ode-solver
+      runmodel <- runODE_spex(ini_rho(model_parms$rho_ini), model_parms, times = times) 
+      
+      return(tail(runmodel,1))
+    } -> output
+    
+    output <- cbind(iterations,output)
+    
+    upper <- output[output$rho_ini == ini[1],][which(round(output[output$rho_ini == ini[1],]$rho_1,4) != round(output[output$rho_ini == ini[2],]$rho_1,4)),]
+    lower <- output[output$rho_ini == ini[2],][which(round(output[output$rho_ini == ini[2],]$rho_1,4) != round(output[output$rho_ini == ini[1],]$rho_1,4)),]
+    
+    if(nrow(upper)>0) {
+      foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
+        
+        source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        
+        model_parms <- upper[ upper[, over] == i,]
+        
+        hi_1 <- upper[upper[, over] == i,]$rho_1
+        lo_1 <- lower[lower[, over] == i,]$rho_1
+        hi_11 <- upper[upper[, over] == i,]$rho_11
+        lo_11 <- lower[lower[, over] == i,]$rho_11
+        
+        for(j in 1:10) {
+          
+          rho_ini <- ini_rho( (hi_1+lo_1)/2 , (hi_11+lo_11)/2 )
+          
+          # running the ode-solver
+          
+          runmodel <- runODE_spex(rho_ini, model_parms,times = c(0,1.5)) 
+          
+          if(runmodel[2,"rho_1"] < runmodel[1,"rho_1"] ) {
+            lo_1 <- (hi_1+lo_1)/2 
+            lo_11 <- (hi_11+lo_11)/2 
+          } else {
+            hi_1 <- (hi_1+lo_1)/2 
+            hi_11 <- (hi_11+lo_11)/2 
+          }
+          
+        }
+        
+        return(tail(runmodel,1))
+      } -> output_unstable
+      
+      
+      output_unstable <- cbind(upper[,1:16],output_unstable)
+      
+    }
+    
+    
+    if(!add) {
+      persp(0:1,0:1, matrix(c(0,0,0,0), ncol = 2), zlim = c(0,1), ticktype = "detailed", zlab = "vegetation cover", ylab = "local cover" , xlab = "b", theta = -65, phi = 19, r = sqrt(3), d = 1) -> p
+      assign("p", p, envir = .GlobalEnv  )
+    }
+
+     if(FALSE){
+    if(nrow(upper)>0) {
+      
+      #shade
+      points(trans3d(output_unstable[,over], output_unstable$rho_1, rep(0, length(output_unstable$rho_1)), pmat = p), col = "#0000000F", pch = 20,  cex = 0.5)
+      points(trans3d(output_unstable[,over],rep(1, length(output_unstable$rho_1)), output_unstable$rho_11/output_unstable$rho_1,  pmat = p), col = "#0000000F", pch = 20,  cex = 0.5)  
+      points(trans3d(rep(1, length(output_unstable$rho_1)),output_unstable$rho_1, output_unstable$rho_11/output_unstable$rho_1,  pmat = p), col = "#0000000F", pch = 20,  cex = 0.5)  
+      
+      points(trans3d(output_unstable[,over], output_unstable$rho_1, output_unstable$rho_11/output_unstable$rho_1, pmat = p), col = "#000000FF", pch = 20,  cex = 0.5)
+    }}
+  #shade
+  points(trans3d(output[,over], output$rho_1, rep(0, length(output$rho_1)), pmat = p), col = "#0000000F", pch = 20,  cex = 0.5)
+  points(trans3d(output[,over],rep(1, length(output$rho_1)), output$rho_11/output$rho_1,  pmat = p), col = "#0000000F", pch = 20,  cex = 0.5)  
+  points(trans3d(rep(1, length(output$rho_1)),output$rho_1, output$rho_11/output$rho_1,  pmat = p), col = "#0000000F", pch = 20,  cex = 0.5)  
+  
+  points(trans3d(output[,over], output$rho_1, output$rho_11/output$rho_1, pmat = p), pch = 20,  cex = 0.5)
+  
+}
