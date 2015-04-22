@@ -9,7 +9,7 @@ runtime: shiny
 ---
 
    
-## developping the null model
+## developing the null model
 
 Non-spatial global model solved as ordinary differential equations. It includes global accelerating and decelerating feedbacks on mortality and grazing.
 
@@ -35,17 +35,17 @@ library("deSolve")
 defaultparms <- list(
     m = 0.05,  # intrinsic mortality of plants 
     r = 1,   # growth rate
-    f = 0.8, #  local facilitation
+    f = 1, #  local facilitation
     b = 0.25,  # environmental quality inverse of aridity
     K = 0.9,  # carrying capacity
     alpha = 0.1, # water runoff
-    c = 0.2, # local competition
-    a = 0.6, # search efficiency
+    c = 0, # local competition
+    a = 0.3, # search efficiency
     v = 0.1, # attraction effect
     h = 50, # handling time (one individual on landscape unit)
     p = 0.8, # protection effect
-    L = 6, # livestock units per landscape unit 
-    q = 1 # search ineffiency at low cover
+    L = 5, # livestock units per landscape unit 
+    q = 0 # search ineffiency at low cover
   )
 
 
@@ -61,17 +61,17 @@ As an accelerating feedback we add water runoff, which reduces growth at low cov
 
 inputPanel(
   sliderInput("r", label = "max. growth rate:",
-              min = 0.0, max = 3, value = 1, step = 0.01),
+              min = 0.0, max = 3, value = defaultparms$r, step = 0.01),
   sliderInput("b", label = "environmental quality:",
-              min = 0.0, max = 1, value = 0.1, step = 0.01),
+              min = 0.0, max = 1, value = defaultparms$b, step = 0.01),
   sliderInput("K", label = "carrying capacity:",
-              min = 0.0, max = 1, value = 0.9, step = 0.01),
+              min = 0.0, max = 1, value = defaultparms$K, step = 0.01),
   sliderInput("alpha", label = "water runoff:",
-              min = 0.0, max = 1, value = 0, step = 0.01),
+              min = 0.0, max = 1, value = defaultparms$alpha, step = 0.01),
   sliderInput("f", label = "local facilitation:",
-              min = 0.0, max = 1, value = 0.9, step = 0.01),
+              min = 0.0, max = 1, value = defaultparms$f, step = 0.01),
   sliderInput("c", label = "local competition:",
-              min = 0.0, max = 1, value = 0.1, step = 0.01)
+              min = 0.0, max = 1, value = defaultparms$c, step = 0.01)
 )
 
   
@@ -87,19 +87,19 @@ As an additional accelerating effect we assume the search efficiency to be lowes
 
 inputPanel(
   sliderInput("m", label = "intrinsic mortality:",
-              min = 0.0, max = 1, value = 0.05, step = 0.01),
+              min = 0.0, max = 1, value = defaultparms$m, step = 0.01),
   sliderInput("a", label = "search efficiency:",
-              min = 0.0, max = 1, value = 0.6, step = 0.01), 
+              min = 0.0, max = 1, value = defaultparms$a, step = 0.01), 
   sliderInput("h", label = "handling time:",
-              min = 0.0, max = 200, value = 50, step = 1), 
+              min = 0.0, max = 200, value = defaultparms$h, step = 1), 
   sliderInput("L", label = "livestock units:",
-              min = 0.0, max = 100, value = 6, step = 1),
+              min = 0.0, max = 100, value = defaultparms$L, step = 1),
   sliderInput("q", label = "hill coefficient:",
-              min = 0.0, max = 1, value = 0, step = 0.01),
+              min = 0.0, max = 1, value = defaultparms$q, step = 0.01),
   sliderInput("v", label = "local attractivity:",
-              min = 0.0, max = 1, value = 0.0, step = 0.01),
+              min = 0.0, max = 1, value = defaultparms$v, step = 0.01),
   sliderInput("p", label = "local protection:",
-              min = 0.0, max = 1, value = 0.8, step = 0.01)
+              min = 0.0, max = 1, value = defaultparms$p, step = 0.01)
 )
 
   
@@ -136,7 +136,7 @@ renderPlot({
  
 #iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
 
-attractor(parms)
+attractor(parms, localvals = FALSE, pairapprox = TRUE, meanfield = FALSE, rho_1_ini = seq(0,1, length = 21) )
 
 # if(input$gradient == "b") plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
 # if(input$gradient == "L") plot(rho_1 ~ L, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
