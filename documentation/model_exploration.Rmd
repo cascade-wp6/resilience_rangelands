@@ -319,7 +319,7 @@ We apply this approach to different scenarios, to discuss under which circumstan
 
 ### facilitation and protection
 
-```{r, echo = FALSE, fig.cap="", fig.height = 2}
+```{r, echo = FALSE, fig.cap="", fig.height = 2, warning=FALSE}
 
 par(mfrow = c(1,3), bty ="n", las = 1 ) 
 parms <- defparms
@@ -332,27 +332,36 @@ attractor(parms, pairapprox = TRUE, localvals = FALSE, meanfield = FALSE)
 
 
 parms$f = 1
-bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1)) -> out_1
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), returnoutput = TRUE) -> out_1
 
 parms$f = 0.5
-bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE) -> out_2
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE, returnoutput = TRUE) -> out_2
 
 parms$f = 0
-bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE) -> out_3
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1), add =TRUE, returnoutput = TRUE) -> out_3
 
 
 ###
 
 parms$f = 1
-bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12))-> out_4
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), returnoutput = TRUE)-> out_4
  
 parms$f = 0.5
-bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)-> out_5
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE, returnoutput = TRUE)-> out_5
 
 parms$f = 0
-bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE)-> out_6
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE, returnoutput = TRUE)-> out_6
 
 
+  plot(out_1$pairapprox$rho_11, out_1$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+ points(out_2$pairapprox$rho_11, out_2$pairapprox$q_11, pch = 20,  cex = 0.5)
+ points(out_3$pairapprox$rho_11, out_3$pairapprox$q_11, pch = 20,  cex = 0.5)
+ points(out_4$pairapprox$rho_11, out_4$pairapprox$q_11, pch = 20,  cex = 0.5)
+ points(out_5$pairapprox$rho_11, out_5$pairapprox$q_11, pch = 20,  cex = 0.5)
+ points(out_6$pairapprox$rho_11, out_6$pairapprox$q_11, pch = 20,  cex = 0.5)
+abline(a = 0, b = 1, lty = 3, col = "#D0D0D0")
+points(0,0, pch=20, col = "white", cex = 2)
+ points(0,0, pch=20, cex = 0.5)
 
 
 ```
@@ -361,7 +370,7 @@ bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE
 
 ### facilitation and attraction
 
-```{r, echo = FALSE, fig.cap="", fig.height = 2}
+```{r, echo = FALSE, fig.cap="", fig.height = 2, warning=FALSE}
 
 par(mfrow = c(1,3), bty ="n", las = 1 ) 
 parms <- defparms
@@ -397,7 +406,7 @@ bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRUE
 
 ### competition and protection
 
-```{r, echo = FALSE, fig.cap="", fig.height = 2}
+```{r, echo = FALSE, fig.cap="", fig.height = 2, warning=FALSE}
 
 par(mfrow = c(1,3), bty ="n", las = 1 ) 
 parms <- defparms
@@ -430,7 +439,7 @@ bifurcation(parms,  pairapprox = TRUE, meanfield = FALSE, "L", c(0,12), add =TRU
 
 ### competition and attraction
 
-```{r, echo = FALSE, fig.cap="", fig.height = 2}
+```{r, echo = FALSE, fig.cap="", fig.height = 2, warning=FALSE}
 
 par(mfrow = c(1,3), bty ="n", las = 1 ) 
 parms <- defparms
