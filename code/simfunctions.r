@@ -554,6 +554,9 @@ runODE_meanfield <- function(starting, model_parms, times = c(0,1000))  {
   return(round(out,6))
 }
 
+# set home directory
+home_simfunction <- paste0(getwd(),"/code/simfunctions.r")
+
 # graphical visualisation of attractor
 # simulates trajectories for many differently clustered starting conditions. 
 # running pairapprox = TRUE requires parallel backend
@@ -636,7 +639,7 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
  
     
     foreach(iteration = ini$ID, .packages = c("deSolve")) %dopar% { 
-      source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       rho_starting <- ini[iteration, 2:6]
       
@@ -691,7 +694,7 @@ steady <-  as.data.frame(t(sapply(output, function(x){
 }
 
 
-bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini = c(0.9, 0.0001) , meanfield = TRUE, pairapprox = FALSE, numerical = FALSE, add = FALSE ) {
+bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini = c(0.9, 0.0001) , meanfield = TRUE, pairapprox = FALSE, numerical = FALSE, add = FALSE, returnoutput = FALSE ) {
   
   require(foreach)
   
@@ -708,7 +711,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
   if(pairapprox) {
     
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       model_parms <- as.list(iterations[iteration,])
       
@@ -729,7 +732,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
         
         model_parms <- upper[ upper[, over] == i,]
         
@@ -785,7 +788,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     
     
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       model_parms <- as.list(iterations[iteration,])
       
@@ -805,7 +808,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
         
         model_parms <- upper[upper[, over] == i,]
         
@@ -868,7 +871,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     
   }
 
- return(out)
+ if(returnoutput) return(out)
 }
   
 
@@ -886,7 +889,7 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
   iterations$b <- as.numeric(as.character(iterations$b))
   
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       model_parms <- as.list(iterations[iteration,])
       
@@ -904,7 +907,7 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("C:/Users/SCHNEIDER/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
         
         model_parms <- upper[ upper[, over] == i,]
         
