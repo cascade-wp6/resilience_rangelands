@@ -16,7 +16,7 @@ csl: ../manuscript/amnat.csl
 bibliography: ../manuscript/cas02.bib
 ---
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 # ODE solving
 library("deSolve")
 
@@ -28,11 +28,11 @@ if(parallel) {
 library(foreach)
 library(doSNOW)
 
-workstation <-  list(host = "162.38.184.118", user = "schneider",
+workstation <-  list(host = "162.38.184.118", user = "florian",
                      rscript = "/usr/lib/R/bin/Rscript",
                      snowlib = "/usr/lib/R/library")
 
-workerlist <- c(rep("localhost", times = 10)) 
+workerlist <- c(rep("localhost", times = 7)) 
 
 cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
 
@@ -77,7 +77,7 @@ The model identifies how certain mechanisms of vegetation affect the thresholds 
 Ecological systems with non-linear stability are common in nature [@carpenter03; @scheffer01; @gunderson02; @berkes03] and this has enormous impacts on how we analyse and manage those systems. 
 As early as 40 years ago, rangelands were identified as a system with non-linear stability, i.e. with alternative stable states [@noy-meir75], from graphical analysis as a simple consumer-resource system.
 
-```{r, echo=FALSE, fig.height = 6}
+```{r, echo=FALSE, fig.height = 6, warning=FALSE}
 colpal <- list(mort = c("#000000","#00000040","#00000030","#00000020"), grow = c("#009933","#00993340","#00993330","#00993320") )
 rho <- seq(0,1,length = 100)
 parms <- defparms
@@ -111,7 +111,7 @@ The simplest approach to explore these models is by mean-field approximation, wh
 
 <!-- The spatial extend at which ecological feedback mechanisms act often differ between small local scales and the entire landscape. Previous models have shown that feedbacks acting simultaneously but on different spatial scales emerge and alter the stability properties and spatial structure of the ecosystem [@kefi07a]. -->
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
 
@@ -133,7 +133,7 @@ The mechanism of facilitation, i.e. the positive effect of one individual or spe
 
 We implement local facilitation as a mechanism that increases local growth rates on empty ground with increasing local plant cover, $q_{1|0}$. 
 
-```{r, echo = FALSE, fig.cap="a) mean field approximation of density dependent mortality and growth of vegetation with local facilitation. As plant cover increases, the effect of facilitation is stronger. solid points show steady states, open circle shows unstable equilibrium. b) bifurcation diagram of vegetation cover over a gradient of environmental quality (black: steady states, grey: unstable equilibria). High facilitation has strong stabilising effects on the vegetated state. "}
+```{r, echo = FALSE, fig.cap="a) mean field approximation of density dependent mortality and growth of vegetation with local facilitation. As plant cover increases, the effect of facilitation is stronger. solid points show steady states, open circle shows unstable equilibrium. b) bifurcation diagram of vegetation cover over a gradient of environmental quality (black: steady states, grey: unstable equilibria). High facilitation has strong stabilising effects on the vegetated state. ", warning=FALSE}
 
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
@@ -175,7 +175,7 @@ The mean-field model shows that facilitation has a strong stabilizing effect on 
 Local competition is a mechanism counteracting local facilitation. If plants grow close together they exploit the locally available resources, like water or nutrients. Thus, the perceived carrying capacity of an empty space is reduced as the neighboring plant cover $q_{1|0}$ increases. 
 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning=FALSE}
 
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
@@ -206,7 +206,7 @@ In arid rangelands many plants develop protective physical structures, like thor
 This associational resistance [@milchunas02] is providing a local decrease of search efficiency (or an increase of handling effort) for grazers, which is reducing total consumption, and thus acts as a positive local feedback on vegetation cover. 
 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning=FALSE}
 
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
@@ -254,7 +254,7 @@ At low cover, grazing effects are relatively strong because most plants are not 
 As an opposing mechanism to associational resistance, volatiles and visual impression of palatable plants attract grazers to spaces with many plants, which renders the grazers search more efficient. Thus, search efficiency of grazers is locally increased if a plant has many neighbors. 
 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning=FALSE}
 
 
 par(mfrow = c(1,2), bty ="n", las = 1 ) 
