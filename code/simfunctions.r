@@ -639,7 +639,7 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
  
     
     foreach(iteration = ini$ID, .packages = c("deSolve")) %dopar% { 
-      source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       rho_starting <- ini[iteration, 2:6]
       
@@ -711,7 +711,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
   if(pairapprox) {
     
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       model_parms <- as.list(iterations[iteration,])
       
@@ -732,7 +732,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
         
         model_parms <- upper[ upper[, over] == i,]
         
@@ -788,7 +788,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     
     
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       model_parms <- as.list(iterations[iteration,])
       
@@ -808,7 +808,7 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
         
         model_parms <- upper[upper[, over] == i,]
         
@@ -889,7 +889,7 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
   iterations$b <- as.numeric(as.character(iterations$b))
   
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
       
       model_parms <- as.list(iterations[iteration,])
       
@@ -907,7 +907,7 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
         
         model_parms <- upper[ upper[, over] == i,]
         
