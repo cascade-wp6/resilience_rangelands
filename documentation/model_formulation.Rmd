@@ -14,19 +14,19 @@ csl: ../manuscript/amnat.csl
 bibliography: ../manuscript/cas02.bib
 ---
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 # provides parallel backend
 library(foreach)
 library(doSNOW)
 
-workstation <-  list(host = "162.38.184.118", user = "schneider",
+workstation <-  list(host = "162.38.184.118", user = "florian",
                      rscript = "/usr/lib/R/bin/Rscript",
                      snowlib = "/usr/lib/R/library")
 
-workerlist <- c(rep("localhost", times = 10)) 
+workerlist <- c(rep("localhost", times = 7)) 
 
-cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+cl <- makeSOCKcluster(workerlist,  outfile='out_messages.txt')
 
 registerDoSNOW(cl)
 
@@ -66,7 +66,7 @@ $$ G(\rho) = r\rho(1-\frac{\rho}{K}) \,,$$
 
 with the growth rate, $r$, and the carrying capacity, $K$, decelerating the exponential growth as vegetation cover increases and reducing it to zero if $\rho \geq K$. Thus, it is a decelerating effect (a negative feed-back) at high vegetation cover. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 G <- function(rho, r = 1, K = 1) r*rho*(1-rho/K)
 rho <- seq(0,1,length = 100)
@@ -109,7 +109,7 @@ $$ r = r_0 b \rho^a $$
 $$ G(\rho) = r_0 b \rho^{a+1} (1-\frac{\rho}{K}) \,,$$
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 
 r <- function(rho, r_0 =  1, b = 1, a = 1) r_0*b *rho^a
@@ -139,7 +139,7 @@ $$ C( \rho ) = g \rho L \,, $$
 with the grazing mortality, $g$, per grazer individual multiplied by livestock density, $L$. That is to say, per individual, a constant percentage of cover is eaten. That is, ecologically speaking, not realistic. 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 C <- function(rho, L = 5, g = 0.01) (g*rho*L)
 
 defplot(rho, C(rho), ylab = "plant mortality")
@@ -157,7 +157,7 @@ $$ C( \rho ) = gL \,, $$
 thus could be defined as constant, $g$, per grazer individual regardless of the vegetation cover.
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 C <- function(rho, L = 5, g = 0.01) g * L + rho*0
 
 defplot(rho, C(rho), ylab = "plant mortality")
@@ -174,7 +174,7 @@ $$ C( \rho ) = \frac{a \rho L}{1+ah \rho } \,,$$
 
 with the handling time, $h$ [time per landscape unit], and the search efficiency, $a$ [percent of landscape foraged in per time]. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 C <- function(rho, L = 5, a = 0.6, h = 100) (a*rho*L)/(1+a*h*rho)
 
 defplot(rho, C(rho), ylab = "plant mortality")
@@ -197,7 +197,7 @@ $$ C( \rho ) = \frac{b \rho^{1+q}}{1+bh \rho^{1+q}} $$
 Thus, plant mortality is accelerating with increasing cover, protecting plants at low cover, due to inefficient search behaviour, and then saturates at the inverse of handling time, $h$. 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 C <- function(rho, L = 5, a = 0.6, h = 100, q = 1) (a*rho^(1+q)*L)/(1+a*h*(rho^(1+q)) ) 
 
 defplot(rho, C(rho), ylab = "plant mortality")
@@ -211,7 +211,7 @@ We assume the classic type II functional response plus an intrinsic mortality ra
 $$ C(\rho) = m \rho + \frac{a \rho L}{1+a h \rho} \,,$$
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 C <- function(rho, m_0 = 0.05, L = 5, a = 0.6, h = 100, q = 0) (m_0 * rho) +(a*rho^(1+q)*L)/(1+a*h*(rho^(1+q)) ) 
 
@@ -229,7 +229,7 @@ Plotting the growth rate against the different mortality rates shows how the def
 Compared to the more realistic non-linear functions, the constant grazing mortality assumption seems to predict both the attractor of the vegetated state and the tipping point much better than the density dependent mortality used in Kéfi et al 2007 TPB. In fact, the linear density dependent mortality does not predict bistability at all, given a simple logistic growth function. 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 defplot(rho, G(rho), ylab = "growth", col = "green3")
 lines(rho, C(rho, L = 10, a = 0.01, h = 0.00001))
@@ -242,7 +242,7 @@ abline( h = 0.25 )
 
 When assuming a type II functional response, the system gains true bistability. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 defplot(rho, G(rho), ylab = "growth", col = "green3")
 lines(rho, C(rho, L = 5))
@@ -254,7 +254,7 @@ lines(rho, C(rho, L = 25))
 
 The type 3 functional response finally predicts the existance of a stable degraded state that is not a desert, i.e. not entirely unvegetated. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 defplot(rho, G(rho), ylab = "growth", col = "green3")
 lines(rho, C(rho, L = 5, q = 1))
@@ -270,7 +270,7 @@ The differential equation describing population cover above with $G$ and $C$ sub
 $$ \frac{\mathrm{d}\rho}{\mathrm{d}t} = r b \rho (1-\frac{\rho}{K}) - m \rho - \frac{a\rho L}{1+ah\rho} $$
 
 Given a parameter set  
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 parms <- list(
     m = 0.05,
@@ -286,7 +286,7 @@ parms <- list(
 ```
 we receive a projection of the intersection of growth and mortality.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 defplot(rho,  C(rho, m = parms$m, L = parms$L, h = parms$h, a = parms$a ), ylab = "growth/mortality" )
 
 lines(rho, G(rho, r=parms$r, K = parms$K, b=parms$b), col = "green3" )
@@ -295,7 +295,7 @@ lines(rho, G(rho, r=parms$r, K = parms$K, b=parms$b), col = "green3" )
 
 And solving the ODE, starting with values larger than the unstable equilibrium point on the left,  returns a timeseries 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 d_rho <- function(rho, parms, z = 4) { 
   with(parms, r* b* rho * (1 - rho/K) - m * rho - (a * rho * L)/(1 + a * h * rho) )  
 }
@@ -320,7 +320,7 @@ axis(4, at = round(tail(ODEnullmodel,1)[["1"]],2),cex.axis = 0.8, las = 1 )
 
 If we run this for low and high starting conditions, we can get the stable equilibria. Further, running an iterative series of intermediate starting conditions gives us the unstable equilibrium. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 defplot(rho,  C(rho, m = parms$m, L = parms$L, h = parms$h, a = parms$a), ylab = "growth/mortality" )
 
@@ -361,7 +361,7 @@ $$ \frac{\mathrm{d}\rho}{\mathrm{d}t} = r b \rho^{1 + \alpha} (1-\frac{\rho}{K})
 
 We extend the parameter set by 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 parms <- list(
     m = 0.05,
@@ -380,7 +380,7 @@ parms <- list(
 
 which gives us the prediction of complex bistability.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 par(mar = c(5,4,2,3)+0.1)
 plot(rho,  with(parms,  m * rho + (a * rho^( 1 + q) * L)/(1 + a * h * rho^( 1 + q))), ylab = "growth", type = "l", ylim = c(0,0.5))
   lines(rho, with(parms, r* b* rho^( 1 + alpha) * (1 - rho/K) ), col = "green3" )
@@ -430,7 +430,7 @@ $$ w_{0,1} = \frac{r \rho_1 b (1-\frac{\rho_1}{K})}{1-\rho_1} $$
 
 From an individual cell perspective, the probabilities would change along with cover like this
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 defparms <- list(
     m = 0.05,
@@ -459,7 +459,7 @@ mtext("individual risk of death of vegetated cells", 4, 3)
 
 Running this on a 100 x 100 grid of cells in a timeseries of 150 years yields (dashed line: ODE prediction as reference)
 
-```{r, echo = FALSE, warning = FALSE}
+```{r, echo = FALSE, warning = FALSE, warning=FALSE}
 
 source("../code/simfunctions.r")
 
@@ -506,7 +506,7 @@ $$ w_{1,0} = m + \frac{aL\rho_1^{q}}{1+ah\rho_1^{1+q}} $$
 
 $$ w_{0,1} = \frac{r \rho_1^{1+\alpha} b (1-\frac{\rho_1}{K})}{1-\rho_1} $$
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 defparms <- list(  
     m = 0.05,
@@ -565,7 +565,7 @@ $$ b = b^* + (1 - b^*)  f q_{0|1} \,,$$
 with the effect of aridity, $a_0$ in absence of local vegetation being increased to the value of $f$ if additive facilitation due to the presence of neighboring plants occurs. This term gradually determines the enhancement of the growth with an increasing local vegetation cover (maximizing at $q_{0|1} = 1$ if the cell has 4 neighbors). 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 defparms <- list(  
     m = 0.05,
@@ -601,7 +601,7 @@ $$ K = K^* (1 - c  q_{0|1})$$
 
 That is, if a cell has a fully vegetated local neighborhood, it's carrying capacity will be reduced by $c$. Thus, $c \geq K$ otherwise carrying capacity will fall below $0$ at high cover.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 parms <- defparms
 parms$c = 0.3
@@ -630,7 +630,7 @@ Thus a value of $v = 0$ means that grazing distributes homogeneously, whereas $v
 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 
 parms <- defparms
@@ -665,7 +665,7 @@ Thus, I have to specify
 $$ a =  (a^*  + v q_{1|1} ) (1- p q_{1|1}) $$ 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 parms <- defparms
 parms$p = 0.99
@@ -678,7 +678,7 @@ attractor(parms, pairapprox = FALSE, meanfield = FALSE, localvals = TRUE)
 
 If those effects coincide, potentially even with the global feedbacks, the intersections are difficult to estimate visually. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 parms <- defparms
 parms$p = 0.8
@@ -719,7 +719,7 @@ $$ C = \rho_{1}m + \frac{(a  + v \rho_1)(1 - p \rho_1)L \rho_1^{1+q}}{1+(a  + v 
 
 The alternative steady states and unstable equilibria can be simulated by solving the ODE. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 parms <- defparms
 parms$f = 0.9
@@ -755,7 +755,7 @@ see implementation in NetLogo: `documentation/livestockmodel.nlogo`
 
 Thus, we can run the CA for a given set of parameters
 
-```{r}
+```{r, warning=FALSE}
 
 parms <- list(
     m = 0.05,  # intrinsic mortality of plants 
@@ -860,7 +860,7 @@ $$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (1 - b) 
 
 for the set of parameters given above, we can project the following dynamics from solving the ODE (CA model simulation as grey line).
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 # running the ode-solver
 ODE_spex <- ode(ini_rho(0.9,0.8), func = odesys_spex, times = 1.1^(1:50), parms = parms)
@@ -884,45 +884,33 @@ Now, we can also plot the clustering coefficient of this landscape, being
 
 $$ c_{11} = q_{1|1}/\rho_1 = \frac{\rho_{11}}{\rho_1^2}$$
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 plot(I(rho_11/rho_1^2) ~ time , data = ODE_spex , type = "l", ylim = c(0,2))
 
 ```
 
 ### Attractor 
 
-Visualising the attractor of the system is not as straightforward as for the mean-field models that are determined by global cover only, where the intersections of growth and mortality defined the equilibria. In the spatially-explict pair-approximation model the attractor can be visualised if we assume that clustering in the initial state is non-random, and we assign starting values for $\rho_1$ and global mortality of the population $m_1$. To do this, we need to solve the mortality function towards $\rho{1\,,1}$ to obtain initial covers of all the different pairs and singletons.
+Visualising the attractor of the system is not as straightforward as for the mean-field models that are determined by global cover only, where the intersections of growth and mortality defined the equilibria. In the spatially-explict pair-approximation model the attractor can be visualised if we assume that clustering in the initial state is non-random, and we assign starting values for $\rho_1$ and global mortality of the population $m_1$. 
 
-Thus, 
+I assign inital values of mortality equally along the x-axis for the assumption of highest and lowest clustering. The development of global and local cover yields timeseries of average growth and mortality for all those virtualised cases which can be plotted as arrowstowards the attractors. 
 
-$$ m_1 = \rho_1 m_0 + \frac{(a+v\frac{\rho_{11}}{\rho_1})L(1-p\frac{\rho_{11}}{\rho_1}\rho_1^{1+q})}{1+(a+v\frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}} $$
-
-rearranging yields: 
-
-$$ 0 = m_1 - m_0\rho_1+m_qah\rho_1^{1+q}-aL\rho_1^{1+q}-m_0ah\rho_1^{1+q} + (m_1v\rho_1^{q}+aLp\rho_1^{q}-vL\rho_1^{q}-m_0v\rho_1^{1+q})\rho_{11} + vLp\rho_1^{q-1}\rho_{11}^2$$
-Polynomials of second order of the form $0 =  c+ bx +ax^2$ can be solved by the quadratic formula
-
-$$x = \frac{-b\pm \sqrt{b^2-4ac} }{2a}$$
-
-**apparently this solution is wrong!! Instead, I draw  initial $rho_11$ values systematically and elimitate those that produce invalid $m_ini$** 
-
-This works quite well, but produces unequal distributions of arrows along the y-axis. 
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 attractor(parms)
 ```
 
+This nicely illustrates that the unstable equilibrium now turns from a simple threshold point to a line or surface. 
 
 ### Bifurcation diagrams
 
 The following shows bifurcation diagrams of the mean field approximation over an environmental gradient, $b$, as well as over a gradient of livestock density, $L$. 
 
-```{r, echo=FALSE, fig.height = 3 }
+```{r, echo=FALSE, fig.height = 3, warning=FALSE }
 par(mfrow = c(1,2))
 parms$q = 0.4
-bifurcation(parms, "L", c(0,12)) -> over_L
+bifurcation(parms, "L", c(0,12), returnoutput = TRUE) -> over_L
  
-bifurcation(parms,"b", c(0,1)) -> over_b
+bifurcation(parms,"b", c(0,1), returnoutput = TRUE) -> over_b
 
 ```
 
@@ -931,18 +919,18 @@ A dynamic Shiny implementation of that can be found under 'documentation/interac
 
 The same graph using the pair-approximation. 
 
-```{r, echo=FALSE, fig.height = 3}
+```{r, echo=FALSE, fig.height = 3, warning=FALSE}
 par(mfrow = c(1,2))
-bifurcation(parms, "L", pairapprox = TRUE, meanfield = FALSE, c(0,12)) -> over_L
+bifurcation(parms, "L", pairapprox = TRUE, meanfield = FALSE, c(0,12), returnoutput = TRUE) -> over_L
  
-bifurcation(parms,"b", pairapprox = TRUE, meanfield = FALSE, c(0,1)) -> over_b
+bifurcation(parms,"b", pairapprox = TRUE, meanfield = FALSE, c(0,1), returnoutput = TRUE) -> over_b
 
 
 ```
 
 The bifurcation diagram visualises the attractor only along the total cover which is only an incomplete visualisation, since the steady state is described by both, global vegetation cover $\rho_1$ and average local cover $q_{1|1}$ (or alternatively the cover of vegetated pairs $\rho_{11}$ but this is rather unintuitive). To visualise this, a three dimensional graph is necessary. 
 
-```{r, echo=FALSE, fig.height = 5}
+```{r, echo=FALSE, fig.height = 5, warning=FALSE}
 
 persp(0:1,0:1, matrix(c(0,0,0,0), ncol = 2), zlim = c(0,1), ticktype = "detailed", zlab = "vegetation cover", ylab = "local cover" , xlab = "b", theta = -65, phi = 19, r = sqrt(3), d = 1) -> p
     
@@ -957,21 +945,28 @@ persp(0:1,0:1, matrix(c(0,0,0,0), ncol = 2), zlim = c(0,1), ticktype = "detailed
 
 Decomposing it into its dimensions is easier to print. 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning=FALSE}
 over_b$pairapprox$q_11 <- over_b$pairapprox$rho_11/over_b$pairapprox$rho_1
 over_b$pairapprox$q_11[is.na(over_b$q_11)] <- 0
 
 par(mfrow =c(1,2))
-  plot(over_b$pairapprox$b, over_b$pairapprox$rho_1, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
-  plot(over_b$pairapprox$b, over_b$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+  plot(over_b$pairapprox$b, over_b$pairapprox$rho_1, 
+       pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1),
+       xlab = "environmental quality", ylab = "global cover"
+       )
+  plot(over_b$pairapprox$b, over_b$pairapprox$q_11, 
+       pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1),
+       xlab = "environmental quality", ylab = "local cover")
 ```
 
 The direct comparison of global cover vs. local cover indicates the amount of clustering along the stress gradient and at the critical thresholds. 
 We are going to compare these plots for a range of models to see how the spatial configuration changes with increasing stress under different mechanism scenarios. 
 
-```{r, echo=FALSE, fig.width = 3}
-par(mfrow = c(1,1))
-  plot(over_b$pairapprox$rho_11, over_b$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+```{r, echo=FALSE, fig.width = 3, fig.height = 3, warning=FALSE}
+par(mfrow = c(1,1), mar = c(4,4,1,1))
+  plot(over_b$pairapprox$rho_1, over_b$pairapprox$q_11, 
+       pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1),
+       xlab = "global cover", ylab = "local cover")
 abline(a = 0, b = 1, lty = 3, col = "#D0D0D0")
 points(0,0, pch=20, col = "white", cex = 2)
  points(0,0, pch=20, cex = 0.5)
@@ -979,7 +974,7 @@ points(0,0, pch=20, col = "white", cex = 2)
 ```
 
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 
 stopCluster(cl)
 
