@@ -561,9 +561,9 @@ home_simfunction <- paste0(getwd(),"/code/simfunctions.r")
 # simulates trajectories for many differently clustered starting conditions. 
 # running pairapprox = TRUE requires parallel backend
 
-attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini = seq(0,1, length = 11), meanfield = TRUE, pairapprox = TRUE, localvals = FALSE) {
+attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 21), rho_11_ini = seq(0,1, length = 11), meanfield = TRUE, pairapprox = TRUE, localvals = FALSE, ...) {
   
-  plot(NA,NA, ylab = "plant mortality/growth", xlim = c(0,1), ylim= c(0,.25), bty = "n", xaxs = "i" , yaxs = "i")
+  plot(NA,NA, ylab = "plant mortality/growth", xlim = c(0,1), ylim= c(0,.25), bty = "n", xaxs = "i" , yaxs = "i", ...)
   
   rho <- seq(0,1,length = 100)
   
@@ -639,8 +639,8 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 41), rho_11_ini
  
     
     foreach(iteration = ini$ID, .packages = c("deSolve")) %dopar% { 
-      source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-      
+      #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
       rho_starting <- ini[iteration, 2:6]
       
       # running the ode-solver
@@ -711,8 +711,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
   if(pairapprox) {
     
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-      
+      #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
       model_parms <- as.list(iterations[iteration,])
       
       # running the ode-solver
@@ -732,8 +732,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-        
+        #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
         model_parms <- upper[ upper[, over] == i,]
         
         hi_1 <- upper[upper[, over] == i,]$rho_1
@@ -788,8 +788,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     
     
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-      
+      #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
       model_parms <- as.list(iterations[iteration,])
       
       # running the ode-solver
@@ -808,8 +808,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-        
+        #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
         model_parms <- upper[upper[, over] == i,]
         
         hi_1 <- upper[upper[, over] == i,]$rho_1
@@ -889,8 +889,8 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
   iterations$b <- as.numeric(as.character(iterations$b))
   
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
-      source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-      
+      #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+      source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
       model_parms <- as.list(iterations[iteration,])
       
       # running the ode-solver
@@ -907,8 +907,8 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
     if(nrow(upper)>0) {
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
-        source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-        
+        #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
+        source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
         model_parms <- upper[ upper[, over] == i,]
         
         hi_1 <- upper[upper[, over] == i,]$rho_1
