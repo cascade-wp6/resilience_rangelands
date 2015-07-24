@@ -640,7 +640,8 @@ attractor <- function(model_parms, rho_1_ini = seq(0,1, length = 21), rho_11_ini
     
     foreach(iteration = ini$ID, .packages = c("deSolve")) %dopar% { 
       #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-      source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+      #source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+      source(home_simfunction)
       rho_starting <- ini[iteration, 2:6]
       
       # running the ode-solver
@@ -712,7 +713,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
       #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-      source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+      #source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+      source(home_simfunction)
       model_parms <- as.list(iterations[iteration,])
       
       # running the ode-solver
@@ -733,7 +735,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
         #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-        source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+        #source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+        source(home_simfunction)
         model_parms <- upper[ upper[, over] == i,]
         
         hi_1 <- upper[upper[, over] == i,]$rho_1
@@ -789,7 +792,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
     
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
       #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-      source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+      #source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+      source(home_simfunction)
       model_parms <- as.list(iterations[iteration,])
       
       # running the ode-solver
@@ -809,7 +813,8 @@ bifurcation <- function(parms, over, xrange, res = 201, times = c(0,1000), ini =
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
         #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-        source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+        #source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+        source(home_simfunction)
         model_parms <- upper[upper[, over] == i,]
         
         hi_1 <- upper[upper[, over] == i,]$rho_1
@@ -890,7 +895,8 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
   
     foreach(iteration = iterations$ID, .combine = rbind, .packages = c("deSolve")) %dopar% { 
       #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-      source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+      #source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+      source(home_simfunction)
       model_parms <- as.list(iterations[iteration,])
       
       # running the ode-solver
@@ -908,7 +914,8 @@ bifurcation3d <- function(parms, over, xrange, res = 201, times = c(0,1000), ini
       foreach(i = upper[,over], .combine = rbind, .packages = c("deSolve") ) %dopar% {
         
         #source("/media/flo/Windows/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
-        source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+        #source("E:/Eigene Dokumente/Uni/projects/CAS02_livestock/code/simfunctions.r")
+        source(home_simfunction)
         model_parms <- upper[ upper[, over] == i,]
         
         hi_1 <- upper[upper[, over] == i,]$rho_1
