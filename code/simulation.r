@@ -26,34 +26,121 @@
 rm(list=ls())
 
 ########################################################################################
+library(deSolve)
 source("code/simfunctions.r")
 
 set.seed(584232) # setting seed for random number generation
 
-# parameter settings:
-parameters <- list(  
-  m = 0.05, #intrinsic mortality
-  r = 0.5, # intrinsic growth rate
-  b = 1,   # environmental quality / 1 - aridity
-  K = 0.9, # carrying capacity 
-  a = 0.6, # search efficiency
-  h = 100, # handling time
-  L = 10 # livestock units / grazing intensity
+
+# default parameters for spatially explicit model
+
+defparms <- list(
+  m = 0.05, # intrinsic mortality
+  r = 1,    # maximal growth rate
+  b = 0.7,  # environmental quality
+  K = 0.9,  # carrying capacity
+  a = 0.2,  # attack rate of livestock
+  h = 50,   # handling time of livestock in [time per area]
+  L = 4,    # number of livestock
+  alpha = 0,# water runoff
+  q = 0,    # hill-coefficient of functional response
+  c = 0,    # local competition
+  f = 0,    # local facilitation
+  v = 0,    # local attraction
+  p = 0     # local protection
 )
 
 
-nullmodel <- runCA(runif(1, 0.8,0.9), parameters, delta = 0.2, t_max = 150, t_min = 100, t_eval = 50, stability = 0.0001, saveeach = 5)
+# do a single simulation run
 
 
-par(mfrow = c(2,1))
-plot(nullmodel$rho_one[0:i] ~ nullmodel$time[0:i], 
-     ylim = c(0,1), ylab = expression( rho["+"]), 
-     xlab = "time [yr]", type = "l")
-     
-
-plot(nullmodel$q_one_one[0:i] ~ nullmodel$time[0:i], 
-     ylim = c(0,1), ylab = expression(bar(q["1|1"] )), 
-     xlab = "time [yr]", type = "l")
+## set your parameters
+parms <- defparms
+parms$c = 1
+parms$L = 6
+parms$p = 1
 
 
-animateCA(nullmodel, "ca_nullmodel.gif")
+# run spatially explicit model
+
+out_spex <- runODE_spex( ini_rho(0.8), model_parms = parms,  times = exp(seq(0,4,length = 100))-1)
+
+plot(rho_1 ~ time , data = out_spex , type = "l", ylim = c(0,1), xlim = c(0,50))
+axis(4, at = round(tail(ODE_spex,1)$rho_1,2),cex.axis = 0.7, las = 1 )
+
+
+# run mean-field model
+
+out_meanfield <- runODE_meanfield( ini_rho(0.8), model_parms = parms,  times = exp(seq(0,4,length = 100))-1)
+
+lines(rho_1 ~ time , data = out_meanfield, lty = 2)
+
+
+# run cellular automata model
+
+out_ca <- runCA(0.8, parms, delta = 0.1, t_max = 150, t_min = 100, t_eval = 50, isstable = 0.0001, saveeach = 5)
+
+lines(out_ca$rho_one ~ out_ca$time)
+
+# provide parallel backend
+
+library(foreach)
+library(doSNOW)
+
+
+# this is to run the cluster on your local computer:
+workerlist <- c(rep("localhost", times = 7)) 
+
+cl <- makeSOCKcluster(workerlist, outfile='out_messages.txt')
+
+# THIS IS NOT GOING TO WORK ON THE WORKSTATION --------------------
+# if you need to use the workstation specify the following 
+#workstation <-  list(host = "162.38.184.118",  # IP of the host
+#                     user = "florian",  #change to your username
+#                     rscript = "/usr/lib/R/bin/Rscript", # should be correct, i.e. the place where  R is installed on the workstation 
+#                     snowlib = "/usr/lib/R/library")  # the place where SNOW package is installed on the workstation, you might need to install doSNOW on the workstation with admin rights (login to your account, start 'sudo R', then 'install.packages("doSNOW")')
+
+#workerlist <- c(rep(workstation, times = 23)) 
+
+#cl <- makeSOCKcluster(workerlist, master="162.38.184.xx", outfile='out_messages.txt') # add your computer's IP address
+
+# THIS IS NOT GOING TO WORK ON THE WORKSTATION --------------------
+
+registerDoSNOW(cl)
+
+
+
+# visualize attractor (isoclines)
+
+## meanfield 
+
+attractor(parms, pairapprox = FALSE, localvals = TRUE)
+
+
+### .----- not working beyond this point --- code is too specific for my computer --- sorry --- need to wrap it into a package ---
+
+
+## pair-approximation
+
+attractor(parms, pairapprox = TRUE, meanfield = FALSE, localvals = FALSE)
+
+
+# create bifurcation diagram
+
+## meanfield over b
+bifurcation(parms, pairapprox = FALSE, "b", c(0,1))
+
+## meanfield over L
+
+bifurcation(parms, pairapprox = FALSE, "L", c(0,12), res = 51)
+
+## pair-approximation 
+bifurcation(parms, pairapprox = TRUE, meanfield = FALSE, "b", c(0,1))
+
+
+
+
+
+
+stopCluster(cl)
+
