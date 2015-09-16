@@ -13,19 +13,19 @@ runtime: shiny
 
 Non-spatial global model solved as ordinary differential equations. It includes global accelerating and decelerating feedbacks on mortality and grazing.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 # provides parallel backend
 library(foreach)
 library(doSNOW)
 
-workstation <-  list(host = "162.38.184.118", user = "schneider",
+workstation <-  list(host = "162.38.184.118", user = "florian",
                      rscript = "/usr/lib/R/bin/Rscript",
                      snowlib = "/usr/lib/R/library")
 
-workerlist <- c(rep("localhost", times = 10)) 
+workerlist <- c(rep(workstation, times = 7)) 
 
-cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+cl <- makeSOCKcluster(workerlist, outfile='out_messages.txt')
 
 registerDoSNOW(cl)
 
@@ -103,6 +103,16 @@ inputPanel(
 )
 
   
+
+
+inputPanel(
+  selectInput("model",
+      label = "model type:",
+      choices = c("meanfield", "pairapprox"),
+      selected = 1
+  )
+)
+
 ```
 
 ### initial conditions
@@ -112,7 +122,7 @@ inputPanel(
 renderPlot({
 
   
-  source("../code/simfunctions.r")
+  source("C:/Users/florian.schneider/Documents/projects/CAS02_livestock/code/simfunctions.r")
   
  parms <- list(
   m = as.numeric(input$m),
@@ -135,9 +145,9 @@ renderPlot({
 # if(input$gradient == "L") parms$L <- seq(0,20,.1)    
  
 #iterations$f[iterations$f < iterations$b] <- iterations$b[iterations$f < iterations$b]
+if(input$model == "meanfield") attractor(parms, localvals = TRUE, pairapprox = FALSE, meanfield = TRUE, rho_1_ini = seq(0,1, length = 11) )
 
-attractor(parms, localvals = FALSE, pairapprox = TRUE, meanfield = FALSE, rho_1_ini = seq(0,1, length = 21) )
-
+if(input$model == "pairapprox") attractor(parms, localvals = FALSE, pairapprox = TRUE, meanfield = FALSE, rho_1_ini = seq(0,1, length = 11) )
 # if(input$gradient == "b") plot(rho_1 ~ b, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
 # if(input$gradient == "L") plot(rho_1 ~ L, data = cbind(output, iterations), type = "p", pch  = 20, ylim = c(0,1))
  

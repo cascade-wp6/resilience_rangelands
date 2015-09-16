@@ -100,7 +100,12 @@ inputPanel(
 ### initial conditions
 ```{r, echo=FALSE}
 
+
 inputPanel(
+  
+  checkboxInput("meanfield", "Meanfield model", FALSE),
+  checkboxInput("pair", "Pair-approximation model", TRUE),
+  checkboxInput("ca", "Cellular automata", TRUE),
   sliderInput("rho_1", label = "initial plant cover:",
               min = 0.0, max = 1, value = 0.9, step = 0.01)
   )
@@ -129,19 +134,21 @@ renderPlot({
 # running the ode-solver
 ODE_spex <-  as.data.frame(ode(y = ini_rho(input$rho_1), func = odesys_spex, times = exp(seq(0,4,length = 100))-1, parms = parms))
 
-
 par(mar = c(4,4,1,3)+0.1)
 
 plot(rho_1 ~ time , data = ODE_spex , type = "l", ylim = c(0,1), xlim = c(0,50))
 axis(4, at = round(tail(ODE_spex,1)$rho_1,2),cex.axis = 0.7, las = 1 )
 
+if(input$ca) {
+  spexmodel <- runCA(input$rho_1, parms, delta = 0.2, t_max = 60, t_min = 50, t_eval = 5, isstable = 0.001, saveeach = 1)
+  lines(spexmodel$rho_one ~ spexmodel$time, col = "grey50")
+}
 
-spexmodel <- runCA(input$rho_1, parms, delta = 0.2, t_max = 60, t_min = 50, t_eval = 5, isstable = 0.001, saveeach = 1)
+if(input$meanfield) {
+  meanfield <-as.data.frame( ode(ini_rho(input$rho_1), func = odesys_mean, times = exp(seq(0,4,length = 100))-1, parms = parms))
+  lines(rho_1 ~ time , data = meanfield, col = "red3")
+}
 
-lines(spexmodel$rho_one ~ spexmodel$time, col = "grey50")
-
-meanfield <-as.data.frame( ode(ini_rho(input$rho_1), func = odesys_mean, times = exp(seq(0,4,length = 100))-1, parms = parms))
-lines(rho_1 ~ time , data = meanfield, col = "red3")
 
 } )
 ```

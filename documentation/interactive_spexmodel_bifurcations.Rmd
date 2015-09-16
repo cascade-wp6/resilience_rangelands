@@ -7,23 +7,25 @@ runtime: shiny
 ---
 
    
-## developping the null model
+## developing the null model
 
 Non-spatial global model solved as ordinary differential equations. It includes global accelerating and decelerating feedbacks on mortality and grazing.
 
 ```{r, echo=FALSE}
 
+source("../code/simfunctions.r")
+  
 # provides parallel backend
 library(foreach)
 library(doSNOW)
 
-workstation <-  list(host = "162.38.184.118", user = "schneider",
+workstation <-  list(host = "162.38.184.118", user = "florian",
                      rscript = "/usr/lib/R/bin/Rscript",
                      snowlib = "/usr/lib/R/library")
 
-workerlist <- c(rep("localhost", times = 10)) 
+workerlist <- c(rep("localhost", times = 7)) 
 
-cl <- makeSOCKcluster(workerlist, master="162.38.184.88", outfile='out_messages.txt')
+cl <- makeSOCKcluster(workerlist,  outfile='out_messages.txt')
 
 registerDoSNOW(cl)
 
@@ -95,7 +97,7 @@ inputPanel(
 
 renderPlot({
 
-  
+ 
   source("../code/simfunctions.r")
   
  parms <- list(
@@ -115,13 +117,42 @@ renderPlot({
   )
  
  
- if(input$gradient == "b") bifurcation(parms,"b", c(0,1))
- if(input$gradient == "L") bifurcation(parms, "L", c(0,12))
-  
- 
- 
+ if(input$gradient == "b") { 
+#par(mfrow =c(2,2))
 
+   bifurcation(parms,"b", c(0,1)) -> over_b
+   
+#over_b$pairapprox$q_11 <- over_b$pairapprox$rho_11/over_b$pairapprox$rho_1
+#over_b$pairapprox$q_11[is.na(over_b$q_11)] <- 0
+
+#  plot(over_b$pairapprox$b, over_b$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+
+ # plot(over_b$pairapprox$rho_11, over_b$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+#abline(a = 0, b = 1, lty = 3, col = "#D0D0D0")
+#points(0,0, pch=20, col = "white", cex = 2)
+# points(0,0, pch=20, cex = 0.5)
+
+ } 
+ if(input$gradient == "L") {
+   
+#par(mfrow =c(2,2))
+
+   bifurcation(parms, "L", c(0,12)) -> over_b
+  
+#over_b$pairapprox$q_11 <- over_b$pairapprox$rho_11/over_b$pairapprox$rho_1
+#over_b$pairapprox$q_11[is.na(over_b$q_11)] <- 0
+
+#  plot(over_b$pairapprox$b, over_b$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+
+#  plot(over_b$pairapprox$rho_11, over_b$pairapprox$q_11, pch = 20,  cex = 0.5, ylim = c(0,1), xlim = c(0,1))
+#abline(a = 0, b = 1, lty = 3, col = "#D0D0D0")
+#points(0,0, pch=20, col = "white", cex = 2)
+# points(0,0, pch=20, cex = 0.5)
+
+   }
+ 
  
  
 } )
+
 ```
