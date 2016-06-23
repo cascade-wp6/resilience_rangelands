@@ -1,0 +1,65 @@
+---
+title: "the implications of local interactions on the resilience of arid rangelands"
+author: "Florian D. Schneider"
+date: "20 Juni 2016"
+output: pdf_document
+---
+
+```{r, echo = FALSE}
+
+library(livestock)
+
+```
+
+
+# Introduction
+
+- The conceptualisation of rangelands as systems that can experience abrupt shifts between alternative stable states has been happening since the 70s (Noy Meir, Holling, May). 
+- The responsible mechanisms are feedbacks on the landscape scale, i.e. dependent on the 'global' density of vegetation and livestock, as well as global environmental parameters, such as aridity.
+- these studies had hughe implications for rangeland management and were well received in applied, fundamental and theoretical research. 
+   - applied concepts such as state and transition models, i.e. descriptions of landscapes as systems with multiple potential states and probabilities and conditions for the transition between those. 
+   - fundamental research addressed the existence of alternative stable states in observational and experimental studies (examples in rangelands?? arid shrublands? grasslands?). It relates to the study of successional states. 
+   - theoretical studies were addressing mechanisms and behaviour of alternative stable states along gradients of pressure, where the rangeland system provided a good example. (Rietkerk, van de Koppel, Scheffer, ...) Most recently, the study of social-ecological systems addressed the catastrophic behaviour of ecosystems in the context of anthropogenic activities. (Carpenter, Schlüter)
+   
+Figure 1 | Citations of Noy-Meir 1975 in publications of theoretical, applied and fundamental ecology journals. 
+   
+- While these studies investigate feedbacks of global vegetation cover only, applying mean field approximations of vegetation, recent studies discuss the importance of spatial structure in forming stable vegetation even under high levels of pressure. (von Hardenberg, Rietkerk, Kefi)
+- the local interactions of plants are providing feedbacks on plant growth and mortality in the close surroundings of plants, for instance via providing shade and protection for neighboring plants. Growth and mortality as functions of global environment, but if looking at the local scale environmental quality might be substantially altered by the conditions in the plants direct vicinity. 
+- This leads to the formation of  the pattern of vegetation along gradients of stress. Examples in shrublands, etc. (Rietkerk) 
+- Spatial structure is also suggested as an early indicator of shifts (Kefi, Dakos, Scheffer)
+
+
+- In this paper, we will discuss the local interactions that lead to feedbacks on the formation of vegetation and alter the steaady state / attractors. 
+- Knowledge of local interactions is mandated if one wants to understand thresholds and conditions for critical transitions, for instance for the description of state and transition models. 
+
+# describing the state of a rangeland system
+
+- the framework proposed by Noy Meir 1975 looks at simple graphical analysis of the growth vs mortality of vegetation. This simple population dynamic approach identifies the stable and unstable equilibria of an ecosystem/population at the intersections of the growth and mortality functions over vegetation cover.
+- We observe net increase in vegetation cover, where the growth rate is higher than mortality and net decline in vegetation cover in the opposite case. The alternative steady states arise in cases where the two functions intersect more than once. (equations of growth and mortality as functions of vegetation cover $$ $$)
+-  growth function depends on environmental quality and the mortality function depends on livestock densities. If observing the alternative steady states /attractors along a gradient of pressure, this can be plotted as a bifurcation graph of alternative steady states. Illustrating the thresholds of pressure and vegetation cover that will lead to an ecosystem shift. 
+
+
+```{r, echo = FALSE, fig.cap= "Noy Meir graphs a) M vs G function, b) bifurcation along livestock density"}
+plot_meanfield(livestock)
+
+```
+   
+Figure 2 | Noy Meir graphs a) M vs G function, b) bifurcation along livestock density
+
+- This description assumes that vegetation cover is a sufficient descriptor for the feedbacks occuring on mortality and growth of vegetation, resulting in non-linear functions of vegetation cover. Other models departed from this basic model and integrated more elaborate mechanisms that took other constants into account such as water runoff etc. (Rietkerk, van de Koppel?)
+- The recent studies have shown that vegetation structure is a major factor in understanding the stability of arid and semi-arid vegetation.
+- To integrate spatial structure into the framework of Noy Meir, we define the both growth and mortality as functions of vegetation cover AND local vegetation density / clustering coefficient. This provides information about the strength of local interactions and alters growth and mortality. 
+- (equations for growth and mortality as  functions of global and local cover)
+- The visualisation of this  case is difficult because it adds a third dimension to the graph of Noy-Meir: in the z-axis we visualise the local cover of vegetation, i.e. the average cover in the direct neighborhood of a plant $\rho_{1|1}$. However, the attractors reduce to a single point. 
+
+Figure 3 | 3D graph of growth vs. mortality 
+
+- If illustrated along the gradient of pressure, a bifurcation graph visualises the location of the attractor at any given parameter combination. In addition to the vegetation cover, which is visualised on the x axis, we require the local vegetation cover on the z axis to provide a full description of the steady state ecosystem. 
+
+Figure 4 | bifurcation along a) livestock density and b) local cover 
+
+
+# the role of local interactions for transitions
+
+- To investigate the role of local interactions between plants, we implement these mechanisms into the model. This is complemented with figures. 
+
