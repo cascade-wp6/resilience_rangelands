@@ -8,13 +8,23 @@ output: pdf_document
 ```{r, echo = FALSE}
 
 library(livestock)
+library(knitr)
+library(rgl)
+library(foreach)
+library(doSNOW)
+
+knit_hooks$set(rgl = hook_rgl)
+
+workerlist <- c(rep("localhost", times = 3))
+cl <- makeSOCKcluster(workerlist)
+ registerDoSNOW(cl)
 
 ```
 
 
 # Introduction
 
-- The conceptualisation of rangelands as systems that can experience abrupt shifts between alternative stable states has been happening since the 70s (Noy Meir, Holling, May). 
+- The conceptualisation of rangelands as systems that can experience abrupt shifts between alternative stable states has been develloped since the 70s (Noy Meir, Holling, May). 
 - The responsible mechanisms are feedbacks on the landscape scale, i.e. dependent on the 'global' density of vegetation and livestock, as well as global environmental parameters, such as aridity.
 - these studies had hughe implications for rangeland management and were well received in applied, fundamental and theoretical research. 
    - applied concepts such as state and transition models, i.e. descriptions of landscapes as systems with multiple potential states and probabilities and conditions for the transition between those. 
@@ -39,9 +49,11 @@ Figure 1 | Citations of Noy-Meir 1975 in publications of theoretical, applied an
 -  growth function depends on environmental quality and the mortality function depends on livestock densities. If observing the alternative steady states /attractors along a gradient of pressure, this can be plotted as a bifurcation graph of alternative steady states. Illustrating the thresholds of pressure and vegetation cover that will lead to an ecosystem shift. 
 
 
-```{r, echo = FALSE, fig.cap= "Noy Meir graphs a) M vs G function, b) bifurcation along livestock density"}
-plot_meanfield(livestock)
-
+```{r, echo = FALSE, fig.cap="Noy Meir graphs a) M vs G function, b) bifurcation along livestock density"}
+par(mfrow = c(1,2))
+p <- set_parms(livestock$defparms, set = list(b = 0.5))
+plot_meanfield(livestock, new = TRUE, parms = p)
+plot_bifurcation(livestock, over = "L", xrange = c(0,15), res = 51, parms = p)
 ```
    
 Figure 2 | Noy Meir graphs a) M vs G function, b) bifurcation along livestock density
@@ -52,7 +64,13 @@ Figure 2 | Noy Meir graphs a) M vs G function, b) bifurcation along livestock de
 - (equations for growth and mortality as  functions of global and local cover)
 - The visualisation of this  case is difficult because it adds a third dimension to the graph of Noy-Meir: in the z-axis we visualise the local cover of vegetation, i.e. the average cover in the direct neighborhood of a plant $\rho_{1|1}$. However, the attractors reduce to a single point. 
 
-Figure 3 | 3D graph of growth vs. mortality 
+
+```{r, echo = FALSE, fig.cap = "3D graph of growth vs. mortality" , rgl=TRUE}
+p <- set_parms(livestock$defparms, set = list(b = 0.3, c = 0.2, f = 0.9, p = 0.99, alpha = 0.2))
+plot_pairapproximation3D(livestock, parms = p)
+```
+   
+Figure 3 | 
 
 - If illustrated along the gradient of pressure, a bifurcation graph visualises the location of the attractor at any given parameter combination. In addition to the vegetation cover, which is visualised on the x axis, we require the local vegetation cover on the z axis to provide a full description of the steady state ecosystem. 
 
@@ -61,5 +79,64 @@ Figure 4 | bifurcation along a) livestock density and b) local cover
 
 # the role of local interactions for transitions
 
-- To investigate the role of local interactions between plants, we implement these mechanisms into the model. This is complemented with figures. 
+- To investigate the role of local interactions between plants, we subsequently implement these mechanisms into the model. We investigate their impact on the ecosystem state along gradients of livestock pressure (i.e. bifurcation diagrams) under a given environmental quality, that leads to the expression of catastrophic shifts. We discuss positive and negative effects on plant growth and mortality. 
 
+## local facilitation 
+
+- local facilitation is the positive local effect of plants on the growth of neighboring plants. Plants in arid environments provide shade and increase water retention, as well as improving soil organic matter by adding and capturing litter. This leads to an improvement of the local environmental quality, which is beneficial for seed germination and early survival. It therefore provides habitat for certain species that could not survive under the given conditions of the surroundings.
+- we implement local facilitation as a positive effect on cell colonisation. 
+- [equation] 
+- Thus, the likelihood of 
+- Thus, the positive effect is of great importance in arid environments. 
+
+Figure | 
+
+## local competition
+
+- plants compete for resources like nutrients and water with other plants in their close vicinity. This effect leads to decellerated growth and eventually outcompetition of the weaker competitor on the local patch scale. Plants will benefit from competitor free space around their location, if the environment allows to grow there. 
+- We implement local competition as a negative effect on growth. 
+- [equation]
+- This affects the local carrying capacity and therefore the likelihood of establishment of the system linearly with increasing density of plants in the surroundings. 
+
+
+Figure | 
+
+
+## associational resistance
+
+- In rangelands, plants are subject to feeding pressure by livestock. In drylands, many plants have evolved defence mechanisms that protect them from being eaten, such as thorns or indigestible plant metabolites. Plants that grow next to each other share this investment and benefit from the structures provided by their neighbors. 
+- We implement this as a reduction of plant mortality due to livestock feeding with increasing plant cover in the direct neighborhood. 
+- [equation]
+-  
+
+Figure | 
+
+## attractant decoy
+
+- In contrast to the protective effects of plants onto each other,  accumulations of plants will also attract livestock and increase feeding pressure locally. 
+- We implement this mechanism as a positive effect of local plant cover on the feeding rate of grazers, rendering more efficient. 
+- [equation]
+
+
+# Discussion
+
+The different mechanisms alter the possible ecosystem states observed along a gradient of pressure, but they also alter the trajectories towards those attractors departing from weakly or highly clustered landscapes. 
+
+
+# Methods
+
+We implement the equations for mortality and growth outlined above in a pair-approximation model of a spatially-explicit cellular automata framework. We contrast this to a model that does not account for spatial structure and assumes that the local neighborhood cover of plants is equal to the global vegetation cover, i.e. a mean field model. 
+
+## cellular automata model
+
+## pair-approximation model
+
+## mean-field model
+
+
+```{r}
+stopCluster(cl)
+```
+
+
+# References
