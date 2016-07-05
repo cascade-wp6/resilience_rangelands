@@ -5,7 +5,7 @@ date: "20 Juni 2016"
 output: pdf_document
 ---
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE, error = FALSE}
 
 library(livestock)
 library(knitr)
@@ -13,7 +13,9 @@ library(rgl)
 library(foreach)
 library(doSNOW)
 
+r3dDefaults$userMatrix <- matrix(c(0.7849265,0.1177803,-0.6082912,0,0.008146744,0.9797189,0.2002101,0,0.6195351,-0.1621057,0.7680479,0,0,0,0,1), nrow = 4) 
 knit_hooks$set(rgl = hook_rgl)
+head(hook_rgl)
 
 workerlist <- c(rep("localhost", times = 3))
 cl <- makeSOCKcluster(workerlist)
@@ -21,6 +23,11 @@ cl <- makeSOCKcluster(workerlist)
 
 ```
 
+# Abstract
+
+The conceptualisation of rangelands as systems that can experience abrupt shifts between alternative stable states due to positive feedback mechanisms has been developed since the 70s. While these studies investigate feedbacks of a homogeneous, global vegetation cover, recent studies discuss the importance of heterogeneous spatial structure in forming stable vegetation even under high levels of pressure.
+This study proposes an approximation to a spatially-explicit consumer-resource model as a framework to investigate the stability and resilience of arid rangelands under different management scenarios. Using this model, we explore how plant-plant interactions on the local scale, in combination with global management practices and environmental pressure, shape the thresholds of catastrophic shifts.
+Knowledge of local interactions is mandated if one wants to understand thresholds and conditions for critical transitions, for instance for the description of state and transition models. 
 
 # Introduction
 
@@ -32,6 +39,8 @@ cl <- makeSOCKcluster(workerlist)
    - theoretical studies were addressing mechanisms and behaviour of alternative stable states along gradients of pressure, where the rangeland system provided a good example. (Rietkerk, van de Koppel, Scheffer, ...) Most recently, the study of social-ecological systems addressed the catastrophic behaviour of ecosystems in the context of anthropogenic activities. (Carpenter, Schlüter)
    
 Figure 1 | Citations of Noy-Meir 1975 in publications of theoretical, applied and fundamental ecology journals. 
+   
+<!-- Difficult to get these data. The paper is not on ISI or Pubmed, Google citations cannot be extracted except by hand. I will continue to try, but since this is not essential for the paper I would skip it if it is to much work -->   
    
 - While these studies investigate feedbacks of global vegetation cover only, applying mean field approximations of vegetation, recent studies discuss the importance of spatial structure in forming stable vegetation even under high levels of pressure. (von Hardenberg, Rietkerk, Kefi)
 - the local interactions of plants are providing feedbacks on plant growth and mortality in the close surroundings of plants, for instance via providing shade and protection for neighboring plants. Growth and mortality as functions of global environment, but if looking at the local scale environmental quality might be substantially altered by the conditions in the plants direct vicinity. 
@@ -49,25 +58,23 @@ Figure 1 | Citations of Noy-Meir 1975 in publications of theoretical, applied an
 -  growth function depends on environmental quality and the mortality function depends on livestock densities. If observing the alternative steady states /attractors along a gradient of pressure, this can be plotted as a bifurcation graph of alternative steady states. Illustrating the thresholds of pressure and vegetation cover that will lead to an ecosystem shift. 
 
 
-```{r, echo = FALSE, fig.cap="Noy Meir graphs a) M vs G function, b) bifurcation along livestock density"}
+```{r, echo = FALSE, fig.cap="Noy Meir graphs a) the intersections of the growth and mortality functions define the equilibrium points (a.k.a. attractors) of the system; if the functions intersect this leads to two stable equilibria (black), and one unstable equilibrium (white). b) The bifurcation graph along livestock density illustrates the potential states of the ecosystem (i.e. it's cover) under a given parameter.", cache = TRUE, warning = FALSE, message = FALSE, error = FALSE}
 par(mfrow = c(1,2))
-p <- set_parms(livestock$defparms, set = list(b = 0.5))
+p <- set_parms(livestock$parms, set = list(b = 0.5,  L = 0.6))
 plot_meanfield(livestock, new = TRUE, parms = p)
-plot_bifurcation(livestock, over = "L", xrange = c(0,15), res = 51, parms = p)
+plot_bifurcation(livestock, over = "L", xrange = c(0,2), res = 201, parms = p) -> out
 ```
    
-Figure 2 | Noy Meir graphs a) M vs G function, b) bifurcation along livestock density
-
-- This description assumes that vegetation cover is a sufficient descriptor for the feedbacks occuring on mortality and growth of vegetation, resulting in non-linear functions of vegetation cover. Other models departed from this basic model and integrated more elaborate mechanisms that took other constants into account such as water runoff etc. (Rietkerk, van de Koppel?)
+- This description assumes that vegetation cover is a sufficient descriptor for the feedbacks occuring on mortality and growth of vegetation, resulting in non-linear functions of vegetation cover. Other models departed from this basic model and integrated more elaborate mechanisms that took other constants into account such as water runoff etc. (Rietkerk, van de Koppel?), however they still used mean-field approximations i.e. the assumption that the local cover is at all times and in all locations equal to the global cover. 
 - The recent studies have shown that vegetation structure is a major factor in understanding the stability of arid and semi-arid vegetation.
 - To integrate spatial structure into the framework of Noy Meir, we define the both growth and mortality as functions of vegetation cover AND local vegetation density / clustering coefficient. This provides information about the strength of local interactions and alters growth and mortality. 
 - (equations for growth and mortality as  functions of global and local cover)
 - The visualisation of this  case is difficult because it adds a third dimension to the graph of Noy-Meir: in the z-axis we visualise the local cover of vegetation, i.e. the average cover in the direct neighborhood of a plant $\rho_{1|1}$. However, the attractors reduce to a single point. 
 
 
-```{r, echo = FALSE, fig.cap = "3D graph of growth vs. mortality" , rgl=TRUE}
-p <- set_parms(livestock$defparms, set = list(b = 0.3, c = 0.2, f = 0.9, p = 0.99, alpha = 0.2))
-plot_pairapproximation3D(livestock, parms = p)
+```{r,echo = FALSE, fig.cap = "3D graph of growth vs. mortality", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+p <- set_parms(livestock$parms, set = list(b = 0.3, c = 0.4, f = 0.9, p = 0.99, v = 0.99))
+plot_pairapproximation3D(livestock, parms = p) -> out
 ```
    
 Figure 3 | 
@@ -76,6 +83,11 @@ Figure 3 |
 
 Figure 4 | bifurcation along a) livestock density and b) local cover 
 
+```{r, echo = FALSE, fig.cap = "3D graph of growth vs. mortality", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+p <- set_parms(livestock$parms, set = list(b = 0.3, c = 0.2, f = 0.9, p = 0.99))
+plot_pairapproximation3D(livestock, parms = p) -> out
+```
+   
 
 # the role of local interactions for transitions
 
@@ -89,8 +101,14 @@ Figure 4 | bifurcation along a) livestock density and b) local cover
 - Thus, the likelihood of 
 - Thus, the positive effect is of great importance in arid environments. 
 
-Figure | 
 
+```{r,echo = FALSE, fig.cap = "3D graph of growth vs. mortality", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+p <- set_parms(livestock$parms, set = list(b = 0.3, f = 0.9))
+plot_pairapproximation3D(livestock, parms = p, meanfield = TRUE) -> out
+
+
+```
+   
 ## local competition
 
 - plants compete for resources like nutrients and water with other plants in their close vicinity. This effect leads to decellerated growth and eventually outcompetition of the weaker competitor on the local patch scale. Plants will benefit from competitor free space around their location, if the environment allows to grow there. 
@@ -99,8 +117,13 @@ Figure |
 - This affects the local carrying capacity and therefore the likelihood of establishment of the system linearly with increasing density of plants in the surroundings. 
 
 
-Figure | 
+```{r,echo = FALSE, fig.cap = "3D graph of growth vs. mortality", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+p <- set_parms(livestock$parms, set = list(b = 0.7, c = 0.7))
+plot_pairapproximation3D(livestock, parms = p, meanfield = TRUE) -> out
 
+
+```
+   
 
 ## associational resistance
 
@@ -109,29 +132,216 @@ Figure |
 - [equation]
 -  
 
-Figure | 
+```{r,echo = FALSE, fig.cap = "3D graph of growth vs. mortality", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+p <- set_parms(livestock$parms, set = list(b = 0.6, p = 0.99, L = 1.3))
+plot_pairapproximation3D(livestock, parms = p, meanfield = TRUE) -> out
 
+```
+   
 ## attractant decoy
 
 - In contrast to the protective effects of plants onto each other,  accumulations of plants will also attract livestock and increase feeding pressure locally. 
 - We implement this mechanism as a positive effect of local plant cover on the feeding rate of grazers, rendering more efficient. 
-- [equation]
 
+
+```{r,echo = FALSE, fig.cap = "3D graph of growth vs. mortality", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+p <- set_parms(livestock$parms, set = list(b = 0.7, v = 0.9))
+plot_pairapproximation3D(livestock, parms = p, meanfield = TRUE) -> out
+
+```
+   
 
 # Discussion
+
+<!-- description of attractors and trajectories -->
 
 The different mechanisms alter the possible ecosystem states observed along a gradient of pressure, but they also alter the trajectories towards those attractors departing from weakly or highly clustered landscapes. 
 
 
+
+
+
 # Methods
 
-We implement the equations for mortality and growth outlined above in a pair-approximation model of a spatially-explicit cellular automata framework. We contrast this to a model that does not account for spatial structure and assumes that the local neighborhood cover of plants is equal to the global vegetation cover, i.e. a mean field model. 
+\small
 
-## cellular automata model
+We implement the equations for plant mortality and growth outlined above in a pair-approximation model of a spatially-explicit cellular automata framework. We contrast this to a model that does not account for spatial structure and assumes that the local neighborhood cover of plants is equal to the global vegetation cover, i.e. a mean field model. 
+
+Subsequently, we describe a basic form of the model that has been used by Noy-Meir and substitute it's elements with specific models of local plant-plant interactions. A system of ordinary differential equations is implemented in the framework of a mean-field approximation as well as a pair-approximation of a stochastic cellular automata model. We provide code for the mean-field approximation, the pair-approximation and the cellular automata online at https://cascade-wp6.github.com/livestock. 
+
+## basic model 
+
+The framework provided by Noy-Meir is a graphical assessment of the attractors of the population dynamics in a simple predator-prey system. It describes mortality and growth as functions of global vegetation cover, $\rho_1$. 
+
+For vegetation mortality, $M$, we assume intrinsic plant mortality, i.e. the inverse of average lifespan, and add the mortality due to grazing risk as a classic type II functional response. 
+
+$$ M(\rho_1) = m \rho_1 + \frac{a \rho_1 L}{1+a h \rho_1} \,,$$
+
+where $m$ denotes the intrinsic mortality rate, $a$ and $h$ are the search efficiency and handling time of the nonlinear functional response (saturating at $1/h$) which is multiplied with the livestock density, $L$. Note that livestock density is defined in the unit number of grazers per area $[\frac{ind.}{ha}]$. Search efficiency $a$ is given in area browsed in per time and grazer individual $[\frac{ha}{y \times ind.}]$, and handling time $h$ is given in time per area consumed $[\frac{y}{ha}]$, which alltogether defines feeding rate as an area consumed per year by a single individual $[\frac{ha}{y \times ind.}]$. The overall change of cover, $M(\rho)$, is thus independent from the size and unit of the observed area $[\frac{1}{y}]$.
+
+The vegetation growth, $G$, is defined as a logistic growth function.
+
+$$ G(\rho_1) = r\rho_1(1-\frac{\rho_1}{K}) \,,$$
+
+where the intrinsic growth rate, $r$, is neutralized when cover approaches the global carrying capacity, $K$. This reflects the global competition of plants fo  resources of homoegeneous distribution, such as space: when all habitable space is occupied, plant growth falls to zero. 
+
+<!-- global feedback mechanisms such as water runoff (negative effect on growth at low cover) or plant refuges against grazing for instance due to fencing (type III funuctional response) might be added here. -->
+
+## local feedbacks
+
+The basic model assumes mortality and growth to be of homogeneous distribution, and neglects spatially-explicit effects. Here, we add plant-plant interactions at the local scale by taking the cover, $q$, in the direct vicinity of plants into account. 
+By adding such interactions at the local level into the functions of growth and mortality, patterns emerge that act as positive or negative feedbacks on vegetation cover. 
+
+For vegetation growth we assume that the local environmental suitability is enhanced by local facilitation (Milchunas et al, Kéfi et al 2008). The reduction in growth rate, $r$, by aridity, i.e. the inverse of environmental quality $b$, is compensated by a function of $q_{0|1}$, the local density of cells in state 1 (i.e. vegetation) given that the focal cell is in state 0 (i.e. empty), and maximizes to one if the cell has four neighbors.
+
+$$ b = b^* + (1 - b^*)  f q_{0|1} \,,$$
+
+with the effect of aridity, $a_0$ in absence of local vegetation being increased to the value of $f$ if additive facilitation due to the presence of neighboring plants occurs. This term gradually determines the enhancement of the growth with an increasing local vegetation cover (maximizing at $q_{0|1} = 1$ if the cell has 4 neighbors). 
+
+As an opposing effect, we assume that local competition of plants inhibits colonisation locally by depleting nutrients or light. As cover increases and the interspace areas are closing in, the space available for rejuvenation approaches zero. 
+This is assuming that growth is diminished locally by competition, $c$. This affects carrying capacity rather than growth rate itself.
+
+$$ K = K^* (1 - c  q_{0|1})$$
+
+That is, if a cell has a fully vegetated local neighborhood, it's carrying capacity will be reduced by value $c$ ($c \geq K$). 
+
+Regarding plant mortality, we implement two interactions into the model. In sparse environments, high local cover will be attracting grazers and concentrate plant mortality at locations with high local density. We assume that low plant cover reduces search efficiency, $a$, locally by the value $v$
+
+$$ a = a^* + (v \frac{q_{1|1}}{\rho_1}) $$
+
+Thus, at low local cover feeding will be high on plants with neighbors, whereas at high cover the term has no effect since handling time is limiting consumption. An enhanced search efficiency will raise the critical thresholds for a collapse. 
+
+Opposing to that mechanism, plants in grazed habitats develop protective traits, such as thorns or cushion growth. They thereby provide protected habitat to their direct neighborhood, or share the investments in those traits with their neighbors. Overall grazing mortality thus is reduced through an increase in handling time by associational resistance, $p$. 
+
+$$ a = a^{**} (1- p q_{1|1}) $$ 
+
+This causes $a$ to fall to its minimal value ($1-p$) at full local cover. If $p=1$ the feeding is completely neutralized under high local cover, which also causes a drop in grazing mortality if cover is really high.
+
+Combining the attractant decoy and the associational resistance effect yields
+<!-- $$ h = h^*  / (1 - p  q_{1|1}) $$
+
+An alternative formulation should be found. The term is highly non-linear and provokes relevant changes only at values above 0.9. It is defined within $(0,1($ 
+Instead, we could define associational protection as a reduced impact due to a reduced local density of grazers.
+
+$$ L = L^* (1 - p  q_{1|1}) $$
+
+**Update 12.03.2015:** the effect is of less relevance at high cover, since the development of thorns is only induced if local pressure is already high. At high cover it is the handling time limitation that acts as an individual protection. Thus, it makes more sense to implement associational protection as an effect on search efficiency. 
+
+$$ a = a^* (1- p q_{1|1}) $$ 
+
+This causes $a$ to fall to its minimal value ($1-p$) at full local cover. If $p=1$ the feeding is completely neutralized under high local cover, which also causes a drop in grazing mortality if cover is really high. This might be unrealistic, for the biological reasons named above. So, values of $p \leq 0.9$ seem to make sense. 
+
+**Update 26.03.2015:** Also, the formulations of local effects on mortality are unclear about their compatibility, since the attractant effect it is additive while the protective effect is multiplied. 
+Thus, I have to specify--> 
+
+$$ a = (a^*  + v q_{1|1} ) (1- p q_{1|1}) $$ 
+
+Since $q_{1|1}$ and $q_{1|0}$ are spatially explicit expressions, these equations are referring to the situation at a particular location in space which is currently in one state or the other. The substitution into $M(\rho)$ and $G(\rho)$ yields transition probabilities, i.e. the probability for death and colonization for the given location, based on the global vegetation cover $\rho_1$ and the local vegetation cover $q_{1|1}$ or $q_{1|0}$ for vegetated or empty locations, respectively:
+
+$$ M(\rho_1,q_{1|1}) = w_{1,0} = m + \frac{(a^*  + v q_{1|1} ) (1- p q_{1|1}) L \rho_1}{1+ (a^*  + v q_{1|1} ) (1- p q_{1|1}) h \rho_1} $$
+
+$$ G(\rho_1,q_{1|0}) = w_{0,1} = \frac{r \rho_1 (b^* + (1 - b^*) f q_{0|1}) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} $$
+
+
+Default parameters for the model are provided in table 1. 
+
+parameter | default value | unit   | definition
+-----| -----| -------- | ----------------------------------------------
+  r  |  1.0 | $[\frac{1}{y}]$  | max. reproduction rate of vegetation per year
+  b  |  0.5 | unitless    |environmental quality, a factor that indicates  \newline quality of environment as compared to the best case scenario
+  K  |  0.9 | unitless   | carrying capacity of the system, a landscape  \newline specific value that defines the max. potential cover
+  f  |  0 | unitless     |  local facilitation, positive effect of plants  \newline  on the colonization probability in their direct neighborhood
+  c  |  0 | unitless   | local competition, negative effect of plants on \newline   colonization probability in their direct neighborhood
+  m  |  0.05| $[\frac{1}{y}]$   | intrinsic mortality of plants (inverse of av. lifespan)
+  v  |  0 | unitless   | attractant-decoy effect, negative effect of plants  \newline  on mortality in their direct neighborhood
+  p  |  0 | unitless   | associational resistance, positive protection effects  \newline  of plants on each other against mortality due to grazing
+  L  |  2   | $[\frac{ind.}{ha}]$   | Livestock density
+  h  |  10  | $[\frac{y}{ha}]$   | handling time, time required to consume one hectar  \newline  of vegetation 
+  a  |  5 | $[\frac{ha}{y \times ind.}]$   | search efficiency of livestock, 
+
 
 ## pair-approximation model
 
+Subsequently, we implement these functions into a pair-approximation of a spatially-explicit model. 
+The pair-approximation framework [@matsuda92] is defined as a system of ordinary differential equations, describing the populations of *pairs* of neighboring locations. In a two state system, three pairs can be defined with population densities $\rho_{1,1}$ , $\rho_{0,0}$, and $\rho_{0,1}$. Besides, there are the population densities of the singletons, $\rho_0$ and $\rho_1$. 
+
+The following conservation equations allow to calculate population densities of one pair based on the other pairs and singletons:
+
+$$ \rho_1 + \rho_0 = 1$$
+
+$$ \rho_{1,1} + \rho_{0,1} = \rho_1$$
+
+$$ \rho_{0,1} + \rho_{0,0} = \rho_0$$
+
+
+We now can use the transition probabilities of the individual locations to describe the full system of differential equations.
+
+$$  \frac{\mathrm{d}\rho_{1,1}}{\mathrm{d}t} = 2 \rho_{1,0}w_{0,1} - 2 \rho_{1,1} w_{1,0}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}w_{0,1} - \rho_{1}w_{1,0}   $$
+
+$$  \frac{\mathrm{d}\rho_{1,0}}{\mathrm{d}t} = 2 \rho_{0,0}w_{0,1} + 2 \rho_{1,1}w_{1,0} - \rho_{1,0}w_{0,1}    $$
+
+$$  \frac{\mathrm{d}\rho_{0}}{\mathrm{d}t} = \rho_{1}w_{1,0} - \rho_{0}w_{0,1} $$
+
+$$  \frac{\mathrm{d}\rho_{0,0}}{\mathrm{d}t} = 2 \rho_{1,0}w_{1,0} - 2 \rho_{0,0}w_{0,1}  $$
+
+Due to the conservation equations, two of these are sufficient to fully describe the dynamics of the system. 
+
+We chose to keep the first two, substitute and simplify
+<!--
+$$  \frac{\mathrm{d}\rho_{11}}{\mathrm{d}t} = 2 \rho_{10} \frac{r \rho_1^{1+\alpha} (b^* + (1 - b) f q_{0|1})) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v q_{1|1})L^* (1 - p  q_{1|1})\rho_1^{q}}{1+(a^*  + v q_{1|1})h\rho_1^{1+q}}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}\frac{r \rho_1^{1+\alpha} (b^* + (1 - b)  f q_{0|1})) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - \rho_{1}m - \frac{(a^*  + v q_{1|1})L^* (1 - p  q_{1|1})\rho_1^{1+q}}{1+(a^*  + v q_{1|1})h\rho_1^{1+q}}   $$
+
+they can be simplified to 
+-->
+
+$$  \frac{\mathrm{d}\rho_{11}}{\mathrm{d}t} = 2 \rho_{10} \frac{r \rho_1^{1+\alpha} (b^* + (1 - b)  f q_{0|1})) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v q_{1|1})L^* (1 - p  q_{1|1}) \rho_1^{q}}{1+(a^*  + v q_{1|1})h)\rho_1^{1+q}}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (1 - b)  f q_{0|1})) (1-\frac{\rho_1}{K^* (1 - c q_{0|1})}) - \rho_{1}m - \frac{(a^*  + v q_{1|1})L^* (1 - p  q_{1|1})\rho_1^{1+q}}{1+(a^*  + v q_{1|1})h\rho_1^{1+q}}   $$
+ 
+<!--
+as a matter of fact the equation for $\frac{\mathrm{d}\rho_{1}}{\mathrm{d}t}$ will re-convert into the regular population equation. 
+-->
+Since formally $q_{i|j}$ is a conditional probability (given that one neighbor is in state $i$, what is the probability to find the other in state $j$) we can express it in terms of densities of pairs and ‘singletons,’ as  
+
+$$ q_{i|j} = \frac{\rho_{ij}}{\rho_i} $$
+
+thus,
+
+$$ q_{0|1} = \frac{\rho_{10}}{\rho_0} =  \frac{\rho_{1} - \rho_{11}}{1 - \rho_1} $$
+
+$$ q_{1|1} = \frac{\rho_{11}}{\rho_1} $$
+<!--
+and substituting yields
+
+
+$$  \frac{\mathrm{d}\rho_{11} }{\mathrm{d}t} = 2 (\rho_1 - \rho_{11}) \frac{r \rho_1^{1+\alpha} (b^* + (1 - b)  f \frac{\rho_{1} - \rho_{11}}{1 - \rho_1} )) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})})}{1-\rho_1} - 2 \rho_{11} m -  2 \rho_{11} \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L^* (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}  $$
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b^* + (1 - b) f  \frac{\rho_{1} - \rho_{11}}{1 - \rho_1}) (1-\frac{\rho_1}{K^* (1 - c \frac{\rho_{1} - \rho_{11}}{1 - \rho_1})}) - \rho_{1}m -  \frac{(a^*  + v \frac{\rho_{11}}{\rho_1})L^* (1 - p \frac{\rho_{11}}{\rho_1})\rho_1^{1+q}}{1+(a^*  + v \frac{\rho_{11}}{\rho_1})h\rho_1^{1+q}}   $$
+-->
+
 ## mean-field model
+
+The change in cover derives from the growth and mortality terms
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = \rho_{0}w_{0,1} - \rho_{1}w_{1,0}   $$
+
+Thus, we can substitute $C(\rho) = w_{1,0}$ and $G(\rho) = w_{0,1}$ and obtain
+
+$$  \frac{\mathrm{d}\rho_{1}}{\mathrm{d}t} = r \rho_1^{1+\alpha} (b + (1 - b)  f \rho_1)) (1-\frac{\rho_1}{K(1 - c \rho_1}) - \rho_{1}m - \frac{(a  + v \rho_1)(1 - p \rho_1)L \rho_1^{1+q}}{1+(a  + v \rho_1)h\rho_1^{1+q}}  $$
+
+
+## Online supplementary material
+
+### Github
+
+The ODEs are solved using R package deSolve [@soetart10] applying the algorithm Dormand-Prince 4(5) of local order 7 (calling `deSolve::ode(..., method = "ode45")`). The full code for calling single simulations as well as replicated simulations for bifurcation graphs or attractor plots is provided as a functional R package available at https://cascade-wp6.github.com/livestock (v1.0, doi: zenodo/xxxx). 
+
+### cellular automata implementation
+
+It is straightforward to implement the mechanisms described above in the syntax of a cellular automata model, where the probabilities of transition can not only depend on the global cover $\rho_1$ but also on the local cover in the direct neighborhood of the cell $\nu_1$ (closest 4 cells, von-Neumann-neighborhood). Cellular automata simulations are available via the R package caspr (https://fdschneider.github.com/caspr) or as an implementation in NetLogo (https://fdschneider.github.com/livestock/docs/livestockmodel.nlogo).
 
 
 ```{r}
