@@ -1,5 +1,5 @@
 ---
-title: "The implications of local interactions on the resilience of arid rangelands"
+title: "Combining landscape and local scale to predict ecosystem resilience"
 author: "Florian D. Schneider"
 date: "20 Juni 2016"
 output: pdf_document
@@ -13,7 +13,7 @@ library(rgl)
 library(foreach)
 library(doSNOW)
 
-r3dDefaults$userMatrix <- matrix(c(0.7849265,0.1177803,-0.6082912,0,0.008146744,0.9797189,0.2002101,0,0.6195351,-0.1621057,0.7680479,0,0,0,0,1), nrow = 4) 
+r3dDefaults$userMatrix <- matrix(c(0.9321498, 0.08271866, -0.3524974, 0, -0.3600706, 0.3140252, -0.878486, 0, 0.03802587, 0.9458043, 0.3225031, 0, 0, 0, 0, 1), nrow = 4) 
 knit_hooks$set(rgl = hook_rgl)
 head(hook_rgl)
 
@@ -33,74 +33,116 @@ Knowledge of local interactions is mandated if one wants to understand threshold
 
 - The conceptualisation of rangelands as systems that can experience abrupt shifts between alternative stable states has been develloped since the 70s (Noy Meir, Holling, May). 
 - The responsible mechanisms are feedbacks on the landscape scale, i.e. dependent on the 'global' density of vegetation and livestock, as well as global environmental parameters, such as aridity.
-- these studies had hughe implications for rangeland management and were well received in applied, fundamental and theoretical research. 
+- these studies had huge implications for rangeland management and were well received in applied, fundamental and theoretical research. 
    - applied concepts such as state and transition models, i.e. descriptions of landscapes as systems with multiple potential states and probabilities and conditions for the transition between those. 
-   - fundamental research addressed the existence of alternative stable states in observational and experimental studies (examples in rangelands?? arid shrublands? grasslands?). It relates to the study of successional states. 
-   - theoretical studies were addressing mechanisms and behaviour of alternative stable states along gradients of pressure, where the rangeland system provided a good example. (Rietkerk, van de Koppel, Scheffer, ...) Most recently, the study of social-ecological systems addressed the catastrophic behaviour of ecosystems in the context of anthropogenic activities. (Carpenter, Schlüter)
+   - fundamental research addressed the existence of alternative stable states in observational and experimental studies (examples in rangelands?? arid shrublands? grasslands?, refs). It introduced discontinuity and irreversibility into the study of successional states (refs). 
+   - A change in climatic pressure or anthropogenic drivers may not only alter one state variable of the system, but multiple. 
+   - theoretical studies were addressing mechanisms and behaviour of alternative stable states along gradients of pressure, where the rangeland system provided a good example. (ref Rietkerk, van de Koppel, Scheffer, ...) Most recently, the study of social-ecological systems addressed the catastrophic behaviour of ecosystems in the context of anthropogenic activities. (ref Carpenter, Schlüter) Conceptualisations like this require a systemic understanding of ecosystems, incorporating mechanistics such as feedback loops and nonlinearities. 
    
-Figure 1 | Citations of Noy-Meir 1975 in publications of theoretical, applied and fundamental ecology journals. 
+<!--Figure 1 | Citations of Noy-Meir 1975 in publications of theoretical, applied and fundamental ecology journals. 
    
-<!-- Difficult to get these data. The paper is not on ISI or Pubmed, Google citations cannot be extracted except by hand. I will continue to try, but since this is not essential for the paper I would skip it if it is to much work -->   
+ Difficult to get these data. The paper is not on ISI or Pubmed, Google citations cannot be extracted except by hand. I will continue to try, but since this is not essential for the paper I would skip it if it is to much work -->   
    
 - While these studies investigate feedbacks of global vegetation cover only, applying mean field approximations of vegetation, recent studies discuss the importance of spatial structure in forming stable vegetation even under high levels of pressure. (von Hardenberg, Rietkerk, Kefi)
 - the local interactions of plants are providing feedbacks on plant growth and mortality in the close surroundings of plants, for instance via providing shade and protection for neighboring plants. Growth and mortality as functions of global environment, but if looking at the local scale environmental quality might be substantially altered by the conditions in the plants direct vicinity. 
 - This leads to the formation of  the pattern of vegetation along gradients of stress. Examples in shrublands, etc. (Rietkerk) 
 - Spatial structure is also suggested as an early indicator of shifts (Kefi, Dakos, Scheffer)
 
-
 - In this paper, we will discuss the local interactions that lead to feedbacks on the formation of vegetation and alter the steaady state / attractors. 
 - Knowledge of local interactions is mandated if one wants to understand thresholds and conditions for critical transitions, for instance for the description of state and transition models. 
 
 # describing the state of a rangeland system
 
-- the framework proposed by Noy Meir 1975 looks at simple graphical analysis of the growth vs mortality of vegetation. This simple population dynamic approach identifies the stable and unstable equilibria of an ecosystem/population at the intersections of the growth and mortality functions over vegetation cover.
-- We observe net increase in vegetation cover, where the growth rate is higher than mortality and net decline in vegetation cover in the opposite case. The alternative steady states arise in cases where the two functions intersect more than once. (equations of growth and mortality as functions of vegetation cover $$ $$)
--  growth function depends on environmental quality and the mortality function depends on livestock densities. If observing the alternative steady states /attractors along a gradient of pressure, this can be plotted as a bifurcation graph of alternative steady states. Illustrating the thresholds of pressure and vegetation cover that will lead to an ecosystem shift. 
+- the framework proposed by Noy-Meir in 1975 looks at simple graphical analysis of the growth vs mortality of vegetation. This population dynamic approach identifies the stable and unstable equilibria of an ecosystem/population at the intersections of the growth and mortality functions along the state variable of vegetation cover [@noymeir75].
+- Where the growth rate is higher than mortality, we would observe net increase in vegetation cover. A net decline in vegetation cover is expected if the opposite is the case. Equilibrium is reached where growth and mortality cancel each other out. These equilibria are stable, if the state variable after a small disturbance would return to their original value (Fig 1a, black points).   
+- Alternative stable states arise in cases where the two functions of growth and mortality intersect more than once. Noy-Meir showed that this is regularly the case in grazing systems, due to the intersection of a saturating feeding curve with a logistic growth rate. In those cases, the vegetated state can transition into a permanent and irreversible degradet state close to zero vegetation cover.  
+-  In this framework, the growth function depends on environmental quality and is strictly limited by a carrying capacity (logistic growth, fig 1a, green curve). The mortality function is based on the assumption of saturating feeding rates with increasing resource density, so called functional response, and scales with livestock densities (Fig 1a, black curve). Those curves intersect three times along the state variable: First, they both take value 0 at vegetation cover 0, which marks the degraded state of the grazing system; second, they intersect in the rising branch at intermediate vegetation cover; third, they intersect at the plateau of the mortality function and the lowering part of the growth function. While the second equilibrium is unstable (i.e. a disturbance would cause the system to move away), the third intersection is the stable quilibrium of the vegetated state, a.k.a. its attractor.  
 
+- If observing the alternative steady states /attractors along a gradient of pressure, e.g. Livestock density, this can be plotted as a bifurcation graph of alternative steady states. Illustrating the thresholds of pressure and vegetation cover that will lead to an ecosystem shift (Fig 1b). 
+- This graphical visualisation allows the identification of two kinds of critical thresholds. First, the distance of the stable attractors to the unstable one represents the supported disturbance amplitude. Second, the distance of the current value of pressure, to the point where the vegetated state perseveres, signifies the degree of pressure that the system can additionally bear before collapsing. In practice, both quantities must be regarded, since in the face of stochastic disturbance events like droughts or erosion, they are composites of a trade-off between security and productivity of the rangeland system (ref).
 
 ```{r, echo = FALSE, fig.cap="Noy Meir graphs a) the intersections of the growth and mortality functions define the equilibrium points (a.k.a. attractors) of the system; if the functions intersect this leads to two stable equilibria (black), and one unstable equilibrium (white). b) The bifurcation graph along livestock density illustrates the potential states of the ecosystem (i.e. it's cover) under a given parameter.", cache = TRUE, warning = FALSE, message = FALSE, error = FALSE}
 par(mfrow = c(1,2))
 p <- set_parms(livestock$parms, set = list(b = 0.5,  L = 0.6))
-plot_meanfield(livestock, new = TRUE, parms = p)
+
+plot_meanfield(livestock, parms = set_parms(p, set = list(L=1.9)), new = TRUE, col =  c("#888888","#009933"))
+plot_meanfield(livestock, new = FALSE, parms = p)
+#mtext(paste("L =", p$L), line = -1, at = 0.1, adj = 0) 
+text(0.5,0.03, paste("L =", p$L), adj = 0)
+arrows(0.5,mortality(ini_rho(0.5), parms = set_parms(p, set = list(L=0.6))),0.5,mortality(ini_rho(0.5), parms = set_parms(p, set = list(L=1.9))) , length = 0.05)
+text(0.55,0.15, paste("L = 1.9"), adj = 0)
+
 plot_bifurcation(livestock, over = "L", xrange = c(0,3), res = 201, parms = p) -> out
+
+arrows(0.6,-0.35,1.9,-0.35, length = 0.05, xpd = TRUE)
+
 ```
-   
-- This assumes that vegetation cover is a sufficient descriptor for the feedbacks occuring on mortality and growth of vegetation, resulting in non-linear functions of vegetation cover. Other models departed from this basic model and integrated more elaborate mechanisms that took other constants into account such as water runoff etc. (Rietkerk, van de Koppel?), however they still used mean-field approximations i.e. the assumption that the local cover is at all times and in all locations equal to the global cover. 
-- The recent studies have shown that vegetation structure is a major factor in understanding the stability of arid and semi-arid vegetation.
-- To integrate spatial structure into the framework of Noy Meir, we define the both growth and mortality as functions of vegetation cover AND local vegetation density / clustering coefficient. This provides information about the strength of local interactions and alters growth and mortality. 
-- (equations for growth and mortality as  functions of global and local cover)
-- The visualisation of this  case is difficult because it adds a third dimension to the graph of Noy-Meir: in the z-axis we visualise the local cover of vegetation, i.e. the average cover in the direct neighborhood of a plant $\rho_{1|1}$. However, the attractors reduce to a single point. 
 
+- In that sense, the state variable 'vegetation cover' is a promising indicator for the risk of degradation. It is easy to measure over time and its temporal variation can be quantified into defined early warning signs [@dakos]. 
 
-```{r,echo = FALSE, fig.cap = "3D graph of growth vs. mortality", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+## adding spatial information to models
+
+- This assumes, however, that vegetation cover is a sufficient descriptor for the feedbacks occuring on mortality and growth of vegetation, resulting in non-linear functions of vegetation cover. Other models departed from this basic concept and integrated more elaborate mechanisms that took further constants into account such as water runoff etc. (Rietkerk, van de Koppel). Most of these modells still used mean-field approximations, i.e. the assumption that the local cover is at all times and in all locations equal to the global cover. 
+- Indeed, ecological mechanisms behind local feedbacks on mortality and growth have been described in empirical and theoretical studies: local facilitation, and competition constitute positive and negative effects on plant establishment  and growth. Attractant decoy and Associational resistance are known are positive and negative effects on plant mortality. Thus, depending on the importance of these factors, the proximity to other plants alters growth and mortality via these ecological mechanisms. 
+- Recent studies have shown that explicit vegetation structure is a major factor in understanding the stability of arid and semi-arid vegetation (Kéfi 2008; Schneider 2016, ...). 
+- To integrate spatial structure into the framework of Noy-Meir, we define both growth and mortality as functions of vegetation cover *and* local vegetation density, i.e. the clustering coefficient. 
+- This adds a layer of information about the strength of local interactions in response to local vegetation cover.
+
+- The visualisation of this case is difficult because it adds a third dimension to the graph of Noy-Meir: in the z-axis we visualise the average local cover of vegetation in the vicinity of a plant, i.e. the conditional probability to find plants in the adjacent localities given that a locality is vegetated, $q_{1|1}$. 
+- The functions of growth and mortality now describe planes in this three dimensional volume (Fig 3a). The threshold at which vegetation cover either declines or increases, i.e. the unstable equilibrium, now depends on global cover as well as clustering intensity of the vegetation. 
+- Nevertheless, the steady state attractors, i.e. the cases where mortality and growth equal each other out, reduce to points in this three dimensional space. (needs further explanation?)
+
+```{r,echo = FALSE, fig.cap = "3D graph of growth vs. mortality. Animated version is available online at ... .", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
 p <- set_parms(livestock$parms, set = list(b = 0.3, f = 0.9, p = 0.9 , v = 0.6))
 run <- sim_trajectories(livestock, parms = p)
 
-plot_pairapproximation3D(livestock, parms = p) 
 
-layout(matrix(c(1,2,3), ncol = 3), widths = c(2,2,1))
+mfrow3d(1, 2)
+  plot_pairapproximation3D(livestock, parms = p) 
+
+bgplot3d({
+  plot.new()
+  mtext("a)", adj = "0", cex = 1)
+  }
+)
+
+plot_bifurcation3D(livestock, parms = p, res = 21)
+
+bgplot3d({
+  plot.new()
+  mtext("b)", adj = "0", cex = 1)
+  }
+)
+```
+
+- If illustrated along the gradient of pressure, a bifurcation graph visualises the location of the attractor at any given parameter combination (Fig 3b). In addition to the vegetation cover, which is visualised on the x axis, we require the local vegetation cover on the z axis to provide a full description of the steady state ecosystem. 
+
+- To simplify visualisation, we break those graphs apart into a representation that can be compared directly to the visualisation of the Noy-Meir paper (Fig. 1): 
+- A first pair of graphs illustrates the steady state attractor and unstable equilibria of the system at a given level of pressure. Its first panel illustrates the trajectories of growth and mortality along a gradient of vegetation cover $\rho$. The second panel shows the relationship between global and local vegetation cover, i.e. a top-view of the cube in figure 2.
+- A second pair of graphs illustrates the bifurcation of attractors along a gradient of pressure. In this case, we focus on a gradient of livestock density $\L$, comparable to Fig 1b. The first panel illustrates the steady state vegetation cover, $\rho_{1}$ of the system along the gradient of pressure. The second panel puts this equilibrium vegetation cover in relation to the apparent vegetation structure, i.e. the quantity of clustering of the vegetation in space. This quantity is reportet as the clustering coefficient, $c$, which is defined as the ratio between average vegetation cover found in the neighborhood of plants, $\q_{1|1}$, to the global vegetation cover $\rho_1$. A value of 1 would reflect random clustering, whereas values well above 1 signify a patchy vegetation landscape.
+
+```{r}
+
+layout(matrix(c(1,2,3,4), ncol = 2, byrow = FALSE), heights = c(1,1))
+par(mar = c(0,5,3,1), las = 1)
 plot_pairapproximation(livestock, parms = p, new = TRUE, side = "rho")
-plot_pairapproximation(livestock, parms = p, new = TRUE, side = "q")
+#plot_pairapproximation(livestock, parms = p, new = TRUE, side = "q")
+par(mar = c(4,5,0.55,1))
 plot_pairapproximation(livestock, parms = p, new = TRUE, side = "plain")
-```
-   
-Figure 3 | 
-
-- If illustrated along the gradient of pressure, a bifurcation graph visualises the location of the attractor at any given parameter combination. In addition to the vegetation cover, which is visualised on the x axis, we require the local vegetation cover on the z axis to provide a full description of the steady state ecosystem. 
-
-Figure 4 | bifurcation along a) livestock density and b) local cover 
-
-```{r, echo = FALSE, fig.cap = "3D graph of growth vs. mortality", rgl=TRUE, results = FALSE, warning = FALSE, message = FALSE, error = FALSE}
-p <- set_parms(livestock$parms, set = list(b = 0.3, c = 0.2, f = 0.9, p = 0.99))
-
-#bifurcation plot
+par(mar = c(0,5,3,1))
+plot_bifurcation(livestock, over = "L", xrange = c(0,4), parms = p)
+par(mar = c(4,5,0.55,1))
+plot_bifurcation(livestock, over = "L", type = "plain", xrange = c(0,4), parms = p)
 
 ```
-   
+
+Interpretation of these graphs is as follows:  
+- The lines in the left panels represent trajectories or growth and mortality towards the attractor under given intial conditions, that is starting from low to high global cover and minimal vs. maximal clustering.  The interaction of local cover  and total vegetation cover are visualised in the lower panel. 
+- 
 
 # the role of local interactions for transitions
 
-- To investigate the role of local interactions between plants, we subsequently implement these mechanisms into the model. We investigate their impact on the ecosystem state along gradients of livestock pressure (i.e. bifurcation diagrams) under a given environmental quality, that leads to the expression of catastrophic shifts. We discuss positive and negative effects on plant growth and mortality. 
+- To investigate the role of local interactions between plants, we subsequently implement spatially constrained mechanisms into the model. We investigate their impact on the ecosystem state along gradients of livestock pressure (i.e. bifurcation diagrams) under a given environmental quality, that leads to the expression of catastrophic shifts. We discuss positive and negative effects on plant growth and mortality. 
 
 ## local facilitation 
 
