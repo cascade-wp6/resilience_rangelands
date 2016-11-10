@@ -1,5 +1,5 @@
-Implementing realistic grazing in models of catastrophic shift (CAS01)
-======================================================================
+Towards a spatial resilience framework for arid rangelands (CAS02)
+==================================================================
 
 ## Objective
 
@@ -8,15 +8,19 @@ This aims at an integration of spatial grazing mortality into a population-dynam
 The model is of exploring how certain assumptions on global and local feed-backs, in combination with management practices affect the thresholds of catastrophic shifts.
 
 
-### Deliveries
+### Deliverables
 
-#### Manuscript: "Towards a spatial resilience framework for arid and semi-arid rangelands"
+#### R-package 'livestock' 
 
-#### Interactive model website
+A package to simulate and graphically visualise trajectories and attractors in a simple spatially-implicit model framework using pair-approximations. 
 
-#### NetLogo Model
+#### Manuscript: "Towards a spatial resilience framework for arid rangelands"
 
+To be submitted to special issue in 'Ecological Indicators'. 
 
+#### Interactive online model tool (Shiny)
+
+A fully flexible simulation tool to visualise change of attractor with changing balance of global and local feed-backs. 
 
 ## License
 
